@@ -1,4 +1,4 @@
-enum UserRole { admin, student, staff, parent, unknown }
+enum UserRole { admin, hod, student, staff, parent, unknown }
 
 class UserModel {
   final String uid;
@@ -48,6 +48,9 @@ class UserModel {
     switch (role.toLowerCase()) {
       case 'admin':
         return UserRole.admin;
+      case 'hod':
+      case 'department':
+        return UserRole.hod;
       case 'student':
         return UserRole.student;
       case 'staff':

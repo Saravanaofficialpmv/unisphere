@@ -1,0 +1,236 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:clg_application/widgets/common/main_sidebar.dart';
+
+import 'hod_home_dashboard.dart';
+import 'modules/hod_staff_management.dart';
+import 'modules/hod_student_management.dart';
+import 'modules/hod_academic_management.dart';
+import 'modules/hod_attendance_management.dart';
+import 'modules/hod_exam_management.dart';
+import 'modules/hod_timetable_management.dart';
+import 'modules/hod_leave_management.dart';
+import 'modules/hod_announcements.dart';
+import 'modules/hod_reports_analytics.dart';
+import 'modules/hod_settings.dart';
+
+class HodShell extends ConsumerStatefulWidget {
+  const HodShell({super.key});
+
+  @override
+  ConsumerState<HodShell> createState() => _HodShellState();
+}
+
+class _HodShellState extends ConsumerState<HodShell> {
+  int _currentIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final List<SidebarItem> _sidebarItems = [
+    SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
+    SidebarItem(label: 'Staff Management', icon: Icons.badge_outlined),
+    SidebarItem(label: 'Student Management', icon: Icons.school_outlined),
+    SidebarItem(label: 'Reports & Analytics', icon: Icons.insights_outlined),
+    SidebarItem(label: 'Department Settings', icon: Icons.settings_outlined),
+    SidebarItem.divider('ACADEMIC MODULES'),
+    SidebarItem(label: 'Attendance Management', icon: Icons.fact_check_outlined),
+    SidebarItem(label: 'Academic Administration', icon: Icons.menu_book_outlined),
+    SidebarItem(label: 'Timetable Management', icon: Icons.calendar_month_outlined),
+    SidebarItem(label: 'Examination & Marks', icon: Icons.assessment_outlined),
+    SidebarItem(label: 'Leave & OD Approvals', icon: Icons.pending_actions_outlined, badge: '5'),
+    SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
+  ];
+
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HodHomeDashboard(onNavigate: _handleNavigation),
+      const HodStaffManagement(),
+      const HodStudentManagement(),
+      const HodReportsAnalytics(),
+      const HodSettings(),
+      const HodAttendanceManagement(),
+      const HodAcademicManagement(),
+      const HodTimetableManagement(),
+      const HodExamManagement(),
+      const HodLeaveManagement(),
+      const HodAnnouncements(),
+    ];
+  }
+
+  void _handleNavigation(int index) {
+    setState(() => _currentIndex = index);
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 1200;
+
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: AppColors.background,
+      drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          children: const [
+            Icon(Icons.shield_outlined, color: AppColors.primary, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'CSE Department Portal',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.textPrimary),
+            ),
+          ],
+        ),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary),
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('5 New Department Notifications'), backgroundColor: AppColors.info));
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Row(
+        children: [
+          if (isDesktop) _buildSidebar(),
+          Expanded(child: _screens[_currentIndex < _screens.length ? _currentIndex : 0]),
+        ],
+      ),
+      bottomNavigationBar: isDesktop ? null : _buildBottomNavBar(),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        onPressed: () => _showQuickActionsModal(context),
+        icon: const Icon(Icons.flash_on_rounded, color: Colors.white),
+        label: const Text('Quick Actions', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+      ),
+    );
+  }
+
+  Widget _buildSidebar() {
+    return MainSidebar(
+      selectedIndex: _currentIndex,
+      onDestinationSelected: _handleNavigation,
+      items: _sidebarItems,
+      userName: 'Dr. R. Kumar',
+      userEmail: 'hod.cse@unisphere.edu',
+    );
+  }
+
+  Widget _buildBottomNavBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, -4))],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _currentIndex < 5 ? _currentIndex : 0,
+        onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+        unselectedLabelStyle: const TextStyle(fontSize: 11),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.badge_outlined), activeIcon: Icon(Icons.badge_rounded), label: 'Staff'),
+          BottomNavigationBarItem(icon: Icon(Icons.school_outlined), activeIcon: Icon(Icons.school_rounded), label: 'Students'),
+          BottomNavigationBarItem(icon: Icon(Icons.insights_outlined), activeIcon: Icon(Icons.insights_rounded), label: 'Reports'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), activeIcon: Icon(Icons.settings_rounded), label: 'Settings'),
+        ],
+      ),
+    );
+  }
+
+  void _showQuickActionsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Quick Department Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _buildModalAction(context, Icons.person_add_alt_1_outlined, 'Add New Faculty', () {
+                    Navigator.pop(context);
+                    setState(() => _currentIndex = 1);
+                  }),
+                  _buildModalAction(context, Icons.campaign_outlined, 'Broadcast Notice', () {
+                    Navigator.pop(context);
+                    setState(() => _currentIndex = 10);
+                  }),
+                  _buildModalAction(context, Icons.pending_actions_outlined, 'Approve Leaves', () {
+                    Navigator.pop(context);
+                    setState(() => _currentIndex = 9);
+                  }),
+                  _buildModalAction(context, Icons.calendar_month_outlined, 'View Timetable', () {
+                    Navigator.pop(context);
+                    setState(() => _currentIndex = 7);
+                  }),
+                  _buildModalAction(context, Icons.assessment_outlined, 'Approve Marks', () {
+                    Navigator.pop(context);
+                    setState(() => _currentIndex = 8);
+                  }),
+                  _buildModalAction(context, Icons.file_download_outlined, 'Export Analytics', () {
+                    Navigator.pop(context);
+                    setState(() => _currentIndex = 3);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalAction(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: (MediaQuery.of(context).size.width - 52) / 2,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(16)),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.primary, size: 20),
+            const SizedBox(width: 10),
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+          ],
+        ),
+      ),
+    );
+  }
+}

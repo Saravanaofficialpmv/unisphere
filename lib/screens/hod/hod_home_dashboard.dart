@@ -1,0 +1,366 @@
+import 'package:flutter/material.dart';
+import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:percent_indicator/percent_indicator.dart';
+
+class HodHomeDashboard extends StatelessWidget {
+  final Function(int)? onNavigate;
+
+  const HodHomeDashboard({super.key, this.onNavigate});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isMobile = MediaQuery.of(context).size.width < 600;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(isMobile ? 16 : 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPersonalizedGreeting(isMobile),
+          const SizedBox(height: 24),
+          _buildSummaryCards(context),
+          const SizedBox(height: 28),
+          _buildDepartmentOverview(context),
+          const SizedBox(height: 28),
+          _buildAnalyticsGraphs(context),
+          const SizedBox(height: 28),
+          _buildActivityFeed(),
+          const SizedBox(height: 28),
+          _buildQuickActionButtons(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalizedGreeting(bool isMobile) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 20 : 28),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Good Morning, 👋',
+                  style: TextStyle(fontSize: 14, color: Color(0xFF93C5FD), fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Dr. R. Kumar',
+                  style: TextStyle(fontSize: isMobile ? 22 : 28, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Head of Department • Computer Science & Engineering',
+                    style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const CircleAvatar(
+            radius: 32,
+            backgroundColor: Colors.white24,
+            child: Icon(Icons.shield_outlined, color: Colors.white, size: 32),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCards(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      int count = constraints.maxWidth < 650 ? 2 : 4;
+      return GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: count,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 1.35,
+        children: [
+          _buildSummaryCard('Total Students', '1,280', Icons.school_outlined, '4 Batches (CS-A, B, C)', const Color(0xFFEEF2FF), const Color(0xFF3730A3)),
+          _buildSummaryCard('Total Faculty', '42', Icons.badge_outlined, 'Professors & Instructors', const Color(0xFFF3E8FF), const Color(0xFF6B21A8)),
+          _buildSummaryCard('Classes Today', '18', Icons.class_outlined, 'Lectures & Labs Running', const Color(0xFFFEF3C7), const Color(0xFF92400E)),
+          _buildSummaryCard('Overall Attendance', '94.2%', Icons.analytics_outlined, 'Students Present Today', const Color(0xFFD1FAE5), const Color(0xFF065F46)),
+        ],
+      );
+    });
+  }
+
+  Widget _buildSummaryCard(String title, String num, IconData icon, String sub, Color bgColor, Color iconColor) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 6))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              Icon(Icons.trending_up_rounded, color: iconColor, size: 18),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(num, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: iconColor)),
+              const SizedBox(height: 2),
+              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              Text(sub, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDepartmentOverview(BuildContext context) {
+    final overviewData = [
+      {'label': 'Students Present Today', 'value': '1,205 / 1,280', 'icon': Icons.person_add_alt_1_outlined, 'color': AppColors.primary},
+      {'label': 'Faculty Present', 'value': '40 / 42', 'icon': Icons.how_to_reg_outlined, 'color': const Color(0xFF059669)},
+      {'label': 'Pending Leave Requests', 'value': '5 Requests', 'icon': Icons.pending_actions_outlined, 'color': AppColors.warning},
+      {'label': 'Upcoming Events', 'value': '3 Events', 'icon': Icons.event_available_outlined, 'color': const Color(0xFF7C3AED)},
+      {'label': 'Placement Drives', 'value': '2 Scheduled', 'icon': Icons.work_outline, 'color': const Color(0xFF0891B2)},
+      {'label': 'Circulars Published', 'value': '14 Circulars', 'icon': Icons.campaign_outlined, 'color': const Color(0xFFDC2626)},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 6))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('DEPARTMENT OVERVIEW', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.2)),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: overviewData.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 2.2,
+            ),
+            itemBuilder: (context, index) {
+              final item = overviewData[index];
+              final Color col = item['color'] as Color;
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(16)),
+                child: Row(
+                  children: [
+                    Icon(item['icon'] as IconData, color: col, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(item['label'] as String, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600), maxLines: 1),
+                          const SizedBox(height: 2),
+                          Text(item['value'] as String, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: col)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsGraphs(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 6))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text('WEEKLY ATTENDANCE & PERFORMANCE TREND', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.2)),
+              Icon(Icons.bar_chart_rounded, color: AppColors.primary),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildGraphBar('Mon', '96.2%', 0.962, AppColors.primary),
+          const SizedBox(height: 10),
+          _buildGraphBar('Tue', '94.5%', 0.945, const Color(0xFF7C3AED)),
+          const SizedBox(height: 10),
+          _buildGraphBar('Wed', '97.8%', 0.978, const Color(0xFF059669)),
+          const SizedBox(height: 10),
+          _buildGraphBar('Thu', '92.1%', 0.921, AppColors.warning),
+          const SizedBox(height: 10),
+          _buildGraphBar('Fri', '94.0%', 0.940, const Color(0xFF0891B2)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraphBar(String day, String val, double pct, Color color) {
+    return Row(
+      children: [
+        SizedBox(width: 34, child: Text(day, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
+        Expanded(
+          child: LinearPercentIndicator(
+            lineHeight: 10.0,
+            percent: pct,
+            progressColor: color,
+            backgroundColor: AppColors.background,
+            barRadius: const Radius.circular(10),
+            padding: EdgeInsets.zero,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(val, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
+      ],
+    );
+  }
+
+  Widget _buildActivityFeed() {
+    final activities = [
+      'Attendance submitted by faculty (Prof. S. Sharma - CS301)',
+      'Leave requests approved for Dr. M. Anita',
+      'Circulars published: Mid-Term Exam Timetable',
+      'Internal marks uploaded for CS-A Distributed Systems',
+      'Placement drive scheduled: Google Cloud Campus Hiring',
+      'Timetable updated for Semester 5 Laboratories',
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 6))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('TODAY\'S ACTIVITY FEED', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.2)),
+          const SizedBox(height: 16),
+          Column(
+            children: activities.map((act) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(color: Color(0xFFD1FAE5), shape: BoxShape.circle),
+                      child: const Icon(Icons.check_rounded, color: Color(0xFF059669), size: 14),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(act, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500))),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionButtons(BuildContext context) {
+    final actions = [
+      {'label': 'Manage Staff', 'icon': Icons.badge_outlined, 'index': 1},
+      {'label': 'Students', 'icon': Icons.school_outlined, 'index': 2},
+      {'label': 'Attendance', 'icon': Icons.fact_check_outlined, 'index': 4},
+      {'label': 'Timetable', 'icon': Icons.calendar_month_outlined, 'index': 6},
+      {'label': 'Reports', 'icon': Icons.insights_outlined, 'index': 3},
+      {'label': 'Announcements', 'icon': Icons.campaign_outlined, 'index': 8},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('QUICK ACTIONS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.2)),
+        const SizedBox(height: 14),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: actions.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.6,
+          ),
+          itemBuilder: (context, index) {
+            final act = actions[index];
+            return ElevatedButton(
+              onPressed: () {
+                if (onNavigate != null) onNavigate!(act['index'] as int);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.primary,
+                elevation: 0,
+                side: const BorderSide(color: AppColors.border),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(act['icon'] as IconData, size: 20),
+                  const SizedBox(height: 4),
+                  Text(act['label'] as String, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}

@@ -285,6 +285,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             alignment: WrapAlignment.center,
             children: [
               _demoChip('Admin', 'admin@unisphere.edu', 'AdminPass123!'),
+              _demoChip('HOD (Dept)', 'hod@unisphere.edu', 'HodPass123!'),
               _demoChip('Staff', 'staff@unisphere.edu', 'StaffPass123!'),
               _demoChip('Student', 'saravanapmvofficial@gmail.com', 'Sivamani9698pmv\$'),
               _demoChip('Parent', 'parent@unisphere.edu', 'ParentPass123!'),
