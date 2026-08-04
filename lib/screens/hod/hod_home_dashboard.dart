@@ -95,13 +95,19 @@ class HodHomeDashboard extends StatelessWidget {
   Widget _buildSummaryCards(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       int count = constraints.maxWidth < 650 ? 2 : 4;
+      double itemHeight = 165;
+      final double crossAxisSpacing = 16.0;
+      final double totalSpacing = crossAxisSpacing * (count - 1);
+      final double itemWidth = (constraints.maxWidth - totalSpacing) / count;
+      final double childAspectRatio = itemWidth / itemHeight;
+
       return GridView.count(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         crossAxisCount: count,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 1.35,
+        childAspectRatio: childAspectRatio,
         children: [
           _buildSummaryCard('Total Students', '1,280', Icons.school_outlined, '4 Batches (CS-A, B, C)', const Color(0xFFEEF2FF), const Color(0xFF3730A3)),
           _buildSummaryCard('Total Faculty', '42', Icons.badge_outlined, 'Professors & Instructors', const Color(0xFFF3E8FF), const Color(0xFF6B21A8)),
@@ -114,7 +120,7 @@ class HodHomeDashboard extends StatelessWidget {
 
   Widget _buildSummaryCard(String title, String num, IconData icon, String sub, Color bgColor, Color iconColor) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -128,20 +134,36 @@ class HodHomeDashboard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
-                child: Icon(icon, color: iconColor, size: 22),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
               Icon(Icons.trending_up_rounded, color: iconColor, size: 18),
             ],
           ),
+          const SizedBox(height: 6),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(num, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: iconColor)),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(num, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: iconColor)),
+              ),
               const SizedBox(height: 2),
-              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-              Text(sub, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+              Text(
+                sub,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+              ),
             ],
           ),
         ],
