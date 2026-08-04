@@ -1,0 +1,177 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:clg_application/models/announcement_model.dart';
+import 'package:clg_application/models/assignment_model.dart';
+import 'package:clg_application/models/mark_model.dart';
+import 'package:clg_application/models/attendance_model.dart';
+import 'package:clg_application/models/submission_model.dart';
+import 'dart:async';
+
+bool get shouldUseMock => true; // Set to false to use real Supabase in production
+
+final supabaseServiceProvider = Provider<SupabaseService>((ref) {
+  try {
+    final client = Supabase.instance.client;
+    if (shouldUseMock) return MockSupabaseService();
+    return RealSupabaseService(client);
+  } catch (e) {
+    return MockSupabaseService();
+  }
+});
+
+abstract class SupabaseService {
+  Stream<List<AnnouncementModel>> getAnnouncements();
+  Stream<List<AssignmentModel>> getAssignments();
+  Future<void> submitAssignment(SubmissionModel submission);
+  Stream<List<SubmissionModel>> getSubmissions(String assignmentId);
+  Stream<List<MarkModel>> getMarks(String studentUid);
+  Stream<List<AttendanceModel>> getAttendance(String studentUid);
+  Future<void> addMarks(MarkModel mark);
+}
+
+class RealSupabaseService implements SupabaseService {
+  final SupabaseClient _supabase;
+
+  RealSupabaseService(this._supabase);
+
+  @override
+  Stream<List<AnnouncementModel>> getAnnouncements() {
+    return _supabase
+        .from('announcements')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => AnnouncementModel.fromMap(json)).toList());
+  }
+
+  @override
+  Stream<List<AssignmentModel>> getAssignments() {
+    return _supabase
+        .from('assignments')
+        .stream(primaryKey: ['id'])
+        .order('due_date', ascending: false)
+        .map((data) => data.map((json) => AssignmentModel.fromMap(json)).toList());
+  }
+
+  @override
+  Future<void> submitAssignment(SubmissionModel submission) async {
+    await _supabase.from('submissions').insert(submission.toMap());
+  }
+
+  @override
+  Stream<List<SubmissionModel>> getSubmissions(String assignmentId) {
+    return _supabase
+        .from('submissions')
+        .stream(primaryKey: ['id'])
+        .eq('assignment_id', assignmentId)
+        .map((data) => data.map((json) => SubmissionModel.fromMap(json)).toList());
+  }
+
+  @override
+  Stream<List<MarkModel>> getMarks(String studentUid) {
+    return _supabase
+        .from('marks')
+        .stream(primaryKey: ['id'])
+        .eq('student_uid', studentUid)
+        .map((data) => data.map((json) => MarkModel.fromMap(json)).toList());
+  }
+
+  @override
+  Stream<List<AttendanceModel>> getAttendance(String studentUid) {
+    return _supabase
+        .from('attendance')
+        .stream(primaryKey: ['id'])
+        .eq('student_uid', studentUid)
+        .order('date', ascending: false)
+        .map((data) => data.map((json) => AttendanceModel.fromMap(json)).toList());
+  }
+
+  @override
+  Future<void> addMarks(MarkModel mark) async {
+    await _supabase.from('marks').insert(mark.toMap());
+  }
+}
+
+class MockSupabaseService implements SupabaseService {
+  MockSupabaseService();
+
+  @override
+  Stream<List<AnnouncementModel>> getAnnouncements() {
+    return Stream.value([
+      AnnouncementModel(
+        id: '1',
+        title: 'End Semester Exam Date Out!',
+        content: 'The exams will start from 15th June. Check timetable.',
+        authorName: 'Admin',
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        category: 'College',
+      ),
+      AnnouncementModel(
+        id: '2',
+        title: 'New Library Timings',
+        content: 'Library will be open till 10 PM from Monday.',
+        authorName: 'Admin',
+        createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+        category: 'College',
+      ),
+    ]);
+  }
+
+  @override
+  Stream<List<AssignmentModel>> getAssignments() {
+    return Stream.value([
+      AssignmentModel(
+        id: 'a1',
+        title: 'Advanced Mathematics: Unit 1',
+        description: 'Complete the derivatives and integrations.',
+        authorName: 'Prof. Carter',
+        subjectName: 'Mathematics',
+        createdAt: DateTime.now().subtract(const Duration(days: 4)),
+        dueDate: DateTime.now().add(const Duration(days: 2)),
+        maxMarks: 100,
+        targetedClasses: ['CS-A'],
+      ),
+    ]);
+  }
+
+  @override
+  Future<void> submitAssignment(SubmissionModel submission) async {
+    return;
+  }
+
+  @override
+  Stream<List<SubmissionModel>> getSubmissions(String assignmentId) {
+    return Stream.value([]);
+  }
+
+  @override
+  Stream<List<MarkModel>> getMarks(String studentUid) {
+    return Stream.value([
+      MarkModel(
+        id: 'm1',
+        studentUid: studentUid,
+        subjectName: 'Mathematics',
+        obtainedMarks: 88,
+        totalMarks: 100,
+        examType: 'Mid-term',
+        updatedAt: DateTime.now(),
+      ),
+    ]);
+  }
+
+  @override
+  Stream<List<AttendanceModel>> getAttendance(String studentUid) {
+    return Stream.value([
+      AttendanceModel(
+        id: 'at1',
+        studentUid: studentUid,
+        date: DateTime.now().subtract(const Duration(days: 1)),
+        isPresent: true,
+      ),
+    ]);
+  }
+
+  @override
+  Future<void> addMarks(MarkModel mark) async {
+    return;
+  }
+}
