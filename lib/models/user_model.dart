@@ -1,4 +1,4 @@
-enum UserRole { admin, student, staff, parent, unknown }
+enum UserRole { admin, student, staff, parent, hod, unknown }
 
 class UserModel {
   final String uid;
@@ -51,9 +51,13 @@ class UserModel {
       case 'student':
         return UserRole.student;
       case 'staff':
+      case 'faculty':
         return UserRole.staff;
       case 'parent':
         return UserRole.parent;
+      case 'hod':
+      case 'head of department':
+        return UserRole.hod;
       default:
         return UserRole.unknown;
     }
