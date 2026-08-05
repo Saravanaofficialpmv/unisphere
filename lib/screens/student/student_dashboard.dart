@@ -18,6 +18,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
+    SidebarItem(label: 'Timetable', icon: Icons.calendar_month_outlined),
     SidebarItem(label: 'My Tasks', icon: Icons.assignment_outlined, badge: '3'),
     SidebarItem(label: 'Attendance', icon: Icons.calendar_today_outlined),
     SidebarItem(label: 'Academic Marks', icon: Icons.bar_chart_outlined),
@@ -27,15 +28,18 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem(label: 'Library Status', icon: Icons.local_library_outlined),
   ];
 
-  final List<Widget> _screens = [
-    const StudentHomeScreen(),
-    const Center(child: Text('Assignments & Tasks')),
-    const Center(child: Text('Detailed Attendance')),
-    const Center(child: Text('Marks & Grades')),
-    const Center(child: Text('Student Profile')),
-    const Center(child: Text('Announcements')),
-    const Center(child: Text('Library')),
-  ];
+  List<Widget> _getScreens() {
+    return [
+      StudentHomeScreen(onNavigateToTab: _handleNavigation),
+      const InteractiveTimetableScreen(),
+      const Center(child: Text('Assignments & Tasks')),
+      const Center(child: Text('Detailed Attendance')),
+      const Center(child: Text('Marks & Grades')),
+      const Center(child: Text('Student Profile')),
+      const Center(child: Text('Announcements')),
+      const Center(child: Text('Library')),
+    ];
+  }
 
   void _handleNavigation(int index) {
     setState(() => _currentIndex = index);
@@ -129,7 +133,14 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       body: Row(
         children: [
           if (isDesktop) _buildSidebar(),
-          Expanded(child: _screens[_currentIndex < _screens.length ? _currentIndex : 0]),
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                final screens = _getScreens();
+                return screens[_currentIndex < screens.length ? _currentIndex : 0];
+              },
+            ),
+          ),
         ],
       ),
 
@@ -152,25 +163,14 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 //  Home Screen
 // ─────────────────────────────────────────
 class StudentHomeScreen extends StatefulWidget {
-  const StudentHomeScreen({super.key});
+  final Function(int) onNavigateToTab;
+  const StudentHomeScreen({super.key, required this.onNavigateToTab});
 
   @override
   State<StudentHomeScreen> createState() => _StudentHomeScreenState();
 }
 
 class _StudentHomeScreenState extends State<StudentHomeScreen> {
-  final GlobalKey _timetableKey = GlobalKey();
-
-  void _scrollToTimetable() {
-    final context = _timetableKey.currentContext;
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +224,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           const SizedBox(height: 20),
           _buildQuickActions(),
           const SizedBox(height: 20),
-          InteractiveTimetable(key: _timetableKey),
+          const InteractiveTimetable(),
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,7 +412,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         return InkWell(
           onTap: () {
             if (action['label'] == 'Timetable') {
-              _scrollToTimetable();
+              widget.onNavigateToTab(1);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -1296,3 +1296,18 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
       ),
     );
   }
+
+class InteractiveTimetableScreen extends StatelessWidget {
+  const InteractiveTimetableScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Color(0xFFF5F6FA),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: InteractiveTimetable(),
+      ),
+    );
+  }
+}
