@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clg_application/core/constants/app_colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:clg_application/widgets/common/main_sidebar.dart';
+import 'package:clg_application/screens/student/gradebook_screen.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -34,7 +35,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       const InteractiveTimetableScreen(),
       const Center(child: Text('Assignments & Tasks')),
       const Center(child: Text('Detailed Attendance')),
-      const Center(child: Text('Marks & Grades')),
+      const GradebookScreen(),
       const Center(child: Text('Student Profile')),
       const Center(child: Text('Announcements')),
       const Center(child: Text('Library')),
@@ -513,12 +514,17 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         final color = action['color'] as Color;
         return InkWell(
           onTap: () {
-            if (action['label'] == 'Timetable') {
+            final label = action['label'];
+            if (label == 'Timetable') {
               widget.onNavigateToTab(1);
+            } else if (label == 'Assignments') {
+              widget.onNavigateToTab(2);
+            } else if (label == 'Grades' || label == 'More') {
+              widget.onNavigateToTab(4);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Opening ${action['label']}...'),
+                  content: Text('Opening $label...'),
                   duration: const Duration(seconds: 1),
                 ),
               );
