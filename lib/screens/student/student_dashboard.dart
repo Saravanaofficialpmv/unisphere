@@ -206,9 +206,7 @@ class StudentHomeScreen extends StatelessWidget {
           const SizedBox(height: 20),
           _buildQuickActions(),
           const SizedBox(height: 20),
-          _buildSectionHeader('Today\'s Classes', () {}),
-          const SizedBox(height: 12),
-          _buildTodaysClasses(),
+          const InteractiveTimetable(),
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -452,110 +450,605 @@ class StudentHomeScreen extends StatelessWidget {
       ],
     );
   }
+}
 
-  // ── Today's Classes ───────────────────────
-  Widget _buildTodaysClasses() {
+class InteractiveTimetable extends StatefulWidget {
+  const InteractiveTimetable({super.key});
+
+  @override
+  State<InteractiveTimetable> createState() => _InteractiveTimetableState();
+}
+
+class _InteractiveTimetableState extends State<InteractiveTimetable> {
+  int _selectedDayIndex = 0; // 0 = Mon, 1 = Tue, 2 = Wed, 3 = Thu, 4 = Fri, 5 = Sat
+  bool _simulateRealtimeUpdates = false;
+
+  final List<String> _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  final List<List<Map<String, dynamic>>> _timetableData = [
+    // Monday
+    [
+      {
+        'time': '09:00',
+        'period': 'AM',
+        'title': 'Advanced Mathematics',
+        'timeRange': '09:00 AM – 10:30 AM',
+        'room': 'Room 302',
+        'lecturer': 'Dr. Sarah Vance',
+        'accentColor': const Color(0xFF5C6BC0),
+        'icon': Icons.calculate_rounded,
+        'iconBg': const Color(0xFFEDE7F6),
+        'isLive': false,
+      },
+      {
+        'time': '11:00',
+        'period': 'AM',
+        'title': 'Computer Science',
+        'timeRange': '11:00 AM – 12:30 PM',
+        'room': 'Lab 1',
+        'lecturer': 'Prof. Alan Turing',
+        'accentColor': const Color(0xFF26A69A),
+        'icon': Icons.computer_rounded,
+        'iconBg': const Color(0xFFE0F2F1),
+        'isLive': true, // highlighted as ongoing
+      },
+      {
+        'time': '02:00',
+        'period': 'PM',
+        'title': 'Physics Lab',
+        'timeRange': '02:00 PM – 03:30 PM',
+        'room': 'Lab 3',
+        'lecturer': 'Dr. Marie Curie',
+        'accentColor': const Color(0xFFFFA726),
+        'icon': Icons.science_rounded,
+        'iconBg': const Color(0xFFFFF3E0),
+        'isLive': false,
+      },
+    ],
+    // Tuesday
+    [
+      {
+        'time': '09:30',
+        'period': 'AM',
+        'title': 'Database Systems',
+        'timeRange': '09:30 AM – 11:00 AM',
+        'room': 'Room 104',
+        'lecturer': 'Dr. Grace Hopper',
+        'accentColor': const Color(0xFF29B6F6),
+        'icon': Icons.storage_rounded,
+        'iconBg': const Color(0xFFE1F5FE),
+        'isLive': false,
+      },
+      {
+        'time': '11:30',
+        'period': 'AM',
+        'title': 'Software Engineering',
+        'timeRange': '11:30 AM – 01:00 PM',
+        'room': 'Room 205',
+        'lecturer': 'Prof. Margaret Hamilton',
+        'accentColor': const Color(0xFF66BB6A),
+        'icon': Icons.code_rounded,
+        'iconBg': const Color(0xFFE8F5E9),
+        'isLive': false,
+        'status': 'rescheduled',
+        'statusText': 'Rescheduled to 02:00 PM',
+      },
+      {
+        'time': '03:00',
+        'period': 'PM',
+        'title': 'Communication Skills',
+        'timeRange': '03:00 PM – 04:30 PM',
+        'room': 'Seminar Hall',
+        'lecturer': 'Prof. Dale Carnegie',
+        'accentColor': const Color(0xFFAB47BC),
+        'icon': Icons.record_voice_over_rounded,
+        'iconBg': const Color(0xFFF3E5F5),
+        'isLive': false,
+      },
+    ],
+    // Wednesday
+    [
+      {
+        'time': '09:00',
+        'period': 'AM',
+        'title': 'Advanced Mathematics',
+        'timeRange': '09:00 AM – 10:30 AM',
+        'room': 'Room 302',
+        'lecturer': 'Dr. Sarah Vance',
+        'accentColor': const Color(0xFF5C6BC0),
+        'icon': Icons.calculate_rounded,
+        'iconBg': const Color(0xFFEDE7F6),
+        'isLive': false,
+      },
+      {
+        'time': '11:00',
+        'period': 'AM',
+        'title': 'Computer Science',
+        'timeRange': '11:00 AM – 12:30 PM',
+        'room': 'Lab 1',
+        'lecturer': 'Prof. Alan Turing',
+        'accentColor': const Color(0xFF26A69A),
+        'icon': Icons.computer_rounded,
+        'iconBg': const Color(0xFFE0F2F1),
+        'isLive': false,
+      },
+      {
+        'time': '01:30',
+        'period': 'PM',
+        'title': 'Discrete Structures',
+        'timeRange': '01:30 PM – 03:00 PM',
+        'room': 'Room 310',
+        'lecturer': 'Dr. Ada Lovelace',
+        'accentColor': const Color(0xFFEC407A),
+        'icon': Icons.hub_rounded,
+        'iconBg': const Color(0xFFFCE4EC),
+        'isLive': false,
+      },
+    ],
+    // Thursday
+    [
+      {
+        'time': '10:00',
+        'period': 'AM',
+        'title': 'Database Systems',
+        'timeRange': '10:00 AM – 11:30 AM',
+        'room': 'Room 104',
+        'lecturer': 'Dr. Grace Hopper',
+        'accentColor': const Color(0xFF29B6F6),
+        'icon': Icons.storage_rounded,
+        'iconBg': const Color(0xFFE1F5FE),
+        'isLive': false,
+      },
+      {
+        'time': '12:00',
+        'period': 'PM',
+        'title': 'Software Engineering',
+        'timeRange': '12:00 PM – 01:30 PM',
+        'room': 'Room 205',
+        'lecturer': 'Prof. Margaret Hamilton',
+        'accentColor': const Color(0xFFEF5350),
+        'icon': Icons.code_rounded,
+        'iconBg': const Color(0xFFFFEBEE),
+        'isLive': false,
+        'status': 'cancelled',
+        'statusText': 'Cancelled Today',
+      },
+      {
+        'time': '02:30',
+        'period': 'PM',
+        'title': 'Web Development',
+        'timeRange': '02:30 PM – 04:00 PM',
+        'room': 'Lab 2',
+        'lecturer': 'Prof. Tim Berners-Lee',
+        'accentColor': const Color(0xFF26A69A),
+        'icon': Icons.web_rounded,
+        'iconBg': const Color(0xFFE0F2F1),
+        'isLive': false,
+      },
+    ],
+    // Friday
+    [
+      {
+        'time': '09:00',
+        'period': 'AM',
+        'title': 'Digital Logic Design',
+        'timeRange': '09:00 AM – 10:30 AM',
+        'room': 'Lab 4',
+        'lecturer': 'Dr. Claude Shannon',
+        'accentColor': const Color(0xFF26A69A),
+        'icon': Icons.memory_rounded,
+        'iconBg': const Color(0xFFE0F2F1),
+        'isLive': false,
+      },
+      {
+        'time': '11:00',
+        'period': 'AM',
+        'title': 'Discrete Structures',
+        'timeRange': '11:00 AM – 12:30 PM',
+        'room': 'Room 310',
+        'lecturer': 'Dr. Ada Lovelace',
+        'accentColor': const Color(0xFFEC407A),
+        'icon': Icons.hub_rounded,
+        'iconBg': const Color(0xFFFCE4EC),
+        'isLive': false,
+      },
+      {
+        'time': '02:00',
+        'period': 'PM',
+        'title': 'Seminar / Guest Lecture',
+        'timeRange': '02:00 PM – 03:30 PM',
+        'room': 'Auditorium',
+        'lecturer': 'Invited Speakers',
+        'accentColor': const Color(0xFF5C6BC0),
+        'icon': Icons.groups_rounded,
+        'iconBg': const Color(0xFFEDE7F6),
+        'isLive': false,
+      },
+    ],
+    // Saturday
+    [
+      {
+        'time': '10:00',
+        'period': 'AM',
+        'title': 'Project Work / Mentorship',
+        'timeRange': '10:00 AM – 12:00 PM',
+        'room': 'Lab 1',
+        'lecturer': 'Internal Faculty',
+        'accentColor': const Color(0xFFFF7043),
+        'icon': Icons.lightbulb_outline_rounded,
+        'iconBg': const Color(0xFFFBE9E7),
+        'isLive': false,
+      },
+    ],
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final classes = _timetableData[_selectedDayIndex];
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildClassCard(
-          time: '09:00',
-          period: 'AM',
-          title: 'Advanced Mathematics',
-          timeRange: '09:00 AM – 10:30 AM',
-          room: 'Room 302',
-          accentColor: const Color(0xFF5C6BC0),
-          icon: Icons.calculate_rounded,
-          iconBg: const Color(0xFFEDE7F6),
+        // Header with live updates simulator toggle
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Interactive Timetable',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2D3142),
+              ),
+            ),
+            Row(
+              children: [
+                const Text(
+                  'Live Updates',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF757575)),
+                ),
+                const SizedBox(width: 4),
+                Transform.scale(
+                  scale: 0.7,
+                  child: Switch(
+                    value: _simulateRealtimeUpdates,
+                    activeThumbColor: AppColors.primary,
+                    activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onChanged: (val) {
+                      setState(() {
+                        _simulateRealtimeUpdates = val;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            val
+                                ? 'Simulating real-time schedule alerts!'
+                                : 'Real-time updates simulation paused.',
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        _buildClassCard(
-          time: '11:00',
-          period: 'AM',
-          title: 'Computer Science',
-          timeRange: '11:00 AM – 12:30 PM',
-          room: 'Lab 1',
-          accentColor: const Color(0xFF26A69A),
-          icon: Icons.computer_rounded,
-          iconBg: const Color(0xFFE0F2F1),
+        const SizedBox(height: 12),
+
+        // Day Selector Row
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List.generate(_days.length, (index) {
+              final isSelected = _selectedDayIndex == index;
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedDayIndex = index;
+                  });
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8, bottom: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isSelected ? 0.15 : 0.03),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : const Color(0xFFEEEEEE),
+                    ),
+                  ),
+                  child: Text(
+                    _days[index],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: isSelected ? Colors.white : const Color(0xFF616161),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
         ),
+        const SizedBox(height: 16),
+
+        // Classes Grid/List
+        if (classes.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                'No classes scheduled for this day.',
+                style: TextStyle(color: Color(0xFF9E9E9E)),
+              ),
+            ),
+          )
+        else
+          ...classes.map((c) {
+            // Apply simulation changes if toggled
+            String? status = c['status'] as String?;
+            String? statusText = c['statusText'] as String?;
+
+            if (_simulateRealtimeUpdates && _selectedDayIndex == 0 && c['title'] == 'Advanced Mathematics') {
+              // Simulate rescheduling Advanced Mathematics on Monday
+              status = 'rescheduled';
+              statusText = 'Rescheduled to 01:00 PM';
+            }
+
+            final isLive = c['isLive'] as bool && !_simulateRealtimeUpdates;
+            final isCancelled = status == 'cancelled';
+            final isRescheduled = status == 'rescheduled';
+
+            final accentColor = isCancelled ? const Color(0xFFE53935) : (c['accentColor'] as Color);
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: isLive ? Colors.white : Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(16),
+                border: isLive
+                    ? Border.all(color: AppColors.primary.withValues(alpha: 0.8), width: 1.5)
+                    : Border.all(color: const Color(0xFFEEEEEE), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: isLive
+                        ? AppColors.primary.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.03),
+                    blurRadius: isLive ? 12 : 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        // Time column
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              isRescheduled ? '01:00' : (c['time'] as String),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                                color: isCancelled ? const Color(0xFFB71C1C) : const Color(0xFF2D3142),
+                                decoration: isCancelled ? TextDecoration.lineThrough : null,
+                              ),
+                            ),
+                            Text(
+                              c['period'] as String,
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 12),
+                        // Indicator
+                        Container(
+                          width: 3,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: accentColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Information
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      c['title'] as String,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                        color: const Color(0xFF2D3142),
+                                        decoration: isCancelled ? TextDecoration.lineThrough : null,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isLive)
+                                    Container(
+                                      margin: const EdgeInsets.only(left: 6),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE8F5E9),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(color: const Color(0xFF81C784)),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.fiber_manual_record, color: Colors.green, size: 8),
+                                          SizedBox(width: 3),
+                                          Text(
+                                            'LIVE NOW',
+                                            style: TextStyle(
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Lecturer: ${c['lecturer']}',
+                                style: const TextStyle(color: Color(0xFF757575), fontSize: 11),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(Icons.location_on_outlined, color: accentColor, size: 12),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    c['room'] as String,
+                                    style: TextStyle(
+                                      color: isCancelled ? const Color(0xFFB71C1C) : const Color(0xFF9E9E9E),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  if (isCancelled || isRescheduled) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isCancelled ? const Color(0xFFFFEBEE) : const Color(0xFFFFF3E0),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        statusText!,
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                          color: isCancelled ? const Color(0xFFD32F2F) : const Color(0xFFEF6C00),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Icon
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: c['iconBg'] as Color,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(c['icon'] as IconData, color: c['accentColor'] as Color, size: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Actions bar (visible unless cancelled)
+                  if (!isCancelled) ...[
+                    const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFAFAFA),
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(16),
+                          bottomRight: Radius.circular(16),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          _buildActionBtn(
+                            label: 'Locate Room',
+                            icon: Icons.map_outlined,
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Locating ${c['room']} on campus map...'),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          _buildActionBtn(
+                            label: isLive ? 'Join Live Class' : 'Class Materials',
+                            icon: isLive ? Icons.video_call_outlined : Icons.menu_book_outlined,
+                            color: isLive ? AppColors.primary : null,
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(isLive
+                                      ? 'Launching Zoom Room for ${c['title']}...'
+                                      : 'Opening lecture materials for ${c['title']}...'),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          }),
       ],
     );
   }
 
-  Widget _buildClassCard({
-    required String time,
-    required String period,
-    required String title,
-    required String timeRange,
-    required String room,
-    required Color accentColor,
+  Widget _buildActionBtn({
+    required String label,
     required IconData icon,
-    required Color iconBg,
+    Color? color,
+    required VoidCallback onPressed,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Time column
-          Column(
-            children: [
-              Text(
-                time,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                  color: Color(0xFF2D3142),
-                ),
+    final useColor = color ?? const Color(0xFF757575);
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: useColor, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: useColor,
               ),
-              Text(
-                period,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E)),
-              ),
-            ],
-          ),
-          const SizedBox(width: 12),
-          // Divider
-          Container(width: 3, height: 44, decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 12),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFF2D3142)),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '$timeRange • $room',
-                  style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 12),
-                ),
-              ],
             ),
-          ),
-          // Icon
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: accentColor, size: 22),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
 
   // ── Upcoming Tasks ────────────────────────
   Widget _buildUpcomingTasks() {
@@ -767,4 +1260,3 @@ class StudentHomeScreen extends StatelessWidget {
       ),
     );
   }
-}
