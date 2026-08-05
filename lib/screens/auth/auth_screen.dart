@@ -277,17 +277,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     return Center(
       child: Column(
         children: [
-          const Text('Demo Logins', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+          const Text('⚡ Quick Demo Access & Autofill', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
             children: [
-              _demoChip('Admin', 'admin@unisphere.edu', 'AdminPass123!'),
-              _demoChip('Staff', 'staff@unisphere.edu', 'StaffPass123!'),
-              _demoChip('Student', 'saravanapmvofficial@gmail.com', 'Sivamani9698pmv\$'),
-              _demoChip('Parent', 'parent@unisphere.edu', 'ParentPass123!'),
+              _demoChip('🛡️ HOD', 'hod.cse@unisphere.edu', 'HodPass123!', () => context.go('/hod')),
+              _demoChip('👑 Admin', 'admin@unisphere.edu', 'AdminPass123!', () => context.go('/admin')),
+              _demoChip('👨‍🏫 Staff', 'staff@unisphere.edu', 'StaffPass123!', () => context.go('/staff')),
+              _demoChip('🎓 Student', 'saravanapmvofficial@gmail.com', 'Sivamani9698pmv\$', () => context.go('/student')),
+              _demoChip('👨‍👩‍👧 Parent', 'parent@unisphere.edu', 'ParentPass123!', () => context.go('/parent')),
             ],
           ),
           const SizedBox(height: 24),
@@ -296,17 +297,54 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 
-  Widget _demoChip(String role, String email, String pass) {
-    return ActionChip(
-      label: Text(role, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-      backgroundColor: AppColors.primary.withValues(alpha: 0.05),
-      onPressed: () {
-        setState(() {
-          _isSignUp = false; // Switch to Sign In mode
-          _emailController.text = email;
-          _passwordController.text = pass;
-        });
-      },
+  Widget _demoChip(String role, String email, String pass, VoidCallback directAccess) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
+            onTap: () {
+              setState(() {
+                _isSignUp = false; // Switch to Sign In mode
+                _emailController.text = email;
+                _passwordController.text = pass;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Autofilled $role credentials! Tap Log In or double tap to launch.'),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Text(role, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            ),
+          ),
+          InkWell(
+            borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+            onTap: directAccess,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+              ),
+              child: const Row(
+                children: [
+                  Text('Open ➔', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
