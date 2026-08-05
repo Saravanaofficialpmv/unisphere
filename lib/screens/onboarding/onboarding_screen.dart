@@ -22,7 +22,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String? _selectedRole;
   String? _selectedDept;
 
-  final List<String> _roles = ['Student', 'Faculty', 'HOD', 'Parent'];
+  final List<String> _roles = ['Student', 'Faculty', 'Department (HOD)', 'Parent'];
   final List<String> _departments = AppDepartments.list;
 
   void _onNext() {

@@ -284,7 +284,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             runSpacing: 8,
             alignment: WrapAlignment.center,
             children: [
-              _demoChip('🛡️ HOD', 'hod.cse@unisphere.edu', 'HodPass123!', () => context.go('/hod')),
+              _demoChip('🏛️ Department (HOD)', 'hod.cse@unisphere.edu', 'HodPass123!', () => context.go('/hod')),
               _demoChip('👑 Admin', 'admin@unisphere.edu', 'AdminPass123!', () => context.go('/admin')),
               _demoChip('👨‍🏫 Staff', 'staff@unisphere.edu', 'StaffPass123!', () => context.go('/staff')),
               _demoChip('🎓 Student', 'saravanapmvofficial@gmail.com', 'Sivamani9698pmv\$', () => context.go('/student')),
