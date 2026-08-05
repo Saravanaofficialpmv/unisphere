@@ -151,8 +151,26 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 // ─────────────────────────────────────────
 //  Home Screen
 // ─────────────────────────────────────────
-class StudentHomeScreen extends StatelessWidget {
+class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
+
+  @override
+  State<StudentHomeScreen> createState() => _StudentHomeScreenState();
+}
+
+class _StudentHomeScreenState extends State<StudentHomeScreen> {
+  final GlobalKey _timetableKey = GlobalKey();
+
+  void _scrollToTimetable() {
+    final context = _timetableKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +224,7 @@ class StudentHomeScreen extends StatelessWidget {
           const SizedBox(height: 20),
           _buildQuickActions(),
           const SizedBox(height: 20),
-          const InteractiveTimetable(),
+          InteractiveTimetable(key: _timetableKey),
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,32 +409,50 @@ class StudentHomeScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: actions.map((action) {
         final color = action['color'] as Color;
-        return Column(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color.withValues(alpha: 0.2)),
-              ),
-              child: action.containsKey('image')
-                  ? Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Image.asset(
-                        action['image'] as String,
-                        fit: BoxFit.contain,
-                      ),
-                    )
-                  : Icon(action['icon'] as IconData, color: color, size: 26),
+        return InkWell(
+          onTap: () {
+            if (action['label'] == 'Timetable') {
+              _scrollToTimetable();
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Opening ${action['label']}...'),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            }
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Column(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: color.withValues(alpha: 0.2)),
+                  ),
+                  child: action.containsKey('image')
+                      ? Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Image.asset(
+                            action['image'] as String,
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      : Icon(action['icon'] as IconData, color: color, size: 26),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  action['label'] as String,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF616161), fontWeight: FontWeight.w500),
+                ),
+              ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              action['label'] as String,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF616161), fontWeight: FontWeight.w500),
-            ),
-          ],
+          ),
         );
       }).toList(),
     );
