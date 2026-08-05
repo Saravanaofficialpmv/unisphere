@@ -11,7 +11,6 @@ import 'package:clg_application/screens/parent/parent_dashboard.dart';
 import 'package:clg_application/screens/onboarding/onboarding_screen.dart';
 
 import 'package:clg_application/screens/admin/admin_shell.dart';
-import 'package:clg_application/screens/hod/hod_shell.dart';
 
 final authStateProvider = StreamProvider<UserModel?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
@@ -47,8 +46,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         switch (user.role) {
           case UserRole.admin:
             return '/admin';
-          case UserRole.hod:
-            return '/hod';
           case UserRole.student:
             return '/student';
           case UserRole.staff:
@@ -94,10 +91,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin',
         builder: (context, state) => const AdminShell(),
-      ),
-      GoRoute(
-        path: '/hod',
-        builder: (context, state) => const HodShell(),
       ),
       GoRoute(
         path: '/student',
