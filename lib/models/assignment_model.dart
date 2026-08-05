@@ -4,11 +4,15 @@ class AssignmentModel {
   final String description;
   final String authorName;
   final String? subjectName;
+  final String? courseCode;
   final DateTime createdAt;
   final DateTime dueDate;
   final String? attachmentUrl;
   final int maxMarks;
   final List<String> targetedClasses;
+  final List<String> allowedFileTypes;
+  /// Map of student register number or range string -> question prompt / file text
+  final Map<String, String> regNoQuestionMap;
 
   AssignmentModel({
     required this.id,
@@ -16,12 +20,36 @@ class AssignmentModel {
     required this.description,
     required this.authorName,
     this.subjectName,
+    this.courseCode,
     required this.createdAt,
     required this.dueDate,
     this.attachmentUrl,
     required this.maxMarks,
     required this.targetedClasses,
+    this.allowedFileTypes = const ['pdf', 'docx', 'zip', 'png', 'jpg'],
+    this.regNoQuestionMap = const {},
   });
+
+  /// Get specific question assigned to student by Register Number
+  String getQuestionForRegNo(String regNo) {
+    if (regNoQuestionMap.containsKey(regNo)) {
+      return regNoQuestionMap[regNo]!;
+    }
+    // Check if regNo falls within any range key like "RA2111003010001-RA2111003010025"
+    for (final entry in regNoQuestionMap.entries) {
+      if (entry.key.contains('-')) {
+        final parts = entry.key.split('-');
+        if (parts.length == 2) {
+          final start = parts[0].trim();
+          final end = parts[1].trim();
+          if (regNo.compareTo(start) >= 0 && regNo.compareTo(end) <= 0) {
+            return entry.value;
+          }
+        }
+      }
+    }
+    return description;
+  }
 
   factory AssignmentModel.fromMap(Map<String, dynamic> map) {
     return AssignmentModel(
@@ -30,25 +58,32 @@ class AssignmentModel {
       description: map['description'] ?? '',
       authorName: map['author_name'] ?? 'Staff',
       subjectName: map['subject_name'],
+      courseCode: map['course_code'],
       createdAt: DateTime.parse(map['created_at'] ?? DateTime.now().toIso8601String()),
       dueDate: DateTime.parse(map['due_date'] ?? DateTime.now().toIso8601String()),
       attachmentUrl: map['attachment_url'],
       maxMarks: map['max_marks'] ?? 100,
       targetedClasses: List<String>.from(map['targeted_classes'] ?? []),
+      allowedFileTypes: List<String>.from(map['allowed_file_types'] ?? ['pdf', 'docx', 'zip', 'png', 'jpg']),
+      regNoQuestionMap: Map<String, String>.from(map['reg_no_question_map'] ?? {}),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'title': title,
       'description': description,
       'author_name': authorName,
       'subject_name': subjectName,
+      'course_code': courseCode,
       'created_at': createdAt.toIso8601String(),
       'due_date': dueDate.toIso8601String(),
       'attachment_url': attachmentUrl,
       'max_marks': maxMarks,
       'targeted_classes': targetedClasses,
+      'allowed_file_types': allowedFileTypes,
+      'reg_no_question_map': regNoQuestionMap,
     };
   }
 }

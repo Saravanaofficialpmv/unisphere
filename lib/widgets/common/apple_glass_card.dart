@@ -241,10 +241,10 @@ class AmbientGlassBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Base subtle background canvas tint
+        // Base white background canvas tint
         Positioned.fill(
           child: Container(
-            color: const Color(0xFFF1F5F9), // Soft slate background
+            color: Colors.white,
           ),
         ),
 

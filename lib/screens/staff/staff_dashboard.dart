@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clg_application/core/constants/app_colors.dart';
 
+import 'package:clg_application/screens/staff/modules/staff_assignment_creation.dart';
+import 'package:clg_application/screens/staff/modules/staff_submission_review.dart';
 import 'package:clg_application/widgets/common/main_sidebar.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {
@@ -26,10 +28,10 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     SidebarItem(label: 'Library Access', icon: Icons.local_library_outlined),
   ];
 
-  final List<Widget> _screens = [
-    const StaffHomeScreen(),
-    const Center(child: Text('Add New Assignments')),
-    const Center(child: Text('Review Student Submissions')),
+  late final List<Widget> _screens = [
+    StaffHomeScreen(onNavigate: _handleNavigation),
+    StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 2)),
+    const StaffSubmissionReview(),
     const Center(child: Text('Institutional Marks Upload')),
     const Center(child: Text('Faculty Profile Details')),
     const Center(child: Text('Electronic Attendance Record')),
@@ -89,7 +91,8 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
 }
 
 class StaffHomeScreen extends StatelessWidget {
-  const StaffHomeScreen({super.key});
+  final Function(int)? onNavigate;
+  const StaffHomeScreen({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {

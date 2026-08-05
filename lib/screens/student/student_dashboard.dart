@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clg_application/core/constants/app_colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:clg_application/screens/student/modules/student_assignment_portal.dart';
 import 'package:clg_application/widgets/common/main_sidebar.dart';
 import 'package:clg_application/screens/student/gradebook_screen.dart';
 
@@ -33,7 +34,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     return [
       StudentHomeScreen(onNavigateToTab: _handleNavigation),
       const InteractiveTimetableScreen(),
-      const Center(child: Text('Assignments & Tasks')),
+      const StudentAssignmentPortal(),
       const Center(child: Text('Detailed Attendance')),
       const GradebookScreen(),
       const Center(child: Text('Student Profile')),
@@ -55,7 +56,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: Colors.white,
       drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -511,10 +512,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: actions.map((action) {
-        final color = action['color'] as Color;
+        final label = action['label'] as String;
         return InkWell(
           onTap: () {
-            final label = action['label'];
             if (label == 'Timetable') {
               widget.onNavigateToTab(1);
             } else if (label == 'Assignments') {
@@ -555,7 +555,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  action['label'] as String,
+                  label,
                   style: const TextStyle(fontSize: 11, color: Color(0xFF616161), fontWeight: FontWeight.w500),
                 ),
               ],
