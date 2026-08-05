@@ -4,7 +4,7 @@
 
 The **Staff & Faculty Panel** in UNISPHERE SRM serves as the core operational workspace for professors, assistant professors, lab instructors, and administrative department staff. It streamlines day-to-day academic workflows—from marking attendance and evaluating student coursework to publishing examination grades and managing faculty leave.
 
----
+--- 
 
 ## 2. Core Functional Modules & Feature Breakdown
 

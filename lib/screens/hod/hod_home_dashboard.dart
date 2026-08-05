@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:clg_application/widgets/common/apple_glass_card.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class HodHomeDashboard extends StatelessWidget {
@@ -11,46 +13,33 @@ class HodHomeDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isMobile = MediaQuery.of(context).size.width < 600;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isMobile ? 16 : 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPersonalizedGreeting(isMobile),
-          const SizedBox(height: 24),
-          _buildSummaryCards(context),
-          const SizedBox(height: 28),
-          _buildDepartmentOverview(context),
-          const SizedBox(height: 28),
-          _buildAnalyticsGraphs(context),
-          const SizedBox(height: 28),
-          _buildActivityFeed(),
-          const SizedBox(height: 28),
-          _buildQuickActionButtons(context),
-        ],
+    return AmbientGlassBackground(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(isMobile ? 16 : 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildPersonalizedGreeting(isMobile),
+            const SizedBox(height: 24),
+            _buildSummaryCards(context),
+            const SizedBox(height: 28),
+            _buildDepartmentOverview(context),
+            const SizedBox(height: 28),
+            _buildAnalyticsGraphs(context),
+            const SizedBox(height: 28),
+            _buildActivityFeed(),
+            const SizedBox(height: 28),
+            _buildQuickActionButtons(context),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPersonalizedGreeting(bool isMobile) {
-    return Container(
-      width: double.infinity,
+    return AppleGlassCard.frosted(
       padding: EdgeInsets.all(isMobile ? 20 : 28),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+      borderRadius: 24,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -60,32 +49,85 @@ class HodHomeDashboard extends StatelessWidget {
               children: [
                 const Text(
                   'Good Morning, 👋',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF93C5FD), fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   'Dr. R. Kumar',
-                  style: TextStyle(fontSize: isMobile ? 22 : 28, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+                  style: TextStyle(
+                    fontSize: isMobile ? 22 : 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
                   ),
-                  child: const Text(
-                    'Head of Department • Computer Science & Engineering',
-                    style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                // Frosted Glass Pill Badge
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.60),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: const Text(
+                        'Head of Department • Computer Science & Engineering',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const CircleAvatar(
-            radius: 32,
-            backgroundColor: Colors.white24,
-            child: Icon(Icons.shield_outlined, color: Colors.white, size: 32),
+          // Specular Glass Shield Badge
+          Container(
+            width: isMobile ? 56 : 68,
+            height: isMobile ? 56 : 68,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.12),
+                  AppColors.primary.withValues(alpha: 0.04),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.90),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.shield_outlined,
+              color: AppColors.primary,
+              size: isMobile ? 28 : 34,
+            ),
           ),
         ],
       ),
@@ -119,13 +161,9 @@ class HodHomeDashboard extends StatelessWidget {
   }
 
   Widget _buildSummaryCard(String title, String num, IconData icon, String sub, Color bgColor, Color iconColor) {
-    return Container(
+    return AppleGlassCard.frosted(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 6))],
-      ),
+      borderRadius: 22,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
