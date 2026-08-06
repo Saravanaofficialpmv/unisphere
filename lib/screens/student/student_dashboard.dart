@@ -6,6 +6,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:clg_application/screens/student/modules/student_assignment_portal.dart';
 import 'package:clg_application/widgets/common/main_sidebar.dart';
 import 'package:clg_application/screens/student/gradebook_screen.dart';
+import 'package:clg_application/screens/features/feature_hub_screen.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -16,6 +17,7 @@ class StudentDashboard extends ConsumerStatefulWidget {
 
 class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   int _currentIndex = 0;
+  bool _openGpaPlannerInGradebook = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<SidebarItem> _sidebarItems = [
@@ -36,15 +38,22 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       const InteractiveTimetableScreen(),
       const StudentAssignmentPortal(),
       const Center(child: Text('Detailed Attendance')),
-      const GradebookScreen(),
+      GradebookScreen(
+        key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
+        initialShowPlanner: _openGpaPlannerInGradebook,
+        onBack: () => _handleNavigation(0),
+      ),
       const Center(child: Text('Student Profile')),
       const Center(child: Text('Announcements')),
       const Center(child: Text('Library')),
     ];
   }
 
-  void _handleNavigation(int index) {
-    setState(() => _currentIndex = index);
+  void _handleNavigation(int index, {bool openCalculator = false}) {
+    setState(() {
+      _currentIndex = index;
+      _openGpaPlannerInGradebook = openCalculator;
+    });
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
@@ -54,84 +63,100 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 1200;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+        } else {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
       drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        shadowColor: Colors.black12,
-        surfaceTintColor: Colors.transparent,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu_rounded, color: Color(0xFF2D3142), size: 26),
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.hub_rounded, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 8),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'UNISPHERE',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF2D3142),
-                    letterSpacing: 1.2,
-                  ),
+      appBar: _currentIndex == 4
+          ? null
+          : AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              shadowColor: Colors.black12,
+              surfaceTintColor: Colors.transparent,
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu_rounded, color: Color(0xFF2D3142), size: 26),
+                  onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                 ),
-                Text(
-                  'SRM',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
-                    letterSpacing: 1.0,
+              ),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.hub_rounded, color: Colors.white, size: 20),
                   ),
+                  const SizedBox(width: 8),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'UNISPHERE',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF2D3142),
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      Text(
+                        'SRM',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              centerTitle: true,
+              actions: [
+                Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF2D3142), size: 26),
+                      onPressed: () {},
+                    ),
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-        centerTitle: true,
-        actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF2D3142), size: 26),
-                onPressed: () {},
-              ),
-              Positioned(
-                right: 10,
-                top: 10,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
       body: Row(
         children: [
           if (isDesktop) _buildSidebar(),
@@ -145,9 +170,9 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
           ),
         ],
       ),
-
-    );
-  }
+    ),
+  );
+}
 
 
   Widget _buildSidebar() {
@@ -165,7 +190,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 //  Home Screen
 // ─────────────────────────────────────────
 class StudentHomeScreen extends StatefulWidget {
-  final Function(int) onNavigateToTab;
+  final Function(int index, {bool openCalculator}) onNavigateToTab;
   const StudentHomeScreen({super.key, required this.onNavigateToTab});
 
   @override
@@ -519,8 +544,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               widget.onNavigateToTab(1);
             } else if (label == 'Assignments') {
               widget.onNavigateToTab(2);
-            } else if (label == 'Grades' || label == 'More') {
-              widget.onNavigateToTab(4);
+            } else if (label == 'Grades') {
+              widget.onNavigateToTab(4, openCalculator: true);
+            } else if (label == 'More') {
+              _showMoreServicesBottomSheet(context);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -563,6 +590,18 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  // ── Feature Hub Launcher ────────────────
+  void _showMoreServicesBottomSheet(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: '/feature_hub'),
+        builder: (context) => FeatureHubScreen(
+          onNavigateToTab: widget.onNavigateToTab,
+        ),
+      ),
     );
   }
 
