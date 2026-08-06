@@ -175,7 +175,7 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
-                  childAspectRatio: 0.82,
+                  childAspectRatio: 0.88,
                 ),
                 itemCount: _filteredFeatures.length,
                 itemBuilder: (context, index) {
@@ -260,73 +260,114 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
   }
 
   Widget _buildFeatureCard(FeatureItem feature) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      color: Colors.white,
-      child: InkWell(
-        onTap: () => _openFeature(feature),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(14.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: feature.color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(feature.icon, color: feature.color, size: 24),
-                  ),
-                  if (feature.badge != null)
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: () => _openFeature(feature),
+          borderRadius: BorderRadius.circular(20),
+          splashColor: feature.color.withValues(alpha: 0.15),
+          highlightColor: feature.color.withValues(alpha: 0.06),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Soft Pastel Icon Container (68x68px) with Image Asset or Icon
+                Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      width: 68,
+                      height: 68,
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: feature.color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
+                        color: feature.pastelBg,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: feature.color.withValues(alpha: 0.2)),
                       ),
-                      child: Text(
-                        feature.badge!,
-                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: feature.color),
-                      ),
+                      child: feature.imageAsset != null
+                          ? Image.asset(
+                              feature.imageAsset!,
+                              fit: BoxFit.contain,
+                            )
+                          : Icon(feature.icon, size: 36, color: feature.color),
                     ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                feature.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A), height: 1.2),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                feature.subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), height: 1.2),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    'Open Module',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: feature.color),
+                    if (feature.badge != null)
+                      Positioned(
+                        top: -6,
+                        right: -6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: feature.color,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: feature.color.withValues(alpha: 0.4),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            feature.badge!,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Centered Feature Title
+                Text(
+                  feature.title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                    height: 1.2,
                   ),
-                  const SizedBox(width: 4),
-                  Icon(Icons.arrow_forward_rounded, size: 12, color: feature.color),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 4),
+
+                // Centered Subtitle
+                Text(
+                  feature.subtitle,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF64748B),
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
