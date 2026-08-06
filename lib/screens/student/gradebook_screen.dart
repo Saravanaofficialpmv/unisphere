@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class GradebookScreen extends StatefulWidget {
   final bool initialShowPlanner;
@@ -1477,6 +1478,8 @@ class _GradebookScreenState extends State<GradebookScreen> {
                     widget.onBack!();
                   } else if (Navigator.canPop(context)) {
                     Navigator.pop(context);
+                  } else {
+                    context.go('/student');
                   }
                 },
               ),

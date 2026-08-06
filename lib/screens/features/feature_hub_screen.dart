@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:clg_application/core/features/feature_registry.dart';
 import 'package:clg_application/core/features/feature_item.dart';
 
@@ -41,20 +42,21 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
   }
 
   void _openFeature(FeatureItem feature) {
-    if (feature.id == 'gradebook' && widget.onNavigateToTab != null) {
-      // If it's gradebook, switch to tab index 4
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-      widget.onNavigateToTab!(4, openCalculator: false);
-      return;
-    }
-
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => feature.routeBuilder(context),
       ),
     );
+  }
+
+  void _handleBack() {
+    if (widget.onBack != null) {
+      widget.onBack!();
+    } else if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      context.go('/student');
+    }
   }
 
   @override
@@ -70,13 +72,7 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () {
-            if (widget.onBack != null) {
-              widget.onBack!();
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
+          onPressed: _handleBack,
         ),
         title: const Row(
           children: [
