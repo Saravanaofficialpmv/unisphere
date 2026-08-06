@@ -900,54 +900,50 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                       ),
                       const SizedBox(height: 12),
 
+                      const Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: ['Technical', 'Cloud & DevOps', 'Cybersecurity', 'Academic', 'Soft Skills'].map((cat) {
+                          final isSelected = selectedCategory == cat;
+                          return ChoiceChip(
+                            label: Text(cat, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : const Color(0xFF475569))),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              if (val) setModalState(() => selectedCategory = cat);
+                            },
+                            selectedColor: const Color(0xFF7C3AED),
+                            backgroundColor: const Color(0xFFF8FAFC),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: isSelected ? const Color(0xFF7C3AED) : const Color(0xFFCBD5E1))),
+                            showCheckmark: false,
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 12),
+
+                      const Text('File Format', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                      const SizedBox(height: 6),
                       Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
-                                const SizedBox(height: 6),
-                                DropdownButtonFormField<String>(
-                                  initialValue: selectedCategory,
-                                  isExpanded: true,
-                                  items: ['Technical', 'Cloud & DevOps', 'Cybersecurity', 'Academic', 'Soft Skills']
-                                      .map((cat) => DropdownMenuItem(value: cat, child: Text(cat, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)))
-                                      .toList(),
-                                  onChanged: (val) => setModalState(() => selectedCategory = val!),
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFFF8FAFC),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-                                  ),
-                                ),
-                              ],
+                        children: ['PDF', 'PNG', 'JPG'].map((fmt) {
+                          final isSelected = selectedFileType == fmt;
+                          return Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                              child: ChoiceChip(
+                                label: Center(child: Text(fmt, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : const Color(0xFF475569)))),
+                                selected: isSelected,
+                                onSelected: (val) {
+                                  if (val) setModalState(() => selectedFileType = fmt);
+                                },
+                                selectedColor: const Color(0xFF7C3AED),
+                                backgroundColor: const Color(0xFFF8FAFC),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: isSelected ? const Color(0xFF7C3AED) : const Color(0xFFCBD5E1))),
+                                showCheckmark: false,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('File Format', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
-                                const SizedBox(height: 6),
-                                DropdownButtonFormField<String>(
-                                  initialValue: selectedFileType,
-                                  isExpanded: true,
-                                  items: ['PDF', 'PNG', 'JPG']
-                                      .map((fmt) => DropdownMenuItem(value: fmt, child: Text(fmt, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)))
-                                      .toList(),
-                                  onChanged: (val) => setModalState(() => selectedFileType = val!),
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFFF8FAFC),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          );
+                        }).toList(),
                       ),
                       const SizedBox(height: 12),
 
