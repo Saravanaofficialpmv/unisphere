@@ -179,13 +179,17 @@ class _EventsScreenState extends State<EventsScreen> {
       ),
     );
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        _navigateBackToFeatureHub(context);
-      },
-      child: scaffold,
-    );
+    if (widget.onBack != null) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          widget.onBack!();
+        },
+        child: scaffold,
+      );
+    }
+
+    return scaffold;
   }
 }

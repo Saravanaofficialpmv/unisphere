@@ -538,6 +538,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: actions.map((action) {
         final label = action['label'] as String;
+        final color = action['color'] as Color;
         return InkWell(
           onTap: () {
             if (label == 'Timetable') {

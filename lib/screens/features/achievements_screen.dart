@@ -151,13 +151,17 @@ class AchievementsScreen extends StatelessWidget {
       ),
     );
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        _navigateBackToFeatureHub(context);
-      },
-      child: scaffold,
-    );
+    if (onBack != null) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          onBack!();
+        },
+        child: scaffold,
+      );
+    }
+
+    return scaffold;
   }
 }

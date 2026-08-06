@@ -237,14 +237,18 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       ),
     );
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        _navigateBackToFeatureHub(context);
-      },
-      child: scaffold,
-    );
+    if (widget.onBack != null) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          widget.onBack!();
+        },
+        child: scaffold,
+      );
+    }
+
+    return scaffold;
   }
 
   // ── Analytics Overview Cards ────────────────────────────────────────────────
