@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:clg_application/models/achievement_model.dart';
+import 'package:clg_application/screens/features/achievement_details_screen.dart';
 
 class AchievementsScreen extends StatelessWidget {
   final VoidCallback? onBack;
@@ -19,14 +21,8 @@ class AchievementsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badges = [
-      {'title': 'Dean\'s List Scholar', 'desc': 'CGPA >= 8.50 for 3 consecutive semesters', 'icon': Icons.stars_rounded, 'color': const Color(0xFFD97706), 'unlocked': true},
-      {'title': 'Code Master', 'desc': 'Completed 50+ Data Structure & Algo lab tasks', 'icon': Icons.terminal_rounded, 'color': const Color(0xFF2563EB), 'unlocked': true},
-      {'title': 'Perfect Attendance', 'desc': '100% attendance in OS & DBMS for 2 months', 'icon': Icons.verified_rounded, 'color': const Color(0xFF10B981), 'unlocked': true},
-      {'title': 'Hackathon Winner', 'desc': 'First Prize in Annual Tech Fest 2025', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFF7C3AED), 'unlocked': true},
-      {'title': 'Research Contributor', 'desc': 'Co-authored IEEE conference paper draft', 'icon': Icons.menu_book_rounded, 'color': const Color(0xFF0284C7), 'unlocked': false},
-      {'title': 'Peer Mentor', 'desc': 'Tutored 15+ junior students in Python & OOP', 'icon': Icons.groups_rounded, 'color': const Color(0xFFEA580C), 'unlocked': false},
-    ];
+    final achievements = AchievementRegistry.achievements;
+    final unlockedCount = achievements.where((a) => a.isUnlocked).length;
 
     final scaffold = Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -67,15 +63,15 @@ class AchievementsScreen extends StatelessWidget {
                     child: const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 36),
                   ),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('ACADEMIC RANK #4', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                        SizedBox(height: 2),
-                        Text('4 of 6 Badges Unlocked', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                        SizedBox(height: 4),
-                        Text('Keep up the momentum to reach Gold Tier!', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                        const Text('ACADEMIC RANK #4', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                        const SizedBox(height: 2),
+                        Text('$unlockedCount of ${achievements.length} Badges Unlocked', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                        const SizedBox(height: 4),
+                        const Text('Keep up the momentum to reach Gold Tier!', style: TextStyle(color: Colors.white70, fontSize: 11)),
                       ],
                     ),
                   ),
@@ -96,50 +92,91 @@ class AchievementsScreen extends StatelessWidget {
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.85,
               ),
-              itemCount: badges.length,
+              itemCount: achievements.length,
               itemBuilder: (context, index) {
-                final badge = badges[index];
-                final isUnlocked = badge['unlocked'] as bool;
-                final color = badge['color'] as Color;
+                final badge = achievements[index];
+                final isUnlocked = badge.isUnlocked;
+                final color = badge.color;
 
-                return Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 350),
+                          reverseTransitionDuration: const Duration(milliseconds: 300),
+                          pageBuilder: (context, animation, secondaryAnimation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: AchievementDetailsScreen(initialIndex: index),
+                            );
+                          },
+                        ),
+                      );
+                    },
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isUnlocked ? color.withValues(alpha: 0.3) : const Color(0xFFE2E8F0)),
-                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isUnlocked ? color.withValues(alpha: 0.1) : const Color(0xFFF1F5F9),
-                          shape: BoxShape.circle,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isUnlocked ? color.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
+                          width: 1.2,
                         ),
-                        child: Icon(
-                          badge['icon'] as IconData,
-                          color: isUnlocked ? color : const Color(0xFF94A3B8),
-                          size: 28,
-                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        badge['title'] as String,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isUnlocked ? const Color(0xFF0F172A) : const Color(0xFF94A3B8)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Hero(
+                            tag: 'badge_icon_${badge.id}',
+                            child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: isUnlocked ? color.withValues(alpha: 0.1) : const Color(0xFFF1F5F9),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                badge.icon,
+                                color: isUnlocked ? color : const Color(0xFF8A99AD),
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            badge.title,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isUnlocked ? const Color(0xFF0F172A) : const Color(0xFF788B9A),
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            badge.desc,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              height: 1.3,
+                              color: isUnlocked ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        badge['desc'] as String,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10, color: isUnlocked ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
-                      ),
-                    ],
+                    ),
                   ),
                 );
               },

@@ -4,6 +4,7 @@ import 'package:clg_application/screens/features/certifications_screen.dart';
 import 'package:clg_application/screens/features/hackathons_screen.dart';
 import 'package:clg_application/screens/features/achievements_screen.dart';
 import 'package:clg_application/screens/features/events_screen.dart';
+import 'package:clg_application/screens/features/fees_screen.dart';
 import 'package:clg_application/screens/student/gradebook_screen.dart';
 
 class FeatureRegistry {
@@ -67,6 +68,18 @@ class FeatureRegistry {
       category: 'Events & Competitions',
       badge: 'Upcoming',
       routeBuilder: (context) => const EventsScreen(),
+    ),
+    FeatureItem(
+      id: 'fees',
+      title: 'Fees & Fee Structure',
+      subtitle: 'Itemized fee breakdown, installment status & e-receipts',
+      icon: Icons.payments_rounded,
+      imageAsset: 'assets/school.png',
+      color: const Color(0xFFEA580C),
+      pastelBg: const Color(0xFFFFEDD5),
+      category: 'Academic',
+      badge: 'Payments',
+      routeBuilder: (context) => const FeesScreen(),
     ),
   ];
 

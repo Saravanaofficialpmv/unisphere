@@ -12,6 +12,7 @@ import 'package:clg_application/screens/onboarding/onboarding_screen.dart';
 
 import 'package:clg_application/screens/admin/admin_shell.dart';
 import 'package:clg_application/screens/hod/hod_shell.dart';
+import 'package:clg_application/screens/student/cgpa_details_screen.dart';
 
 final authStateProvider = StreamProvider<UserModel?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
@@ -110,6 +111,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/parent',
         builder: (context, state) => const ParentDashboard(),
+      ),
+      GoRoute(
+        path: '/cgpa-details',
+        builder: (context, state) => const CgpaDetailsScreen(),
       ),
     ],
   );

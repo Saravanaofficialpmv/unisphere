@@ -4,6 +4,7 @@ import 'package:clg_application/core/constants/app_colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 import 'package:clg_application/widgets/common/main_sidebar.dart';
+import 'package:clg_application/screens/features/fees_screen.dart';
 
 class ParentDashboard extends ConsumerStatefulWidget {
   const ParentDashboard({super.key});
@@ -33,7 +34,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
     const Center(child: Text('Academic Marks Breakdown')),
     const Center(child: Text('Primary Institution Alerts')),
     const Center(child: Text('Account Profile Settings')),
-    const Center(child: Text('Fee Payment Status')),
+    const FeesScreen(),
     const Center(child: Text('School Transport Map')),
   ];
 

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:clg_application/providers/gradebook_provider.dart';
+import 'package:clg_application/screens/student/cgpa_details_screen.dart';
 
 // ── VSBEC GRADE SERVICE & UTILS ─────────────────────────────────────────────
 
@@ -180,7 +183,7 @@ class CalcSubjectRow {
 
 // ── MAIN WIDGET ──────────────────────────────────────────────────────────────
 
-class GradebookScreen extends StatefulWidget {
+class GradebookScreen extends ConsumerStatefulWidget {
   final bool initialShowPlanner;
   final VoidCallback? onBack;
 
@@ -191,10 +194,10 @@ class GradebookScreen extends StatefulWidget {
   });
 
   @override
-  State<GradebookScreen> createState() => _GradebookScreenState();
+  ConsumerState<GradebookScreen> createState() => _GradebookScreenState();
 }
 
-class _GradebookScreenState extends State<GradebookScreen>
+class _GradebookScreenState extends ConsumerState<GradebookScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -482,7 +485,7 @@ class _GradebookScreenState extends State<GradebookScreen>
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF2E1065), Color(0xFF6D28D9), Color(0xFF8B5CF6)],
+          colors: [Color(0xFF2980B9), Color(0xFF6DD5FA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -516,7 +519,7 @@ class _GradebookScreenState extends State<GradebookScreen>
               ),
               Text(
                 'VSB Engineering College Rules Applied',
-                style: TextStyle(fontSize: 10, color: Color(0xFFDDD6FE), fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 10, color: Color(0xFFE0F2FE), fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -535,7 +538,7 @@ class _GradebookScreenState extends State<GradebookScreen>
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF2E1065), Color(0xFF6D28D9), Color(0xFF8B5CF6)],
+          colors: [Color(0xFF2980B9), Color(0xFF6DD5FA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -553,11 +556,11 @@ class _GradebookScreenState extends State<GradebookScreen>
         child: TabBar(
           controller: _tabController,
           indicator: BoxDecoration(
-            color: const Color(0xFF7C3AED), // Vibrant Violet
+            color: const Color(0xFF2980B9),
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF7C3AED).withValues(alpha: 0.5),
+                color: const Color(0xFF2980B9).withValues(alpha: 0.5),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               )
@@ -640,8 +643,8 @@ class _GradebookScreenState extends State<GradebookScreen>
               const SizedBox(width: 8),
               TextButton.icon(
                 onPressed: () => _showAddSubjectDialog(currentSem),
-                icon: const Icon(Icons.add_rounded, size: 16, color: Color(0xFF7C3AED)),
-                label: const Text('Add Subject', style: TextStyle(color: Color(0xFF7C3AED), fontWeight: FontWeight.bold, fontSize: 12)),
+                icon: const Icon(Icons.add_rounded, size: 16, color: Color(0xFF2980B9)),
+                label: const Text('Add Subject', style: TextStyle(color: Color(0xFF2980B9), fontWeight: FontWeight.bold, fontSize: 12)),
               ),
             ],
           ),
@@ -669,6 +672,8 @@ class _GradebookScreenState extends State<GradebookScreen>
   }
 
   Widget _buildVsbecOverallSummaryCards() {
+    final gradebookState = ref.watch(gradebookProvider);
+
     return LayoutBuilder(builder: (context, constraints) {
       final width = (constraints.maxWidth - 12) / 2;
       return Wrap(
@@ -678,38 +683,70 @@ class _GradebookScreenState extends State<GradebookScreen>
           _buildStatCard(
             width: width,
             title: 'Overall CGPA',
-            value: overallCgpa.toStringAsFixed(2),
-            subtext: academicStanding,
+            value: gradebookState.overallCgpa.toStringAsFixed(2),
+            subtext: gradebookState.academicStanding,
             icon: Icons.emoji_events_rounded,
             color: const Color(0xFF10B981),
             bgColor: const Color(0xFFECFDF5),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CgpaDetailsScreen(initialTabIndex: 0),
+                ),
+              );
+            },
           ),
           _buildStatCard(
             width: width,
             title: 'Equivalent Score %',
-            value: '${overallPercentage.toStringAsFixed(2)}%',
+            value: '${gradebookState.overallPercentage.toStringAsFixed(2)}%',
             subtext: 'Formula: CGPA × 10',
             icon: Icons.percent_rounded,
             color: const Color(0xFF3B82F6),
             bgColor: const Color(0xFFEFF6FF),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CgpaDetailsScreen(initialTabIndex: 1),
+                ),
+              );
+            },
           ),
           _buildStatCard(
             width: width,
             title: 'Eligible Credits',
-            value: '$overallEligibleCredits Credits',
+            value: '${gradebookState.overallEligibleCredits} Credits',
             subtext: 'Excludes RA, SA & W',
             icon: Icons.school_rounded,
-            color: const Color(0xFF8B5CF6),
-            bgColor: const Color(0xFFF5F3FF),
+            color: const Color(0xFF2980B9),
+            bgColor: const Color(0xFFEDF8FF),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CgpaDetailsScreen(initialTabIndex: 2),
+                ),
+              );
+            },
           ),
           _buildStatCard(
             width: width,
             title: 'Current SGPA',
-            value: currentSemSgpa.toStringAsFixed(2),
-            subtext: _semesters[_selectedSemIndex < _semesters.length ? _selectedSemIndex : 0].name,
+            value: gradebookState.currentSemSgpa.toStringAsFixed(2),
+            subtext: gradebookState.currentSemester?.name ?? 'Semester 4',
             icon: Icons.trending_up_rounded,
             color: const Color(0xFFF59E0B),
             bgColor: const Color(0xFFFFFBEB),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CgpaDetailsScreen(initialTabIndex: 3),
+                ),
+              );
+            },
           ),
         ],
       );
@@ -724,49 +761,57 @@ class _GradebookScreenState extends State<GradebookScreen>
     required IconData icon,
     required Color color,
     required Color bgColor,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
-                child: Icon(icon, color: color, size: 18),
+        child: Container(
+          width: width,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFF1F5F9)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color)),
-          const SizedBox(height: 4),
-          Text(subtext, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500)),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
+                    child: Icon(icon, color: color, size: 18),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color)),
+              const SizedBox(height: 4),
+              Text(subtext, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -787,7 +832,7 @@ class _GradebookScreenState extends State<GradebookScreen>
                 onSelected: (val) {
                   if (val) setState(() => _selectedSemIndex = index);
                 },
-                selectedColor: const Color(0xFF7C3AED),
+                selectedColor: const Color(0xFF2980B9),
                 backgroundColor: Colors.white,
                 labelStyle: TextStyle(
                   color: isSelected ? Colors.white : const Color(0xFF475569),
@@ -796,7 +841,7 @@ class _GradebookScreenState extends State<GradebookScreen>
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: isSelected ? const Color(0xFF7C3AED) : const Color(0xFFE2E8F0)),
+                  side: BorderSide(color: isSelected ? const Color(0xFF2980B9) : const Color(0xFFE2E8F0)),
                 ),
                 showCheckmark: false,
               ),
@@ -805,7 +850,7 @@ class _GradebookScreenState extends State<GradebookScreen>
           IconButton.filledTonal(
             onPressed: _showAddSemesterDialog,
             icon: const Icon(Icons.add_rounded, size: 20),
-            style: IconButton.styleFrom(backgroundColor: const Color(0xFFF1F5F9), foregroundColor: const Color(0xFF7C3AED)),
+            style: IconButton.styleFrom(backgroundColor: const Color(0xFFF1F5F9), foregroundColor: const Color(0xFF2980B9)),
           ),
         ],
       ),
@@ -818,14 +863,14 @@ class _GradebookScreenState extends State<GradebookScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF4C1D95), Color(0xFF7C3AED)],
+          colors: [Color(0xFF1B4F72), Color(0xFF2980B9)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+            color: const Color(0xFF2980B9).withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1081,7 +1126,7 @@ class _GradebookScreenState extends State<GradebookScreen>
             children: [
               const Row(
                 children: [
-                  Icon(Icons.functions_rounded, color: Color(0xFF7C3AED), size: 22),
+                  Icon(Icons.functions_rounded, color: Color(0xFF2980B9), size: 22),
                   SizedBox(width: 8),
                   Text(
                     'Semester CGPA Calculator',
@@ -1132,7 +1177,7 @@ class _GradebookScreenState extends State<GradebookScreen>
                       controller: row.sgpaController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       onChanged: (val) => _recalculateCgpaFromRows(),
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF7C3AED)),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2980B9)),
                       decoration: InputDecoration(
                         labelText: 'SGPA (0-10)',
                         labelStyle: const TextStyle(fontSize: 10),
@@ -1174,8 +1219,8 @@ class _GradebookScreenState extends State<GradebookScreen>
             icon: const Icon(Icons.add_rounded, size: 18),
             label: const Text('Add Semester Row', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF7C3AED),
-              side: const BorderSide(color: Color(0xFF7C3AED)),
+              foregroundColor: const Color(0xFF2980B9),
+              side: const BorderSide(color: Color(0xFF2980B9)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           ),
@@ -1185,9 +1230,9 @@ class _GradebookScreenState extends State<GradebookScreen>
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F3FF),
+              color: const Color(0xFFEDF8FF),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFDDD6FE)),
+              border: Border.all(color: const Color(0xFFBEE3F8)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1195,7 +1240,7 @@ class _GradebookScreenState extends State<GradebookScreen>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('VSBEC CGPA & PERCENTAGE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF7C3AED))),
+                    const Text('VSBEC CGPA & PERCENTAGE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2980B9))),
                     const SizedBox(height: 2),
                     Text('Total Eligible Credits: $_calculatedCgpaTotalCredits', style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
                     const SizedBox(height: 2),
@@ -1204,7 +1249,7 @@ class _GradebookScreenState extends State<GradebookScreen>
                 ),
                 Text(
                   _calculatedCgpaResult.toStringAsFixed(2),
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF7C3AED)),
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF2980B9)),
                 ),
               ],
             ),
@@ -1579,7 +1624,7 @@ class _GradebookScreenState extends State<GradebookScreen>
             icon: const Icon(Icons.add_rounded, size: 18),
             label: const Text('Add Subject Record'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C3AED),
+              backgroundColor: const Color(0xFF2980B9),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),

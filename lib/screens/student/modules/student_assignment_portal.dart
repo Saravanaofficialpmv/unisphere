@@ -374,11 +374,15 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                asg.subjectName ?? 'General',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
+              Expanded(
+                child: Text(
+                  asg.subjectName ?? 'General',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               _buildStatusChip(status),
             ],
           ),
@@ -407,9 +411,13 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
                   children: [
                     const Icon(Icons.psychology_outlined, size: 16, color: AppColors.primary),
                     const SizedBox(width: 6),
-                    Text(
-                      'Assigned Question for Reg No: ${widget.registerNumber}',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    Expanded(
+                      child: Text(
+                        'Assigned Question for Reg No: ${widget.registerNumber}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                      ),
                     ),
                   ],
                 ),
@@ -425,68 +433,74 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
           ),
           const SizedBox(height: 14),
 
-          // Bottom Row: Due date & Max Marks + Submission Action Button
+          // Due date & Max Marks Metadata Row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.access_time_rounded,
-                    size: 16,
+              Icon(
+                Icons.access_time_rounded,
+                size: 15,
+                color: isPastDue && status != 'Graded' && status != 'Submitted'
+                    ? AppColors.error
+                    : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  'Due: $dueFormatted',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isPastDue ? FontWeight.w600 : FontWeight.normal,
                     color: isPastDue && status != 'Graded' && status != 'Submitted'
                         ? AppColors.error
                         : AppColors.textSecondary,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Due: $dueFormatted',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isPastDue ? FontWeight.w600 : FontWeight.normal,
-                      color: isPastDue && status != 'Graded' && status != 'Submitted'
-                          ? AppColors.error
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text('•', style: TextStyle(color: AppColors.textSecondary)),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Max Marks: ${asg.maxMarks}',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                  ),
-                ],
+                ),
               ),
-              ElevatedButton.icon(
-                onPressed: () => _openSubmissionModal(asg, submission),
-                icon: Icon(
-                  status == 'Graded'
-                      ? Icons.grading_rounded
-                      : status == 'Submitted' || status == 'Late'
-                          ? Icons.remove_red_eye_rounded
-                          : Icons.upload_file_rounded,
-                  size: 16,
-                ),
-                label: Text(
-                  status == 'Graded'
-                      ? 'View Feedback (${submission?.obtainedMarks}/${asg.maxMarks})'
-                      : status == 'Submitted' || status == 'Late'
-                          ? 'View Submission'
-                          : 'Submit File',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(120, 38),
-                  backgroundColor: status == 'Graded'
-                      ? const Color(0xFF10B981)
-                      : status == 'Submitted' || status == 'Late'
-                          ? AppColors.primary
-                          : AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
+              const SizedBox(width: 8),
+              const Text('•', style: TextStyle(color: AppColors.textSecondary)),
+              const SizedBox(width: 8),
+              Text(
+                'Max Marks: ${asg.maxMarks}',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+
+          // Submission Action Button (Full Width)
+          SizedBox(
+            width: double.infinity,
+            height: 40,
+            child: ElevatedButton.icon(
+              onPressed: () => _openSubmissionModal(asg, submission),
+              icon: Icon(
+                status == 'Graded'
+                    ? Icons.grading_rounded
+                    : status == 'Submitted' || status == 'Late'
+                        ? Icons.remove_red_eye_rounded
+                        : Icons.upload_file_rounded,
+                size: 16,
+              ),
+              label: Text(
+                status == 'Graded'
+                    ? 'View Feedback (${submission?.obtainedMarks}/${asg.maxMarks})'
+                    : status == 'Submitted' || status == 'Late'
+                        ? 'View Submission'
+                        : 'Submit File',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: status == 'Graded'
+                    ? const Color(0xFF059669)
+                    : status == 'Submitted' || status == 'Late'
+                        ? const Color(0xFF2563EB)
+                        : AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
           ),
         ],
       ),

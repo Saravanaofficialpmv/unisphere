@@ -7,6 +7,7 @@ import 'package:clg_application/screens/student/modules/student_assignment_porta
 import 'package:clg_application/widgets/common/main_sidebar.dart';
 import 'package:clg_application/screens/student/gradebook_screen.dart';
 import 'package:clg_application/screens/features/feature_hub_screen.dart';
+import 'package:clg_application/screens/features/fees_screen.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -564,6 +565,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   widget.onNavigateToTab(2);
                 } else if (label == 'Grades') {
                   widget.onNavigateToTab(4, openCalculator: true);
+                } else if (label == 'Fees') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const FeesScreen()),
+                  );
                 } else if (label == 'More') {
                   _showMoreServicesBottomSheet(context);
                 } else {
