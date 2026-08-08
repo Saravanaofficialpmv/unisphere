@@ -590,12 +590,15 @@ class _UserManagementModuleState extends State<UserManagementModule> {
   }
 
   Widget _actionIcon(IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: Icon(icon, size: 18, color: color),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: Icon(icon, size: 18, color: color),
+        ),
       ),
     );
   }
@@ -606,18 +609,27 @@ class _UserManagementModuleState extends State<UserManagementModule> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        InkWell(
-          onTap: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
-          child: _pageBox('<', false, enabled: _currentPage > 1),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+            child: _pageBox('<', false, enabled: _currentPage > 1),
+          ),
         ),
         for (int i = 1; i <= totalPages; i++)
-          InkWell(
-            onTap: () => setState(() => _currentPage = i),
-            child: _pageBox('$i', i == _currentPage),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => setState(() => _currentPage = i),
+              child: _pageBox('$i', i == _currentPage),
+            ),
           ),
-        InkWell(
-          onTap: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
-          child: _pageBox('>', false, enabled: _currentPage < totalPages),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+            child: _pageBox('>', false, enabled: _currentPage < totalPages),
+          ),
         ),
       ],
     );

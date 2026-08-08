@@ -53,7 +53,21 @@ class _AdminShellState extends State<AdminShell> {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 1200;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_selectedIndex != 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _selectedIndex = 0;
+              });
+            }
+          });
+        }
+      },
+      child: Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(context, isDesktop),
@@ -77,8 +91,9 @@ class _AdminShellState extends State<AdminShell> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSidebar() {
     return MainSidebar(

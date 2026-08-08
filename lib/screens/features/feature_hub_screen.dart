@@ -49,10 +49,12 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
     );
   }
 
-  void _handleBack() {
+  void _handleBack() async {
     if (widget.onBack != null) {
       widget.onBack!();
-    } else if (Navigator.of(context).canPop()) {
+      return;
+    }
+    if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
       context.go('/student');
@@ -171,7 +173,7 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
-                  childAspectRatio: 0.88,
+                  childAspectRatio: 0.72,
                 ),
                 itemCount: _filteredFeatures.length,
                 itemBuilder: (context, index) {
@@ -184,18 +186,20 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
       ),
     );
 
-    if (widget.onBack != null) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          widget.onBack!();
-        },
-        child: scaffold,
-      );
-    }
-
-    return scaffold;
+    return PopScope(
+      canPop: widget.onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (widget.onBack != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              widget.onBack!();
+            }
+          });
+        }
+      },
+      child: scaffold,
+    );
   }
 
   Widget _buildHeroHeader() {

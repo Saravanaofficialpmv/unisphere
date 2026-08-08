@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/screens/features/feature_hub_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class AchievementsScreen extends StatelessWidget {
   final VoidCallback? onBack;
   const AchievementsScreen({super.key, this.onBack});
 
-  void _navigateBackToFeatureHub(BuildContext context) {
+  void _navigateBackToFeatureHub(BuildContext context) async {
     if (onBack != null) {
       onBack!();
-    } else if (Navigator.of(context).canPop()) {
+      return;
+    }
+    if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const FeatureHubScreen(),
-        ),
-      );
+      context.go('/student');
     }
   }
 
@@ -96,7 +94,7 @@ class AchievementsScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.95,
+                childAspectRatio: 0.85,
               ),
               itemCount: badges.length,
               itemBuilder: (context, index) {
@@ -151,17 +149,17 @@ class AchievementsScreen extends StatelessWidget {
       ),
     );
 
-    if (onBack != null) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          onBack!();
-        },
-        child: scaffold,
-      );
-    }
-
-    return scaffold;
+    return PopScope(
+      canPop: onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (onBack != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            onBack!();
+          });
+        }
+      },
+      child: scaffold,
+    );
   }
 }

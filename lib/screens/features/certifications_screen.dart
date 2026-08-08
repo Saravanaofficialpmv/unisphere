@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/screens/features/feature_hub_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class CertificateModel {
   final String id;
@@ -152,17 +152,15 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     );
   }
 
-  void _navigateBackToFeatureHub(BuildContext context) {
+  void _navigateBackToFeatureHub(BuildContext context) async {
     if (widget.onBack != null) {
       widget.onBack!();
-    } else if (Navigator.of(context).canPop()) {
+      return;
+    }
+    if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const FeatureHubScreen(),
-        ),
-      );
+      context.go('/student');
     }
   }
 
@@ -188,18 +186,18 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: UnconstrainedBox(
-              child: ElevatedButton.icon(
-                onPressed: () => _showUploadCertificateDialog(context),
-                icon: const Icon(Icons.upload_file_rounded, size: 16),
-                label: const Text('Upload New', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C3AED),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
+            padding: const EdgeInsets.only(right: 12.0, top: 6.0, bottom: 6.0),
+            child: ElevatedButton.icon(
+              onPressed: () => _showUploadCertificateDialog(context),
+              icon: const Icon(Icons.upload_file_rounded, size: 16),
+              label: const Text('Upload New', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
           ),
@@ -237,18 +235,20 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       ),
     );
 
-    if (widget.onBack != null) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          widget.onBack!();
-        },
-        child: scaffold,
-      );
-    }
-
-    return scaffold;
+    return PopScope(
+      canPop: widget.onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (widget.onBack != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              widget.onBack!();
+            }
+          });
+        }
+      },
+      child: scaffold,
+    );
   }
 
   // ── Analytics Overview Cards ────────────────────────────────────────────────
@@ -555,9 +555,13 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                 const SizedBox(width: 8),
                 const Icon(Icons.calendar_month_outlined, size: 13, color: Color(0xFF94A3B8)),
                 const SizedBox(width: 4),
-                Text(
-                  'Uploaded ${cert.uploadDate.day}/${cert.uploadDate.month}/${cert.uploadDate.year}',
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                Flexible(
+                  child: Text(
+                    'Uploaded ${cert.uploadDate.day}/${cert.uploadDate.month}/${cert.uploadDate.year}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  ),
                 ),
               ],
             ),

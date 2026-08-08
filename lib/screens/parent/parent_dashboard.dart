@@ -48,7 +48,21 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 1200;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _currentIndex = 0;
+              });
+            }
+          });
+        }
+      },
+      child: Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
       drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
@@ -72,8 +86,9 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
           Expanded(child: _screens[_currentIndex < _screens.length ? _currentIndex : 0]),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSidebar() {
     return MainSidebar(

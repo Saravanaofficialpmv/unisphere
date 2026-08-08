@@ -97,6 +97,7 @@ class AppleGlassCard extends StatelessWidget {
         );
 
     final cardContent = Container(
+      constraints: const BoxConstraints(minWidth: 1.0, minHeight: 1.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
@@ -116,50 +117,40 @@ class AppleGlassCard extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
           child: CustomPaint(
             foregroundPainter: _AppleGlassSpecularBorderPainter(
               borderRadius: borderRadius,
               borderWidth: borderWidth,
             ),
-            child: Stack(
-              children: [
-                // Base Glass Tinted Fill
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  padding: padding,
-                  decoration: BoxDecoration(
-                    gradient: effectiveGradient,
-                    borderRadius: BorderRadius.circular(borderRadius),
-                  ),
-                  child: child,
-                ),
-
-                // Apple Specular Curved Inner Gloss Reflection Overlay
-                if (showSpecularGloss)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(borderRadius),
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white.withValues(alpha: 0.28),
-                              Colors.white.withValues(alpha: 0.08),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.3, 0.65],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: padding,
+              decoration: BoxDecoration(
+                gradient: effectiveGradient,
+                borderRadius: BorderRadius.circular(borderRadius),
+              ),
+              foregroundDecoration: showSpecularGloss
+                  ? BoxDecoration(
+                      borderRadius: BorderRadius.circular(borderRadius),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0.28),
+                          Colors.white.withValues(alpha: 0.08),
+                          Colors.transparent,
+                        ],
+                        stops: const [0.0, 0.3, 0.65],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    ),
-                  ),
-              ],
+                    )
+                  : null,
+              child: child,
+            ),
             ),
           ),
         ),
@@ -241,73 +232,74 @@ class AmbientGlassBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Base white background canvas tint
+        // Base white background canvas tint with glowing ambient mesh orbs
         Positioned.fill(
           child: Container(
             color: Colors.white,
-          ),
-        ),
-
-        // Glowing Ambient Mesh Orbs
-        Positioned(
-          top: -60,
-          left: -40,
-          child: Container(
-            width: 280,
-            height: 280,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFF3B82F6).withValues(alpha: 0.35),
-                  const Color(0xFF60A5FA).withValues(alpha: 0.15),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        Positioned(
-          top: 120,
-          right: -50,
-          child: Container(
-            width: 320,
-            height: 320,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFF8B5CF6).withValues(alpha: 0.30),
-                  const Color(0xFFC084FC).withValues(alpha: 0.10),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        Positioned(
-          bottom: 100,
-          left: 40,
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFF06B6D4).withValues(alpha: 0.25),
-                  const Color(0xFF67E8F9).withValues(alpha: 0.08),
-                  Colors.transparent,
-                ],
-              ),
+            child: Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                Positioned(
+                  top: -60,
+                  left: -40,
+                  child: Container(
+                    width: 280,
+                    height: 280,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                          const Color(0xFF60A5FA).withValues(alpha: 0.15),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 120,
+                  right: -50,
+                  child: Container(
+                    width: 320,
+                    height: 320,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF8B5CF6).withValues(alpha: 0.30),
+                          const Color(0xFFC084FC).withValues(alpha: 0.10),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 100,
+                  left: 40,
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF06B6D4).withValues(alpha: 0.25),
+                          const Color(0xFF67E8F9).withValues(alpha: 0.08),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
 
         // Content on top of ambient glass background
-        Positioned.fill(child: child),
+        child,
       ],
     );
   }

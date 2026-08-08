@@ -307,39 +307,45 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
-            borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
-            onTap: () {
-              setState(() {
-                _isSignUp = false; // Switch to Sign In mode
-                _emailController.text = email;
-                _passwordController.text = pass;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Autofilled $role credentials! Tap Log In or double tap to launch.'),
-                  duration: const Duration(seconds: 1),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Text(role, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
+              onTap: () {
+                setState(() {
+                  _isSignUp = false; // Switch to Sign In mode
+                  _emailController.text = email;
+                  _passwordController.text = pass;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Autofilled $role credentials! Tap Log In or double tap to launch.'),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: Text(role, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary)),
+              ),
             ),
           ),
-          InkWell(
-            borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
-            onTap: directAccess,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
-              ),
-              child: const Row(
-                children: [
-                  Text('Open ➔', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                ],
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+              onTap: directAccess,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+                ),
+                child: const Row(
+                  children: [
+                    Text('Open ➔', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  ],
+                ),
               ),
             ),
           ),

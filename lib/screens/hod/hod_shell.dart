@@ -72,7 +72,21 @@ class _HodShellState extends ConsumerState<HodShell> {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 1200;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _currentIndex = 0;
+              });
+            }
+          });
+        }
+      },
+      child: Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
       drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
@@ -118,8 +132,9 @@ class _HodShellState extends ConsumerState<HodShell> {
         icon: const Icon(Icons.flash_on_rounded, color: Colors.white),
         label: const Text('Quick Actions', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSidebar() {
     return MainSidebar(
@@ -216,19 +231,22 @@ class _HodShellState extends ConsumerState<HodShell> {
   }
 
   Widget _buildModalAction(BuildContext context, IconData icon, String label, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: (MediaQuery.of(context).size.width - 52) / 2,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(16)),
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.primary, size: 20),
-            const SizedBox(width: 10),
-            Expanded(child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: (MediaQuery.of(context).size.width - 52) / 2,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(16)),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.primary, size: 20),
+              const SizedBox(width: 10),
+              Expanded(child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+            ],
+          ),
         ),
       ),
     );

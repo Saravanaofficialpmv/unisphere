@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/screens/features/feature_hub_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class CampusEventModel {
   final String title;
@@ -60,17 +60,15 @@ class _EventsScreenState extends State<EventsScreen> {
     ),
   ];
 
-  void _navigateBackToFeatureHub(BuildContext context) {
+  void _navigateBackToFeatureHub(BuildContext context) async {
     if (widget.onBack != null) {
       widget.onBack!();
-    } else if (Navigator.of(context).canPop()) {
+      return;
+    }
+    if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const FeatureHubScreen(),
-        ),
-      );
+      context.go('/student');
     }
   }
 
@@ -144,11 +142,25 @@ class _EventsScreenState extends State<EventsScreen> {
                         children: [
                           const Icon(Icons.location_on_rounded, size: 14, color: Color(0xFF64748B)),
                           const SizedBox(width: 4),
-                          Text(event.location, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              event.location,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF64748B)),
                           const SizedBox(width: 4),
-                          Text(event.time, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          Flexible(
+                            child: Text(
+                              event.time,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            ),
+                          ),
                         ],
                       ),
                       const Divider(height: 20),
@@ -179,17 +191,19 @@ class _EventsScreenState extends State<EventsScreen> {
       ),
     );
 
-    if (widget.onBack != null) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          widget.onBack!();
-        },
-        child: scaffold,
-      );
-    }
-
-    return scaffold;
+    return PopScope(
+      canPop: widget.onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (widget.onBack != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              widget.onBack!();
+            }
+          });
+        }
+      },
+      child: scaffold,
+    );
   }
 }

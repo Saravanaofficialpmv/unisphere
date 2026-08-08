@@ -68,13 +68,13 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         if (_currentIndex != 0) {
-          setState(() {
-            _currentIndex = 0;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _currentIndex = 0;
+              });
+            }
           });
-        } else {
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
         }
       },
       child: Scaffold(
@@ -135,25 +135,30 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
               ),
               centerTitle: true,
               actions: [
-                Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF2D3142), size: 26),
-                      onPressed: () {},
-                    ),
-                    Positioned(
-                      right: 10,
-                      top: 10,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF2D3142), size: 26),
+                        onPressed: () {},
+                      ),
+                      Positioned(
+                        right: 10,
+                        top: 10,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -211,38 +216,45 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           Stack(
             clipBehavior: Clip.none,
             children: [
-              Positioned(
-                top: -20,
-                left: 20,
-                child: Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFF3F51B5).withValues(alpha: 0.45),
-                        const Color(0xFF3F51B5).withValues(alpha: 0.0),
-                      ],
+              Positioned.fill(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      top: -20,
+                      left: 20,
+                      child: Container(
+                        width: 160,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              const Color(0xFF3F51B5).withValues(alpha: 0.45),
+                              const Color(0xFF3F51B5).withValues(alpha: 0.0),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -20,
-                right: 40,
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFF69F0AE).withValues(alpha: 0.35),
-                        const Color(0xFF69F0AE).withValues(alpha: 0.0),
-                      ],
+                    Positioned(
+                      bottom: -20,
+                      right: 40,
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              const Color(0xFF69F0AE).withValues(alpha: 0.35),
+                              const Color(0xFF69F0AE).withValues(alpha: 0.0),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
               _buildAttendanceCard(context),
@@ -427,10 +439,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   }
 
   Widget _buildAttendanceCard(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+    return RepaintBoundary(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -521,7 +534,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   // ── Quick Actions ────────────────────────
@@ -539,54 +553,61 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       children: actions.map((action) {
         final label = action['label'] as String;
         final color = action['color'] as Color;
-        return InkWell(
-          onTap: () {
-            if (label == 'Timetable') {
-              widget.onNavigateToTab(1);
-            } else if (label == 'Assignments') {
-              widget.onNavigateToTab(2);
-            } else if (label == 'Grades') {
-              widget.onNavigateToTab(4, openCalculator: true);
-            } else if (label == 'More') {
-              _showMoreServicesBottomSheet(context);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Opening $label...'),
-                  duration: const Duration(seconds: 1),
+        return Expanded(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                if (label == 'Timetable') {
+                  widget.onNavigateToTab(1);
+                } else if (label == 'Assignments') {
+                  widget.onNavigateToTab(2);
+                } else if (label == 'Grades') {
+                  widget.onNavigateToTab(4, openCalculator: true);
+                } else if (label == 'More') {
+                  _showMoreServicesBottomSheet(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Opening $label...'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: color.withValues(alpha: 0.2)),
+                      ),
+                      child: action.containsKey('image')
+                          ? Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Image.asset(
+                                action['image'] as String,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : Icon(action['icon'] as IconData, color: color, size: 26),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF616161), fontWeight: FontWeight.w500),
+                    ),
+                  ],
                 ),
-              );
-            }
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            child: Column(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: color.withValues(alpha: 0.2)),
-                  ),
-                  child: action.containsKey('image')
-                      ? Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Image.asset(
-                            action['image'] as String,
-                            fit: BoxFit.contain,
-                          ),
-                        )
-                      : Icon(action['icon'] as IconData, color: color, size: 26),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF616161), fontWeight: FontWeight.w500),
-                ),
-              ],
+              ),
             ),
           ),
         );
@@ -1209,25 +1230,28 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
     required VoidCallback onPressed,
   }) {
     final useColor = color ?? const Color(0xFF757575);
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: useColor, size: 16),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: useColor,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: useColor, size: 16),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: useColor,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
