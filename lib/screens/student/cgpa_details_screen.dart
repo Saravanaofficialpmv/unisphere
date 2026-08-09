@@ -5,10 +5,12 @@ import 'package:clg_application/screens/student/semester_grade_details_screen.da
 
 class CgpaDetailsScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
+  final VoidCallback? onBack;
 
   const CgpaDetailsScreen({
     super.key,
     this.initialTabIndex = 0,
+    this.onBack,
   });
 
   @override
@@ -133,6 +135,10 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
           onPressed: () {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
+            } else if (widget.onBack != null) {
+              widget.onBack!();
+            } else {
+              Navigator.maybePop(context);
             }
           },
         ),

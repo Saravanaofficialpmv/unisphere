@@ -393,10 +393,12 @@ class _FeesScreenState extends State<FeesScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
           onPressed: () {
-            if (widget.onBack != null) {
-              widget.onBack!();
-            } else if (Navigator.canPop(context)) {
+            if (Navigator.canPop(context)) {
               Navigator.pop(context);
+            } else if (widget.onBack != null) {
+              widget.onBack!();
+            } else {
+              Navigator.maybePop(context);
             }
           },
         ),

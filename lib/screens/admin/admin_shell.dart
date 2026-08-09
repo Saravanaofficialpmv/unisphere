@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:clg_application/widgets/common/notification_sheet.dart';
 import 'package:clg_application/widgets/common/main_sidebar.dart';
 import 'package:clg_application/screens/admin/admin_dashboard.dart';
 import 'package:clg_application/screens/admin/modules/user_management.dart';
@@ -121,7 +122,10 @@ class _AdminShellState extends State<AdminShell> {
           ),
       actions: [
         IconButton(icon: const Icon(Icons.help_outline_rounded, color: AppColors.textPrimary, size: 22), onPressed: () {}),
-        IconButton(icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary, size: 22), onPressed: () {}),
+        IconButton(
+          icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary, size: 22),
+          onPressed: () => showNotificationSheet(context),
+        ),
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),

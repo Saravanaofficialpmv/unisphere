@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clg_application/core/constants/app_colors.dart';
 import 'package:clg_application/widgets/common/main_sidebar.dart';
+import 'package:clg_application/widgets/common/notification_sheet.dart';
 
 import 'hod_home_dashboard.dart';
 import 'modules/hod_staff_management.dart';
@@ -112,9 +113,7 @@ class _HodShellState extends ConsumerState<HodShell> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('5 New Department Notifications'), backgroundColor: AppColors.info));
-            },
+            onPressed: () => showNotificationSheet(context),
           ),
           const SizedBox(width: 8),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:clg_application/widgets/common/notification_sheet.dart';
 
 import 'package:clg_application/screens/staff/modules/staff_assignment_creation.dart';
 import 'package:clg_application/screens/staff/modules/staff_submission_review.dart';
@@ -80,7 +81,10 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
           ),
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
+            onPressed: () => showNotificationSheet(context),
+          ),
           const SizedBox(width: 8),
         ],
       ),

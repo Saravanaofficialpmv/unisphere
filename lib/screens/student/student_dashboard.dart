@@ -8,6 +8,8 @@ import 'package:clg_application/widgets/common/main_sidebar.dart';
 import 'package:clg_application/screens/student/gradebook_screen.dart';
 import 'package:clg_application/screens/features/feature_hub_screen.dart';
 import 'package:clg_application/screens/features/fees_screen.dart';
+import 'package:clg_application/widgets/common/notification_sheet.dart';
+import 'package:clg_application/providers/notification_provider.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -63,6 +65,8 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 1200;
+    final notificationState = ref.watch(notificationProvider);
+    final unreadCount = notificationState.unreadCount;
 
     return PopScope(
       canPop: false,
@@ -144,20 +148,26 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF2D3142), size: 26),
-                        onPressed: () {},
+                        onPressed: () {
+                          showNotificationSheet(
+                            context,
+                            onNavigateToTab: _handleNavigation,
+                          );
+                        },
                       ),
-                      Positioned(
-                        right: 10,
-                        top: 10,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
