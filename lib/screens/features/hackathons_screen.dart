@@ -1259,11 +1259,12 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
               const SizedBox(height: 16),
 
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'AI & Innovation Hackathon 2026',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                  const Expanded(
+                    child: Text(
+                      'AI & Innovation Hackathon 2026',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
