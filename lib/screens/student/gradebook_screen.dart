@@ -460,8 +460,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
         body: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
-              _buildSegmentedTabBar(),
+              _buildHeader(context),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -478,18 +477,38 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
     );
   }
 
-  // ── APP BAR ────────────────────────────────────────────────────────────────
+  // ── HEADER & APP BAR ────────────────────────────────────────────────────────
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildHeader(BuildContext context) {
     return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
           colors: [Color(0xFF2980B9), Color(0xFF6DD5FA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2980B9).withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
+      child: Column(
+        children: [
+          _buildAppBar(context),
+          _buildSegmentedTabBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -536,14 +555,6 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
 
   Widget _buildSegmentedTabBar() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF2980B9), Color(0xFF6DD5FA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-      ),
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Container(
         height: 44,
@@ -1231,7 +1242,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: const Color(0xFFEDF8FF),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: const Color(0xFFBEE3F8)),
             ),
             child: Row(
@@ -1408,7 +1419,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: const Color(0xFFECFDF5),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: const Color(0xFFA7F3D0)),
             ),
             child: Row(
@@ -1508,7 +1519,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: const Color(0xFFBFDBFE)),
             ),
             child: Row(
