@@ -12,6 +12,12 @@ class ExamDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('EEEE, MMMM dd, yyyy');
+    final List<String> defaultInstructions = const [
+      'Students must report to the examination hall 15 minutes before scheduled start time.',
+      'Carry your official College ID Card and printed Digital Hall Ticket at all times.',
+      'Electronic gadgets, smartwatches, and programmable calculators are strictly prohibited.',
+      'Maintain silence and follow instructions given by the hall supervisor.',
+    ];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -88,13 +94,23 @@ class ExamDetailScreen extends StatelessWidget {
                     'Course Code: ${exam.courseCode}',
                     style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
+
+                  // Date Row
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Icon(Icons.event_rounded, size: 18, color: Color(0xFF0284C7)),
-                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.event_rounded, size: 16, color: Color(0xFF0284C7)),
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           dateFormat.format(exam.date),
@@ -103,11 +119,21 @@ class ExamDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
+
+                  // Time Row
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Icon(Icons.access_time_rounded, size: 18, color: Color(0xFF0284C7)),
-                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.access_time_rounded, size: 16, color: Color(0xFF0284C7)),
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           '${exam.startTime} – ${exam.endTime} (${exam.durationMinutes} mins)',
@@ -116,34 +142,32 @@ class ExamDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
+
+                  // Venue Row
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.location_on_rounded, size: 18, color: Color(0xFF0284C7)),
-                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFF0284C7)),
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          '${exam.venue} — ${exam.roomNumber} (${exam.blockBuilding})',
-                          style: const TextStyle(fontSize: 13, color: Color(0xFF334155), fontWeight: FontWeight.w600),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            '${exam.venue} — ${exam.roomNumber} (${exam.blockBuilding})',
+                            style: const TextStyle(fontSize: 13, color: Color(0xFF334155), fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  if (exam.facultyInvigilator != null) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.person_pin_rounded, size: 18, color: Color(0xFF0284C7)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Invigilator: ${exam.facultyInvigilator}',
-                            style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -158,7 +182,7 @@ class ExamDetailScreen extends StatelessWidget {
               'Exam Instructions',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -167,21 +191,41 @@ class ExamDetailScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: Text(
-                exam.instructions,
-                style: const TextStyle(fontSize: 13, color: Color(0xFF475569), height: 1.5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: defaultInstructions
+                    .map(
+                      (inst) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('• ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+                            Expanded(
+                              child: Text(
+                                inst,
+                                style: const TextStyle(fontSize: 12, color: Color(0xFF475569), height: 1.4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ),
             const SizedBox(height: 24),
 
-            // Hall Ticket Trigger Button
+            // Download Hall Ticket Action
             if (exam.isHallTicketAvailable)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => HallTicketModal.show(context, exam),
-                  icon: const Icon(Icons.badge_rounded),
-                  label: const Text('View Hall Ticket'),
+                  onPressed: () {
+                    HallTicketModal.show(context, exam);
+                  },
+                  icon: const Icon(Icons.badge_rounded, size: 20),
+                  label: const Text('View & Download Hall Ticket', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0284C7),
                     foregroundColor: Colors.white,
