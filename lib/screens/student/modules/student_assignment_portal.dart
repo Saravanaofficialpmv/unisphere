@@ -10,12 +10,14 @@ class StudentAssignmentPortal extends StatefulWidget {
   final String studentUid;
   final String studentName;
   final String registerNumber;
+  final VoidCallback? onBack;
 
   const StudentAssignmentPortal({
     super.key,
     this.studentUid = 'std_alex_01',
     this.studentName = 'Alex Johnson',
     this.registerNumber = 'RA2111003010001',
+    this.onBack,
   });
 
   @override
@@ -43,6 +45,14 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
 
   void _onServiceUpdate() {
     if (mounted) setState(() {});
+  }
+
+  void _handleBack(BuildContext context) {
+    if (widget.onBack != null) {
+      widget.onBack!();
+    } else if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -75,13 +85,34 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
         ? ((totalMarksEarned / totalMaxMarksGraded) * 100).toStringAsFixed(1)
         : '94.0';
 
-    return Container(
-      color: Colors.white,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return PopScope(
+      canPop: widget.onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBack(context);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Colors.black12,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
+            tooltip: 'Back to Home',
+            onPressed: () => _handleBack(context),
+          ),
+          title: const Text(
+            'Assignment & Coursework Portal',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header Title Card
             _buildHeaderBanner(),
             const SizedBox(height: 20),
@@ -177,8 +208,9 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildHeaderBanner() {
     return Container(

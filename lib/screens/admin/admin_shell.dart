@@ -116,8 +116,18 @@ class _AdminShellState extends State<AdminShell> {
         ? const Padding(padding: EdgeInsets.all(12), child: Icon(Icons.hub_rounded, color: AppColors.primary)) 
         : Builder(
             builder: (context) => IconButton(
-              icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              icon: Icon(
+                _selectedIndex == 0 ? Icons.menu_rounded : Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textPrimary,
+                size: _selectedIndex == 0 ? 24 : 20,
+              ),
+              onPressed: () {
+                if (_selectedIndex == 0) {
+                  _scaffoldKey.currentState?.openDrawer();
+                } else {
+                  _handleNavigation(0);
+                }
+              },
             ),
           ),
       actions: [

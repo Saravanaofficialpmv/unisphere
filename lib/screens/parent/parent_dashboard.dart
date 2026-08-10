@@ -109,8 +109,18 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
           scrolledUnderElevation: 0,
           leading: Builder(
             builder: (context) => IconButton(
-              icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              icon: Icon(
+                _currentIndex == 0 ? Icons.menu_rounded : Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textPrimary,
+                size: _currentIndex == 0 ? 24 : 20,
+              ),
+              onPressed: () {
+                if (_currentIndex == 0) {
+                  _scaffoldKey.currentState?.openDrawer();
+                } else {
+                  _handleNavigation(0);
+                }
+              },
             ),
           ),
           title: Row(

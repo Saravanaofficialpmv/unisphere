@@ -1,125 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/services/announcement_service.dart';
-import 'package:clg_application/widgets/announcements/announcement_card.dart';
-import 'package:clg_application/widgets/announcements/create_announcement_dialog.dart';
-import 'package:clg_application/screens/announcements/announcement_detail_screen.dart';
+import 'package:clg_application/models/exam_model.dart';
+import 'package:clg_application/services/exam_service.dart';
+import 'package:clg_application/widgets/exams/exam_card.dart';
+import 'package:clg_application/screens/exams/exam_detail_screen.dart';
 
-class StudentAnnouncementsScreen extends StatefulWidget {
+class ExamsDetailScreen extends StatefulWidget {
   final VoidCallback? onBack;
 
-  const StudentAnnouncementsScreen({
-    super.key,
-    this.onBack,
-  });
+  const ExamsDetailScreen({super.key, this.onBack});
 
   @override
-  State<StudentAnnouncementsScreen> createState() => _StudentAnnouncementsScreenState();
+  State<ExamsDetailScreen> createState() => _ExamsDetailScreenState();
 }
 
-class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen> {
+class _ExamsDetailScreenState extends State<ExamsDetailScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCategory = 'All';
-  bool _unreadOnly = false;
-  bool _importantOnly = false;
+  String _selectedExamType = 'All';
 
-  final List<Map<String, dynamic>> _categoryOptions = const [
+  final List<Map<String, dynamic>> _examTypeOptions = const [
     {
-      'cat': 'All',
+      'type': 'All',
       'title': 'All',
-      'subtitle': 'Show all announcements',
+      'subtitle': 'Show all exam types',
       'icon': Icons.grid_view_rounded,
-      'color': Color(0xFFF97316),
-      'bgColor': Color(0xFFFFEDD5),
+      'color': Color(0xFF6366F1),
+      'bgColor': Color(0xFFEEF2FF),
     },
     {
-      'cat': 'General',
-      'title': 'General',
-      'subtitle': 'General campus updates',
-      'icon': Icons.campaign_rounded,
-      'color': Color(0xFF2563EB),
-      'bgColor': Color(0xFFEFF6FF),
-    },
-    {
-      'cat': 'Academic',
-      'title': 'Academic',
-      'subtitle': 'Classes & syllabus',
-      'icon': Icons.school_rounded,
+      'type': 'Unit Test',
+      'title': 'Unit Test',
+      'subtitle': 'Short tests & quizzes',
+      'icon': Icons.edit_note_rounded,
       'color': Color(0xFF4F46E5),
       'bgColor': Color(0xFFEEF2FF),
     },
     {
-      'cat': 'Examination',
-      'title': 'Examination',
-      'subtitle': 'Exams & hall tickets',
-      'icon': Icons.assignment_late_rounded,
-      'color': Color(0xFFDC2626),
-      'bgColor': Color(0xFFFEF2F2),
-    },
-    {
-      'cat': 'Department',
-      'title': 'Department',
-      'subtitle': 'Department circulars',
-      'icon': Icons.business_rounded,
-      'color': Color(0xFF0D9488),
-      'bgColor': Color(0xFFCCFBF1),
-    },
-    {
-      'cat': 'Placement',
-      'title': 'Placement',
-      'subtitle': 'Jobs & campus drives',
-      'icon': Icons.work_rounded,
+      'type': 'Internal Assessment',
+      'title': 'Internal Assessment',
+      'subtitle': 'Internal assessments',
+      'icon': Icons.assignment_rounded,
       'color': Color(0xFF0284C7),
       'bgColor': Color(0xFFE0F2FE),
     },
     {
-      'cat': 'Internship',
-      'title': 'Internship',
-      'subtitle': 'Internship roles',
-      'icon': Icons.badge_rounded,
+      'type': 'Model Exam',
+      'title': 'Model Exam',
+      'subtitle': 'Model examinations',
+      'icon': Icons.description_rounded,
+      'color': Color(0xFF10B981),
+      'bgColor': Color(0xFFD1FAE5),
+    },
+    {
+      'type': 'Practical Exam',
+      'title': 'Practical Exam',
+      'subtitle': 'Practical examinations',
+      'icon': Icons.science_rounded,
+      'color': Color(0xFFF97316),
+      'bgColor': Color(0xFFFFEDD5),
+    },
+    {
+      'type': 'Lab Exam',
+      'title': 'Lab Exam',
+      'subtitle': 'Lab based exams',
+      'icon': Icons.biotech_rounded,
       'color': Color(0xFF06B6D4),
       'bgColor': Color(0xFFCFFAFE),
     },
     {
-      'cat': 'Event',
-      'title': 'Event',
-      'subtitle': 'Fests & competitions',
-      'icon': Icons.emoji_events_rounded,
+      'type': 'End Semester',
+      'title': 'End Semester',
+      'subtitle': 'End semester exams',
+      'icon': Icons.school_rounded,
       'color': Color(0xFF7C3AED),
       'bgColor': Color(0xFFF3E8FF),
     },
     {
-      'cat': 'Holiday',
-      'title': 'Holiday',
-      'subtitle': 'Holidays & closures',
-      'icon': Icons.beach_access_rounded,
-      'color': Color(0xFFD97706),
-      'bgColor': Color(0xFFFEF3C7),
-    },
-    {
-      'cat': 'Emergency',
-      'title': 'Emergency',
-      'subtitle': 'Urgent campus alerts',
-      'icon': Icons.priority_high_rounded,
-      'color': Color(0xFFEF4444),
-      'bgColor': Color(0xFFFEE2E2),
-    },
-    {
-      'cat': 'Fee / Administration',
-      'title': 'Fee / Admin',
-      'subtitle': 'Payments & admin',
-      'icon': Icons.account_balance_rounded,
-      'color': Color(0xFF059669),
-      'bgColor': Color(0xFFD1FAE5),
+      'type': 'Supplementary Exam',
+      'title': 'Supplementary Exam',
+      'subtitle': 'Supplementary exams',
+      'icon': Icons.autorenew_rounded,
+      'color': Color(0xFFEC4899),
+      'bgColor': Color(0xFFFCE7F3),
     },
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  void _handleBack(BuildContext context) {
+  void _handleBack() {
     if (widget.onBack != null) {
       widget.onBack!();
     } else if (Navigator.canPop(context)) {
@@ -127,18 +106,8 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
     }
   }
 
-  int get _activeFilterCount {
-    int count = 0;
-    if (_selectedCategory != 'All') count++;
-    if (_unreadOnly) count++;
-    if (_importantOnly) count++;
-    return count;
-  }
-
-  void _showCategoryFilterModal(BuildContext context) {
-    String tempCategory = _selectedCategory;
-    bool tempUnread = _unreadOnly;
-    bool tempImportant = _importantOnly;
+  void _showExamTypeFilterModal(BuildContext context) {
+    String tempSelected = _selectedExamType;
 
     showModalBottomSheet(
       context: context,
@@ -166,7 +135,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
                           Text(
-                            'Announcement Category',
+                            'Exam Type',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -175,7 +144,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Select category to filter announcements',
+                            'Select exam type to filter',
                             style: TextStyle(
                               fontSize: 13,
                               color: Color(0xFF64748B),
@@ -203,45 +172,9 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  // Quick Toggles
-                  Row(
-                    children: [
-                      FilterChip(
-                        label: const Text('Unread Only'),
-                        selected: tempUnread,
-                        onSelected: (val) {
-                          setModalState(() => tempUnread = val);
-                        },
-                        selectedColor: const Color(0xFFFEF3C7),
-                        checkmarkColor: const Color(0xFFD97706),
-                        labelStyle: TextStyle(
-                          color: tempUnread ? const Color(0xFFD97706) : const Color(0xFF475569),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('Urgent / Important'),
-                        selected: tempImportant,
-                        onSelected: (val) {
-                          setModalState(() => tempImportant = val);
-                        },
-                        selectedColor: const Color(0xFFFEE2E2),
-                        checkmarkColor: const Color(0xFFDC2626),
-                        labelStyle: TextStyle(
-                          color: tempImportant ? const Color(0xFFDC2626) : const Color(0xFF475569),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-
-                  // 2-Column Grid of Category Cards
+                  // 2-Column Grid of Option Cards
                   Expanded(
                     child: SingleChildScrollView(
                       child: GridView.builder(
@@ -253,25 +186,25 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                         ),
-                        itemCount: _categoryOptions.length,
+                        itemCount: _examTypeOptions.length,
                         itemBuilder: (context, index) {
-                          final option = _categoryOptions[index];
-                          final isSelected = tempCategory == option['cat'];
+                          final option = _examTypeOptions[index];
+                          final isSelected = tempSelected == option['type'];
 
                           return InkWell(
                             onTap: () {
                               setModalState(() {
-                                tempCategory = option['cat'] as String;
+                                tempSelected = option['type'] as String;
                               });
                             },
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFFFFF7ED) : Colors.white,
+                                color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: isSelected ? const Color(0xFFF97316) : const Color(0xFFE2E8F0),
+                                  color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFE2E8F0),
                                   width: isSelected ? 1.8 : 1.0,
                                 ),
                               ),
@@ -299,9 +232,9 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                         height: 20,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: isSelected ? const Color(0xFFF97316) : Colors.transparent,
+                                          color: isSelected ? const Color(0xFF4F46E5) : Colors.transparent,
                                           border: Border.all(
-                                            color: isSelected ? const Color(0xFFF97316) : const Color(0xFFCBD5E1),
+                                            color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFFCBD5E1),
                                             width: 1.5,
                                           ),
                                         ),
@@ -323,7 +256,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
-                                          color: isSelected ? const Color(0xFFC2410C) : const Color(0xFF0F172A),
+                                          color: isSelected ? const Color(0xFF4338CA) : const Color(0xFF0F172A),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -355,9 +288,9 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF7ED),
+                      color: const Color(0xFFF5F3FF),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFFFEDD5)),
+                      border: Border.all(color: const Color(0xFFDDD6FE)),
                     ),
                     child: Row(
                       children: [
@@ -369,7 +302,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           ),
                           child: const Icon(
                             Icons.info_outline_rounded,
-                            color: Color(0xFFF97316),
+                            color: Color(0xFF6366F1),
                             size: 20,
                           ),
                         ),
@@ -383,15 +316,15 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: Color(0xFFC2410C),
+                                  color: Color(0xFF4338CA),
                                 ),
                               ),
                               SizedBox(height: 2),
                               Text(
-                                'Choose category and tap Apply Filter to view updates.',
+                                'Choose the exam type and tap Apply Filter to view results.',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Color(0xFFEA580C),
+                                  color: Color(0xFF6366F1),
                                 ),
                               ),
                             ],
@@ -399,8 +332,8 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                         ),
                         const SizedBox(width: 8),
                         const Icon(
-                          Icons.campaign_outlined,
-                          color: Color(0xFFFDBA74),
+                          Icons.assignment_outlined,
+                          color: Color(0xFFA5B4FC),
                           size: 28,
                         ),
                       ],
@@ -415,9 +348,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                     child: ElevatedButton.icon(
                       onPressed: () {
                         setState(() {
-                          _selectedCategory = tempCategory;
-                          _unreadOnly = tempUnread;
-                          _importantOnly = tempImportant;
+                          _selectedExamType = tempSelected;
                         });
                         Navigator.pop(context);
                       },
@@ -430,7 +361,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF97316),
+                        backgroundColor: const Color(0xFF4338CA),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -451,7 +382,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final annService = AnnouncementService();
+    final examService = ExamService();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -463,61 +394,42 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
         titleSpacing: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-          onPressed: () => _handleBack(context),
+          onPressed: _handleBack,
         ),
-        title: AnimatedBuilder(
-          animation: annService,
-          builder: (context, _) {
-            final unread = annService.unreadCount;
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Flexible(
-                  child: Text(
-                    'Announcements',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  ),
-                ),
-                if (unread > 0) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$unread UNREAD',
-                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ],
-            );
-          },
+        title: const Text(
+          'Exams & Schedule',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_alert_rounded, color: Color(0xFFF97316)),
-            tooltip: 'Publish Announcement (Admin/HOD)',
-            onPressed: () => CreateAnnouncementDialog.show(context),
-          ),
-        ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: const Color(0xFF0284C7),
+          unselectedLabelColor: const Color(0xFF64748B),
+          indicatorColor: const Color(0xFF0284C7),
+          indicatorWeight: 3,
+          tabs: const [
+            Tab(text: 'Upcoming Exams'),
+            Tab(text: 'Completed Exams'),
+          ],
+        ),
       ),
       body: AnimatedBuilder(
-        animation: annService,
+        animation: examService,
         builder: (context, child) {
-          final announcements = annService.getFilteredAnnouncements(
-            category: _selectedCategory,
-            unreadOnly: _unreadOnly,
-            importantOnly: _importantOnly,
+          final upcoming = examService.getFilteredExams(
+            examType: _selectedExamType,
             searchQuery: _searchController.text,
+            showUpcomingOnly: true,
           );
+
+          final completed = examService.getFilteredExams(
+            examType: _selectedExamType,
+            searchQuery: _searchController.text,
+            showUpcomingOnly: false,
+          ).where((e) => e.isCompleted).toList();
 
           return Column(
             children: [
-              // Search & Filter Header Section
+              // Search & Filter Header
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -529,7 +441,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                             controller: _searchController,
                             onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
-                              hintText: 'Search announcements, publishers...',
+                              hintText: 'Search exam subject, code, venue...',
                               hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
                               prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
                               filled: true,
@@ -549,17 +461,17 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                         const SizedBox(width: 10),
                         // Filter Modal Trigger Button
                         Material(
-                          color: _activeFilterCount > 0 ? const Color(0xFFFFF7ED) : Colors.white,
+                          color: _selectedExamType != 'All' ? const Color(0xFFEEF2FF) : Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           child: InkWell(
-                            onTap: () => _showCategoryFilterModal(context),
+                            onTap: () => _showExamTypeFilterModal(context),
                             borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: _activeFilterCount > 0 ? const Color(0xFFF97316) : const Color(0xFFE2E8F0),
+                                  color: _selectedExamType != 'All' ? const Color(0xFF4F46E5) : const Color(0xFFE2E8F0),
                                   width: 1.5,
                                 ),
                               ),
@@ -569,19 +481,16 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                   Icon(
                                     Icons.tune_rounded,
                                     size: 20,
-                                    color: _activeFilterCount > 0 ? const Color(0xFFF97316) : const Color(0xFF64748B),
+                                    color: _selectedExamType != 'All' ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
                                   ),
-                                  if (_activeFilterCount > 0) ...[
+                                  if (_selectedExamType != 'All') ...[
                                     const SizedBox(width: 6),
                                     Container(
-                                      padding: const EdgeInsets.all(5),
+                                      width: 8,
+                                      height: 8,
                                       decoration: const BoxDecoration(
-                                        color: Color(0xFFF97316),
+                                        color: Color(0xFF4F46E5),
                                         shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '$_activeFilterCount',
-                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ],
@@ -594,7 +503,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                     ),
                     const SizedBox(height: 10),
 
-                    // Active Filter Bar
+                    // Active Filter Chip Display
                     Row(
                       children: [
                         Container(
@@ -607,25 +516,19 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.campaign_rounded, size: 14, color: Color(0xFFF97316)),
+                              const Icon(Icons.filter_list_rounded, size: 14, color: Color(0xFF4F46E5)),
                               const SizedBox(width: 6),
                               Text(
-                                'Category: $_selectedCategory',
+                                'Exam Type: $_selectedExamType',
                                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                               ),
                             ],
                           ),
                         ),
                         const Spacer(),
-                        if (_activeFilterCount > 0)
+                        if (_selectedExamType != 'All')
                           GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedCategory = 'All';
-                                _unreadOnly = false;
-                                _importantOnly = false;
-                              });
-                            },
+                            onTap: () => setState(() => _selectedExamType = 'All'),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
@@ -648,46 +551,53 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                 ),
               ),
 
-              // Announcement List
+              // TabBar View
               Expanded(
-                child: announcements.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.mark_email_read_rounded, size: 48, color: Color(0xFFCBD5E1)),
-                            const SizedBox(height: 12),
-                            const Text('No announcements found', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                            const SizedBox(height: 4),
-                            Text(
-                              _activeFilterCount > 0 ? 'Try clearing active filters.' : 'Check back later for new updates!',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        itemCount: announcements.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final ann = announcements[index];
-                          return AnnouncementCard(
-                            announcement: ann,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => AnnouncementDetailScreen(announcement: ann)),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildExamList(context, upcoming, 'No upcoming exams scheduled.'),
+                    _buildExamList(context, completed, 'No completed exams recorded.'),
+                  ],
+                ),
               ),
             ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildExamList(BuildContext context, List<ExamModel> list, String emptyMsg) {
+    if (list.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.event_available_rounded, size: 48, color: Color(0xFFCBD5E1)),
+            const SizedBox(height: 12),
+            Text(emptyMsg, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: list.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final exam = list[index];
+        return ExamCard(
+          exam: exam,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => ExamDetailScreen(exam: exam)),
+            );
+          },
+        );
+      },
     );
   }
 }

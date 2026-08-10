@@ -1,125 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/services/announcement_service.dart';
-import 'package:clg_application/widgets/announcements/announcement_card.dart';
-import 'package:clg_application/widgets/announcements/create_announcement_dialog.dart';
-import 'package:clg_application/screens/announcements/announcement_detail_screen.dart';
+import 'package:clg_application/services/task_service.dart';
+import 'package:clg_application/widgets/tasks/upcoming_task_card.dart';
+import 'package:clg_application/widgets/tasks/create_task_dialog.dart';
+import 'package:clg_application/screens/tasks/task_detail_screen.dart';
+import 'package:clg_application/screens/student/modules/student_assignment_portal.dart';
 
-class StudentAnnouncementsScreen extends StatefulWidget {
+class UpcomingTasksDetailScreen extends StatefulWidget {
   final VoidCallback? onBack;
 
-  const StudentAnnouncementsScreen({
-    super.key,
-    this.onBack,
-  });
+  const UpcomingTasksDetailScreen({super.key, this.onBack});
 
   @override
-  State<StudentAnnouncementsScreen> createState() => _StudentAnnouncementsScreenState();
+  State<UpcomingTasksDetailScreen> createState() => _UpcomingTasksDetailScreenState();
 }
 
-class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen> {
+class _UpcomingTasksDetailScreenState extends State<UpcomingTasksDetailScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCategory = 'All';
-  bool _unreadOnly = false;
-  bool _importantOnly = false;
+  String _selectedDateGroup = 'All';
+  final String _selectedTaskType = 'All';
 
-  final List<Map<String, dynamic>> _categoryOptions = const [
+  final List<Map<String, dynamic>> _dateGroupOptions = const [
     {
-      'cat': 'All',
+      'group': 'All',
       'title': 'All',
-      'subtitle': 'Show all announcements',
+      'subtitle': 'Show all tasks',
       'icon': Icons.grid_view_rounded,
-      'color': Color(0xFFF97316),
-      'bgColor': Color(0xFFFFEDD5),
-    },
-    {
-      'cat': 'General',
-      'title': 'General',
-      'subtitle': 'General campus updates',
-      'icon': Icons.campaign_rounded,
-      'color': Color(0xFF2563EB),
-      'bgColor': Color(0xFFEFF6FF),
-    },
-    {
-      'cat': 'Academic',
-      'title': 'Academic',
-      'subtitle': 'Classes & syllabus',
-      'icon': Icons.school_rounded,
-      'color': Color(0xFF4F46E5),
+      'color': Color(0xFF6366F1),
       'bgColor': Color(0xFFEEF2FF),
     },
     {
-      'cat': 'Examination',
-      'title': 'Examination',
-      'subtitle': 'Exams & hall tickets',
+      'group': 'Overdue',
+      'title': 'Overdue',
+      'subtitle': 'Past due date',
       'icon': Icons.assignment_late_rounded,
-      'color': Color(0xFFDC2626),
-      'bgColor': Color(0xFFFEF2F2),
-    },
-    {
-      'cat': 'Department',
-      'title': 'Department',
-      'subtitle': 'Department circulars',
-      'icon': Icons.business_rounded,
-      'color': Color(0xFF0D9488),
-      'bgColor': Color(0xFFCCFBF1),
-    },
-    {
-      'cat': 'Placement',
-      'title': 'Placement',
-      'subtitle': 'Jobs & campus drives',
-      'icon': Icons.work_rounded,
-      'color': Color(0xFF0284C7),
-      'bgColor': Color(0xFFE0F2FE),
-    },
-    {
-      'cat': 'Internship',
-      'title': 'Internship',
-      'subtitle': 'Internship roles',
-      'icon': Icons.badge_rounded,
-      'color': Color(0xFF06B6D4),
-      'bgColor': Color(0xFFCFFAFE),
-    },
-    {
-      'cat': 'Event',
-      'title': 'Event',
-      'subtitle': 'Fests & competitions',
-      'icon': Icons.emoji_events_rounded,
-      'color': Color(0xFF7C3AED),
-      'bgColor': Color(0xFFF3E8FF),
-    },
-    {
-      'cat': 'Holiday',
-      'title': 'Holiday',
-      'subtitle': 'Holidays & closures',
-      'icon': Icons.beach_access_rounded,
-      'color': Color(0xFFD97706),
-      'bgColor': Color(0xFFFEF3C7),
-    },
-    {
-      'cat': 'Emergency',
-      'title': 'Emergency',
-      'subtitle': 'Urgent campus alerts',
-      'icon': Icons.priority_high_rounded,
       'color': Color(0xFFEF4444),
       'bgColor': Color(0xFFFEE2E2),
     },
     {
-      'cat': 'Fee / Administration',
-      'title': 'Fee / Admin',
-      'subtitle': 'Payments & admin',
-      'icon': Icons.account_balance_rounded,
-      'color': Color(0xFF059669),
-      'bgColor': Color(0xFFD1FAE5),
+      'group': 'Today',
+      'title': 'Today',
+      'subtitle': 'Due today',
+      'icon': Icons.today_rounded,
+      'color': Color(0xFFF97316),
+      'bgColor': Color(0xFFFFEDD5),
+    },
+    {
+      'group': 'This Week',
+      'title': 'This Week',
+      'subtitle': 'Due within 7 days',
+      'icon': Icons.date_range_rounded,
+      'color': Color(0xFF0284C7),
+      'bgColor': Color(0xFFE0F2FE),
+    },
+    {
+      'group': 'Next Week',
+      'title': 'Next Week',
+      'subtitle': 'Due in 7 to 14 days',
+      'icon': Icons.event_repeat_rounded,
+      'color': Color(0xFF7C3AED),
+      'bgColor': Color(0xFFF3E8FF),
+    },
+    {
+      'group': 'Later',
+      'title': 'Later',
+      'subtitle': 'Due after 14 days',
+      'icon': Icons.schedule_rounded,
+      'color': Color(0xFF06B6D4),
+      'bgColor': Color(0xFFCFFAFE),
     },
   ];
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _handleBack(BuildContext context) {
+  void _handleBack() {
     if (widget.onBack != null) {
       widget.onBack!();
     } else if (Navigator.canPop(context)) {
@@ -127,18 +78,8 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
     }
   }
 
-  int get _activeFilterCount {
-    int count = 0;
-    if (_selectedCategory != 'All') count++;
-    if (_unreadOnly) count++;
-    if (_importantOnly) count++;
-    return count;
-  }
-
-  void _showCategoryFilterModal(BuildContext context) {
-    String tempCategory = _selectedCategory;
-    bool tempUnread = _unreadOnly;
-    bool tempImportant = _importantOnly;
+  void _showDateFilterModal(BuildContext context) {
+    String tempSelected = _selectedDateGroup;
 
     showModalBottomSheet(
       context: context,
@@ -152,7 +93,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
           builder: (context, setModalState) {
             return Container(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.88,
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
               ),
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               child: Column(
@@ -166,7 +107,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
                           Text(
-                            'Announcement Category',
+                            'Task Due Date',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -175,7 +116,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Select category to filter announcements',
+                            'Select due timeframe to filter',
                             style: TextStyle(
                               fontSize: 13,
                               color: Color(0xFF64748B),
@@ -203,45 +144,9 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  // Quick Toggles
-                  Row(
-                    children: [
-                      FilterChip(
-                        label: const Text('Unread Only'),
-                        selected: tempUnread,
-                        onSelected: (val) {
-                          setModalState(() => tempUnread = val);
-                        },
-                        selectedColor: const Color(0xFFFEF3C7),
-                        checkmarkColor: const Color(0xFFD97706),
-                        labelStyle: TextStyle(
-                          color: tempUnread ? const Color(0xFFD97706) : const Color(0xFF475569),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('Urgent / Important'),
-                        selected: tempImportant,
-                        onSelected: (val) {
-                          setModalState(() => tempImportant = val);
-                        },
-                        selectedColor: const Color(0xFFFEE2E2),
-                        checkmarkColor: const Color(0xFFDC2626),
-                        labelStyle: TextStyle(
-                          color: tempImportant ? const Color(0xFFDC2626) : const Color(0xFF475569),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-
-                  // 2-Column Grid of Category Cards
+                  // 2-Column Grid of Option Cards
                   Expanded(
                     child: SingleChildScrollView(
                       child: GridView.builder(
@@ -253,25 +158,25 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                         ),
-                        itemCount: _categoryOptions.length,
+                        itemCount: _dateGroupOptions.length,
                         itemBuilder: (context, index) {
-                          final option = _categoryOptions[index];
-                          final isSelected = tempCategory == option['cat'];
+                          final option = _dateGroupOptions[index];
+                          final isSelected = tempSelected == option['group'];
 
                           return InkWell(
                             onTap: () {
                               setModalState(() {
-                                tempCategory = option['cat'] as String;
+                                tempSelected = option['group'] as String;
                               });
                             },
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFFFFF7ED) : Colors.white,
+                                color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: isSelected ? const Color(0xFFF97316) : const Color(0xFFE2E8F0),
+                                  color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFE2E8F0),
                                   width: isSelected ? 1.8 : 1.0,
                                 ),
                               ),
@@ -299,9 +204,9 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                         height: 20,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: isSelected ? const Color(0xFFF97316) : Colors.transparent,
+                                          color: isSelected ? const Color(0xFF4F46E5) : Colors.transparent,
                                           border: Border.all(
-                                            color: isSelected ? const Color(0xFFF97316) : const Color(0xFFCBD5E1),
+                                            color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFFCBD5E1),
                                             width: 1.5,
                                           ),
                                         ),
@@ -323,7 +228,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
-                                          color: isSelected ? const Color(0xFFC2410C) : const Color(0xFF0F172A),
+                                          color: isSelected ? const Color(0xFF4338CA) : const Color(0xFF0F172A),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -355,9 +260,9 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF7ED),
+                      color: const Color(0xFFF5F3FF),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFFFEDD5)),
+                      border: Border.all(color: const Color(0xFFDDD6FE)),
                     ),
                     child: Row(
                       children: [
@@ -369,7 +274,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           ),
                           child: const Icon(
                             Icons.info_outline_rounded,
-                            color: Color(0xFFF97316),
+                            color: Color(0xFF6366F1),
                             size: 20,
                           ),
                         ),
@@ -383,15 +288,15 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: Color(0xFFC2410C),
+                                  color: Color(0xFF4338CA),
                                 ),
                               ),
                               SizedBox(height: 2),
                               Text(
-                                'Choose category and tap Apply Filter to view updates.',
+                                'Choose due timeframe and tap Apply Filter to view tasks.',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Color(0xFFEA580C),
+                                  color: Color(0xFF6366F1),
                                 ),
                               ),
                             ],
@@ -399,8 +304,8 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                         ),
                         const SizedBox(width: 8),
                         const Icon(
-                          Icons.campaign_outlined,
-                          color: Color(0xFFFDBA74),
+                          Icons.task_alt_outlined,
+                          color: Color(0xFFA5B4FC),
                           size: 28,
                         ),
                       ],
@@ -415,9 +320,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                     child: ElevatedButton.icon(
                       onPressed: () {
                         setState(() {
-                          _selectedCategory = tempCategory;
-                          _unreadOnly = tempUnread;
-                          _importantOnly = tempImportant;
+                          _selectedDateGroup = tempSelected;
                         });
                         Navigator.pop(context);
                       },
@@ -430,7 +333,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF97316),
+                        backgroundColor: const Color(0xFF4F46E5),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -451,7 +354,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final annService = AnnouncementService();
+    final taskService = TaskService();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -463,55 +366,26 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
         titleSpacing: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-          onPressed: () => _handleBack(context),
+          onPressed: _handleBack,
         ),
-        title: AnimatedBuilder(
-          animation: annService,
-          builder: (context, _) {
-            final unread = annService.unreadCount;
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Flexible(
-                  child: Text(
-                    'Announcements',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  ),
-                ),
-                if (unread > 0) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$unread UNREAD',
-                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ],
-            );
-          },
+        title: const Text(
+          'Upcoming Tasks',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_alert_rounded, color: Color(0xFFF97316)),
-            tooltip: 'Publish Announcement (Admin/HOD)',
-            onPressed: () => CreateAnnouncementDialog.show(context),
+            icon: const Icon(Icons.add_task_rounded, color: Color(0xFF4F46E5)),
+            tooltip: 'Assign New Task (Staff)',
+            onPressed: () => CreateTaskDialog.show(context),
           ),
         ],
       ),
       body: AnimatedBuilder(
-        animation: annService,
+        animation: taskService,
         builder: (context, child) {
-          final announcements = annService.getFilteredAnnouncements(
-            category: _selectedCategory,
-            unreadOnly: _unreadOnly,
-            importantOnly: _importantOnly,
+          final filteredTasks = taskService.getFilteredTasks(
+            taskType: _selectedTaskType,
+            dateGroup: _selectedDateGroup,
             searchQuery: _searchController.text,
           );
 
@@ -529,7 +403,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                             controller: _searchController,
                             onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
-                              hintText: 'Search announcements, publishers...',
+                              hintText: 'Search tasks, subjects, instructions...',
                               hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
                               prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
                               filled: true,
@@ -549,17 +423,17 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                         const SizedBox(width: 10),
                         // Filter Modal Trigger Button
                         Material(
-                          color: _activeFilterCount > 0 ? const Color(0xFFFFF7ED) : Colors.white,
+                          color: _selectedDateGroup != 'All' ? const Color(0xFFEEF2FF) : Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           child: InkWell(
-                            onTap: () => _showCategoryFilterModal(context),
+                            onTap: () => _showDateFilterModal(context),
                             borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: _activeFilterCount > 0 ? const Color(0xFFF97316) : const Color(0xFFE2E8F0),
+                                  color: _selectedDateGroup != 'All' ? const Color(0xFF4F46E5) : const Color(0xFFE2E8F0),
                                   width: 1.5,
                                 ),
                               ),
@@ -569,19 +443,16 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                   Icon(
                                     Icons.tune_rounded,
                                     size: 20,
-                                    color: _activeFilterCount > 0 ? const Color(0xFFF97316) : const Color(0xFF64748B),
+                                    color: _selectedDateGroup != 'All' ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
                                   ),
-                                  if (_activeFilterCount > 0) ...[
+                                  if (_selectedDateGroup != 'All') ...[
                                     const SizedBox(width: 6),
                                     Container(
-                                      padding: const EdgeInsets.all(5),
+                                      width: 8,
+                                      height: 8,
                                       decoration: const BoxDecoration(
-                                        color: Color(0xFFF97316),
+                                        color: Color(0xFF4F46E5),
                                         shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '$_activeFilterCount',
-                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ],
@@ -607,25 +478,19 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.campaign_rounded, size: 14, color: Color(0xFFF97316)),
+                              const Icon(Icons.event_note_rounded, size: 14, color: Color(0xFF4F46E5)),
                               const SizedBox(width: 6),
                               Text(
-                                'Category: $_selectedCategory',
+                                'Due: $_selectedDateGroup',
                                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                               ),
                             ],
                           ),
                         ),
                         const Spacer(),
-                        if (_activeFilterCount > 0)
+                        if (_selectedDateGroup != 'All')
                           GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedCategory = 'All';
-                                _unreadOnly = false;
-                                _importantOnly = false;
-                              });
-                            },
+                            onTap: () => setState(() => _selectedDateGroup = 'All'),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
@@ -648,41 +513,68 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                 ),
               ),
 
-              // Announcement List
+              // Tasks List
               Expanded(
-                child: announcements.isEmpty
+                child: filteredTasks.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.mark_email_read_rounded, size: 48, color: Color(0xFFCBD5E1)),
-                            const SizedBox(height: 12),
-                            const Text('No announcements found', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                            const SizedBox(height: 4),
-                            Text(
-                              _activeFilterCount > 0 ? 'Try clearing active filters.' : 'Check back later for new updates!',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                            ),
+                          children: const [
+                            Icon(Icons.task_alt_rounded, size: 48, color: Color(0xFFCBD5E1)),
+                            SizedBox(height: 12),
+                            Text('No upcoming tasks found', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                            SizedBox(height: 4),
+                            Text("You're all caught up on your coursework!", style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                           ],
                         ),
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        itemCount: announcements.length,
+                        itemCount: filteredTasks.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          final ann = announcements[index];
-                          return AnnouncementCard(
-                            announcement: ann,
+                          final task = filteredTasks[index];
+                          return UpcomingTaskCard(
+                            task: task,
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => AnnouncementDetailScreen(announcement: ann)),
+                                MaterialPageRoute(builder: (_) => TaskDetailScreen(task: task)),
                               );
                             },
                           );
                         },
                       ),
+              ),
+
+              // Bottom Portal Action Bar
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.stars_rounded, color: Color(0xFF6366F1)),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'Access Coursework Portal for grade records & past assignments.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const StudentAssignmentPortal()),
+                        );
+                      },
+                      child: const Text('Open Portal →', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF6366F1))),
+                    ),
+                  ],
+                ),
               ),
             ],
           );

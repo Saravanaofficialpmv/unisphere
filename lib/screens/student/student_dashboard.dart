@@ -18,6 +18,8 @@ import 'package:clg_application/screens/student/modules/student_announcements_sc
 import 'package:clg_application/screens/student/modules/student_library_screen.dart';
 import 'package:clg_application/widgets/common/notification_sheet.dart';
 import 'package:clg_application/providers/notification_provider.dart';
+import 'package:clg_application/screens/features/upcoming_tasks_detail_screen.dart';
+import 'package:clg_application/screens/features/exams_detail_screen.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -54,8 +56,8 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   List<Widget> _getScreens() {
     return [
       StudentHomeScreen(onNavigateToTab: _handleNavigation), // 0
-      const InteractiveTimetableScreen(),                    // 1
-      const StudentAssignmentPortal(),                       // 2
+      InteractiveTimetableScreen(onBack: () => _handleNavigation(0)), // 1
+      StudentAssignmentPortal(onBack: () => _handleNavigation(0)),    // 2
       StudentAttendanceScreen(onBack: () => _handleNavigation(0)), // 3
       GradebookScreen(                                       // 4
         key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
@@ -96,7 +98,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     final notificationState = ref.watch(notificationProvider);
     final unreadCount = notificationState.unreadCount;
 
-    final bool showTopAppBar = [0, 1, 2].contains(_currentIndex);
+    final bool showTopAppBar = _currentIndex == 0;
 
     return PopScope(
       canPop: false,
@@ -307,19 +309,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           _buildSectionHeader('Today\'s Classes', () => widget.onNavigateToTab(1)),
           const SizedBox(height: 12),
           _buildTodaysClasses(),
-          const SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _buildUpcomingTasks()),
-              const SizedBox(width: 12),
-              Expanded(child: _buildExamsCard()),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _buildSectionHeader('Latest Announcements', () {}),
-          const SizedBox(height: 12),
-          _buildAnnouncements(),
+          const SizedBox(height: 24),
+          _buildSuggestedIconsSection(),
         ],
       ),
     );
@@ -579,6 +570,301 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   );
   }
 
+  // ── Suggested Icons Section ───────────────────
+  Widget _buildSuggestedIconsSection() {
+    final suggested = [
+      {
+        'title': 'Upcoming Tasks',
+        'sub1': 'Calendar + Checklist + Clock',
+        'sub2': '(Shows upcoming to-dos & deadlines)',
+        'pillBg': const Color(0xFF6366F1),
+        'iconBg': const Color(0xFFEEF2FF),
+        'iconColor': const Color(0xFF4F46E5),
+        'accentColor': const Color(0xFFF59E0B),
+        'iconType': 'tasks',
+        'tabIndex': 2,
+      },
+      {
+        'title': 'Latest Announcement',
+        'sub1': 'Megaphone + Notification',
+        'sub2': '(Highlights new updates)',
+        'pillBg': const Color(0xFFF97316),
+        'iconBg': const Color(0xFFFEF3C7),
+        'iconColor': const Color(0xFFEA580C),
+        'accentColor': const Color(0xFFEF4444),
+        'iconType': 'announcement',
+        'tabIndex': 13,
+      },
+      {
+        'title': 'Exams',
+        'sub1': 'Test Paper + Pencil + Clock',
+        'sub2': '(Displays upcoming exams & schedules)',
+        'pillBg': const Color(0xFF0284C7),
+        'iconBg': const Color(0xFFE0F2FE),
+        'iconColor': const Color(0xFF0284C7),
+        'accentColor': const Color(0xFFF59E0B),
+        'iconType': 'exams',
+        'tabIndex': 4,
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.auto_awesome_rounded, color: Color(0xFF818CF8), size: 18),
+            SizedBox(width: 6),
+            Text(
+              'Suggested Features',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 650;
+            if (isWide) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: suggested.map((item) {
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                      child: _buildSuggestedCard(item),
+                    ),
+                  );
+                }).toList(),
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: suggested.map((item) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 14.0),
+                  child: _buildSuggestedCard(item),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSuggestedCard(Map<String, dynamic> item) {
+    final pillBg = item['pillBg'] as Color;
+    final iconBg = item['iconBg'] as Color;
+    final iconColor = item['iconColor'] as Color;
+    final iconType = item['iconType'] as String;
+    final tabIndex = item['tabIndex'] as int;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: pillBg.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: () {
+            if (iconType == 'tasks') {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const UpcomingTasksDetailScreen(),
+                ),
+              );
+            } else if (iconType == 'announcement') {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const StudentAnnouncementsScreen(),
+                ),
+              );
+            } else if (iconType == 'exams') {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ExamsDetailScreen(),
+                ),
+              );
+            } else {
+              widget.onNavigateToTab(tabIndex);
+            }
+          },
+          borderRadius: BorderRadius.circular(20),
+          splashColor: pillBg.withValues(alpha: 0.15),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // 3D Icon Container
+                Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        color: iconBg,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: pillBg.withValues(alpha: 0.2)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: pillBg.withValues(alpha: 0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: _renderSuggestedIcon(iconType, iconColor),
+                      ),
+                    ),
+                    if (iconType == 'announcement')
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: const Text(
+                            '1',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Pill Button Tag
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: pillBg,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: pillBg.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    item['title'] as String,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Subtitles
+                Text(
+                  item['sub1'] as String,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF475569),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  item['sub2'] as String,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _renderSuggestedIcon(String type, Color mainColor) {
+    if (type == 'tasks') {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.calendar_month_rounded, size: 36, color: mainColor),
+          Positioned(
+            bottom: -2,
+            right: -2,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.schedule_rounded, size: 16, color: Color(0xFFF59E0B)),
+            ),
+          ),
+        ],
+      );
+    } else if (type == 'announcement') {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.campaign_rounded, size: 38, color: mainColor),
+        ],
+      );
+    } else {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.assignment_rounded, size: 36, color: mainColor),
+          Positioned(
+            bottom: -2,
+            right: -2,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.edit_rounded, size: 15, color: Color(0xFFF59E0B)),
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
   // ── Quick Actions ────────────────────────
   Widget _buildQuickActions() {
     final actions = [
@@ -693,6 +979,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       ],
     );
   }
+
+
 }
 
 class InteractiveTimetable extends StatefulWidget {
@@ -704,6 +992,7 @@ class InteractiveTimetable extends StatefulWidget {
 
 class _InteractiveTimetableState extends State<InteractiveTimetable> {
   int _selectedDayIndex = 0; // 0 = Mon, 1 = Tue, 2 = Wed, 3 = Thu, 4 = Fri, 5 = Sat
+  int? _selectedClassIndex = 1; // Default select 1 (e.g. Computer Science live class)
   bool _simulateRealtimeUpdates = false;
 
   final List<String> _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -981,6 +1270,7 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
                 onTap: () {
                   setState(() {
                     _selectedDayIndex = index;
+                    _selectedClassIndex = null;
                   });
                 },
                 child: Container(
@@ -1027,7 +1317,10 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
             ),
           )
         else
-          ...classes.map((c) {
+          ...classes.asMap().entries.map((entry) {
+            final classIndex = entry.key;
+            final c = entry.value;
+
             // Apply simulation changes if toggled
             String? status = c['status'] as String?;
             String? statusText = c['statusText'] as String?;
@@ -1041,464 +1334,219 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
             final isLive = c['isLive'] as bool && !_simulateRealtimeUpdates;
             final isCancelled = status == 'cancelled';
             final isRescheduled = status == 'rescheduled';
+            final isSelectedCard = _selectedClassIndex == classIndex;
 
             final accentColor = isCancelled ? const Color(0xFFE53935) : (c['accentColor'] as Color);
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: isLive ? Colors.white : Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(16),
-                border: isLive
-                    ? Border.all(color: AppColors.primary.withValues(alpha: 0.8), width: 1.5)
-                    : Border.all(color: const Color(0xFFEEEEEE), width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: isLive
-                        ? AppColors.primary.withValues(alpha: 0.08)
-                        : Colors.black.withValues(alpha: 0.03),
-                    blurRadius: isLive ? 12 : 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Row(
-                      children: [
-                        // Time column
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              isRescheduled ? '01:00' : (c['time'] as String),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                                color: isCancelled ? const Color(0xFFB71C1C) : const Color(0xFF2D3142),
-                                decoration: isCancelled ? TextDecoration.lineThrough : null,
-                              ),
-                            ),
-                            Text(
-                              c['period'] as String,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 12),
-                        // Indicator
-                        Container(
-                          width: 3,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: accentColor,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Information
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      c['title'] as String,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14,
-                                        color: const Color(0xFF2D3142),
-                                        decoration: isCancelled ? TextDecoration.lineThrough : null,
-                                      ),
-                                    ),
-                                  ),
-                                  if (isLive)
-                                    Container(
-                                      margin: const EdgeInsets.only(left: 6),
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFE8F5E9),
-                                        borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: const Color(0xFF81C784)),
-                                      ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.fiber_manual_record, color: Colors.green, size: 8),
-                                          SizedBox(width: 3),
-                                          Text(
-                                            'LIVE NOW',
-                                            style: TextStyle(
-                                              fontSize: 8,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Lecturer: ${c['lecturer']}',
-                                style: const TextStyle(color: Color(0xFF757575), fontSize: 11),
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  Icon(Icons.location_on_outlined, color: accentColor, size: 12),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    c['room'] as String,
-                                    style: TextStyle(
-                                      color: isCancelled ? const Color(0xFFB71C1C) : const Color(0xFF9E9E9E),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  if (isCancelled || isRescheduled) ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: isCancelled ? const Color(0xFFFFEBEE) : const Color(0xFFFFF3E0),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        statusText!,
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: isCancelled ? const Color(0xFFD32F2F) : const Color(0xFFEF6C00),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Icon
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: c['iconBg'] as Color,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(c['icon'] as IconData, color: c['accentColor'] as Color, size: 20),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Actions bar (visible unless cancelled)
-                  if (!isCancelled) ...[
-                    const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFAFAFA),
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(16),
-                          bottomRight: Radius.circular(16),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          _buildActionBtn(
-                            label: 'Locate Room',
-                            icon: Icons.map_outlined,
-                            onPressed: () => showRoomLocationModal(
-                              context,
-                              c.map((k, v) => MapEntry(k, v.toString())),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          _buildActionBtn(
-                            label: isLive ? 'Join Live Class' : 'Class Materials',
-                            icon: isLive ? Icons.video_call_outlined : Icons.menu_book_outlined,
-                            color: isLive ? AppColors.primary : null,
-                            onPressed: () => showClassMaterialsModal(
-                              context,
-                              c.map((k, v) => MapEntry(k, v.toString())),
-                            ),
-                          ),
-                        ],
-                      ),
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedClassIndex = isSelectedCard ? null : classIndex;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: isSelectedCard
+                      ? Colors.white
+                      : (isLive ? Colors.white : Colors.white.withValues(alpha: 0.95)),
+                  borderRadius: BorderRadius.circular(16),
+                  border: isSelectedCard
+                      ? Border.all(color: const Color(0xFF2563EB), width: 2.5) // Vibrant Blue outline on click!
+                      : (isLive
+                          ? Border.all(color: const Color(0xFF10B981), width: 1.5) // Emerald green border for Live class!
+                          : Border.all(color: const Color(0xFFEEEEEE), width: 1)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isSelectedCard
+                          ? const Color(0xFF2563EB).withValues(alpha: 0.22) // Blue glow shadow on click!
+                          : (isLive
+                              ? const Color(0xFF10B981).withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.03)),
+                      blurRadius: isSelectedCard ? 12 : (isLive ? 12 : 8),
+                      offset: isSelectedCard ? const Offset(0, 4) : const Offset(0, 3),
                     ),
                   ],
-                ],
-              ),
-            );
-          }),
-      ],
-    );
-  }
-
-  Widget _buildActionBtn({
-    required String label,
-    required IconData icon,
-    Color? color,
-    required VoidCallback onPressed,
-  }) {
-    final useColor = color ?? const Color(0xFF757575);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: useColor, size: 16),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: useColor,
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-  // ── Upcoming Tasks ────────────────────────
-  Widget _buildUpcomingTasks() {
-    final tasks = [
-      {'icon': Icons.assignment_outlined, 'color': const Color(0xFFFFA726), 'title': 'Maths Assignment', 'due': 'Due Tomorrow', 'urgent': true},
-      {'icon': Icons.science_outlined, 'color': const Color(0xFF5C6BC0), 'title': 'Lab Report', 'due': 'Due 12 Jun, 2025', 'urgent': false},
-      {'icon': Icons.quiz_outlined, 'color': const Color(0xFF26A69A), 'title': 'DBMS Quiz', 'due': 'Due 15 Jun, 2025', 'urgent': false},
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Upcoming Tasks', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF2D3142))),
-              Text('See All', style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...tasks.map((t) {
-            final color = t['color'] as Color;
-            final urgent = t['urgent'] as bool;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(t['icon'] as IconData, color: color, size: 18),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          t['title'] as String,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF2D3142)),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          t['due'] as String,
-                          style: TextStyle(fontSize: 11, color: urgent ? Colors.red : const Color(0xFF9E9E9E)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // ── Exams Card ────────────────────────────
-  Widget _buildExamsCard() {
-    final exams = [
-      {'month': 'JUN', 'day': '15', 'title': 'Data Structures', 'type': 'Internal Exam', 'time': '10:00 AM – 12:00 PM'},
-      {'month': 'JUN', 'day': '22', 'title': 'Operating Systems', 'type': 'Internal Exam', 'time': '10:00 AM – 12:00 PM'},
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Exams', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF2D3142))),
-              Text('See All', style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...exams.map((e) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEF5350),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(e['day']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
-                      Text(e['month']!, style: const TextStyle(color: Colors.white70, fontSize: 9)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        e['title']!,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF2D3142)),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(e['type']!, style: const TextStyle(fontSize: 10, color: Color(0xFF9E9E9E))),
-                      Text(e['time']!, style: const TextStyle(fontSize: 10, color: Color(0xFF9E9E9E))),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )),
-        ],
-      ),
-    );
-  }
-
-  // ── Announcements ─────────────────────────
-  Widget _buildAnnouncements() {
-    final items = [
-      {
-        'icon': Icons.campaign_rounded,
-        'iconBg': const Color(0xFFE3F2FD),
-        'iconColor': const Color(0xFF1E88E5),
-        'title': 'End Semester Exam Date Out!',
-        'subtitle': 'The exams will start from 15th June. Check timetable.',
-        'time': '2h ago',
-      },
-      {
-        'icon': Icons.local_library_rounded,
-        'iconBg': const Color(0xFFE8F5E9),
-        'iconColor': const Color(0xFF43A047),
-        'title': 'New Library Timings',
-        'subtitle': 'Library will be open till 10 PM from Monday.',
-        'time': '5h ago',
-      },
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        children: items.asMap().entries.map((entry) {
-          final i = entry.key;
-          final item = entry.value;
-          final iconBg = item['iconBg'] as Color;
-          final iconColor = item['iconColor'] as Color;
-          return Column(
-            children: [
-              Padding(
+                child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
-                      child: Icon(item['icon'] as IconData, color: iconColor, size: 20),
+                    // Time column
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          isRescheduled ? '01:00' : (c['time'] as String),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: isCancelled ? const Color(0xFFB71C1C) : const Color(0xFF2D3142),
+                            decoration: isCancelled ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                        Text(
+                          c['period'] as String,
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E)),
+                        ),
+                      ],
                     ),
                     const SizedBox(width: 12),
+                    // Indicator
+                    Container(
+                      width: 3,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: accentColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Information
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            item['title'] as String,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF2D3142)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  c['title'] as String,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: const Color(0xFF2D3142),
+                                    decoration: isCancelled ? TextDecoration.lineThrough : null,
+                                  ),
+                                ),
+                              ),
+                              if (isLive)
+                                Container(
+                                  margin: const EdgeInsets.only(left: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F5E9),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: const Color(0xFF81C784)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.fiber_manual_record, color: Colors.green, size: 8),
+                                      SizedBox(width: 3),
+                                      Text(
+                                        'LIVE NOW',
+                                        style: TextStyle(
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item['subtitle'] as String,
-                            style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 12),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Lecturer: ${c['lecturer']}',
+                                  style: const TextStyle(color: Color(0xFF757575), fontSize: 11, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                              if (isCancelled || isRescheduled) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isCancelled ? const Color(0xFFFFEBEE) : const Color(0xFFFFF3E0),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    statusText!,
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: isCancelled ? const Color(0xFFD32F2F) : const Color(0xFFEF6C00),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(item['time'] as String, style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 11)),
+                    // Icon
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: c['iconBg'] as Color,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(c['icon'] as IconData, color: c['accentColor'] as Color, size: 20),
+                    ),
                   ],
                 ),
               ),
-              if (i < items.length - 1)
-                const Divider(height: 1, indent: 14, endIndent: 14),
-            ],
+            ),
           );
-        }).toList(),
-      ),
+        }),
+      ],
     );
   }
+}
+
+
+
+
 
 class InteractiveTimetableScreen extends StatelessWidget {
-  const InteractiveTimetableScreen({super.key});
+  final VoidCallback? onBack;
+
+  const InteractiveTimetableScreen({super.key, this.onBack});
+
+  void _handleBack(BuildContext context) {
+    if (onBack != null) {
+      onBack!();
+    } else if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFFF5F6FA),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: InteractiveTimetable(),
+    return PopScope(
+      canPop: onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBack(context);
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F6FA),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Colors.black12,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
+            tooltip: 'Back to Home',
+            onPressed: () => _handleBack(context),
+          ),
+          title: const Text(
+            'Interactive Timetable & Schedule',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+          ),
+        ),
+        body: const SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: InteractiveTimetable(),
+        ),
       ),
     );
   }
