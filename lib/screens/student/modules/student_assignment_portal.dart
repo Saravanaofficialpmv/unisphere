@@ -632,20 +632,11 @@ class _AssignmentSubmissionSheetState extends State<_AssignmentSubmissionSheet> 
       setState(() {
         _isUploading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('File $_selectedFileName attached successfully!'),
-          backgroundColor: const Color(0xFF10B981),
-        ),
-      );
     }
   }
 
   void _handleSave(bool isFinalSubmit) {
     if (_selectedFileName == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select or upload a solution file first!')),
-      );
       return;
     }
 
@@ -661,12 +652,6 @@ class _AssignmentSubmissionSheetState extends State<_AssignmentSubmissionSheet> 
     );
 
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(isFinalSubmit ? 'Assignment Submitted Successfully! 🎉' : 'Draft Saved!'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
   }
 
   @override

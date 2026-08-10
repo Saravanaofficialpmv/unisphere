@@ -108,9 +108,6 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
 
   void _removeCalcRow(int index) {
     if (_calcRows.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('At least 1 semester is required for calculation.')),
-      );
       return;
     }
     setState(() {

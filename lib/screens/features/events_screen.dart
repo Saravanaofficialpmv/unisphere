@@ -167,11 +167,7 @@ class _EventsScreenState extends State<EventsScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('RSVP confirmed for ${event.title}')),
-                            );
-                          },
+                          onPressed: () {},
                           icon: const Icon(Icons.event_available_rounded, size: 16),
                           label: const Text('RSVP & Add to Calendar'),
                           style: ElevatedButton.styleFrom(

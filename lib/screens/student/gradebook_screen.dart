@@ -221,15 +221,24 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
   final TextEditingController _remainingSemsController =
       TextEditingController(text: '4');
   double _requiredFutureSgpa = 0.0;
+  late int _selectedMainTabIndex;
 
   @override
   void initState() {
     super.initState();
+    _selectedMainTabIndex = widget.initialShowPlanner ? 1 : 0;
     _tabController = TabController(
       length: 2,
       vsync: this,
-      initialIndex: widget.initialShowPlanner ? 1 : 0,
+      initialIndex: _selectedMainTabIndex,
     );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {
+          _selectedMainTabIndex = _tabController.index;
+        });
+      }
+    });
 
     _initSampleVsbecData();
     _initCalculators();
@@ -462,8 +471,8 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
             children: [
               _buildHeader(context),
               Expanded(
-                child: TabBarView(
-                  controller: _tabController,
+                child: IndexedStack(
+                  index: _selectedMainTabIndex,
                   children: [
                     _buildGradebookTab(),
                     _buildCgpaCalculatorTab(),
@@ -484,16 +493,16 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF2980B9), Color(0xFF6DD5FA)],
+          colors: [Color(0xFF1E40AF), Color(0xFF2563EB)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2980B9).withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF1D4ED8).withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -538,7 +547,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
               ),
               Text(
                 'VSB Engineering College Rules Applied',
-                style: TextStyle(fontSize: 10, color: Color(0xFFE0F2FE), fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 10, color: Color(0xFFBFDBFE), fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -560,25 +569,30 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
         height: 44,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.14),
+          color: Colors.white.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
         ),
         child: TabBar(
           controller: _tabController,
+          onTap: (index) {
+            setState(() {
+              _selectedMainTabIndex = index;
+            });
+          },
           indicator: BoxDecoration(
-            color: const Color(0xFF2980B9),
+            color: const Color(0xFF1E3A8A),
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF2980B9).withValues(alpha: 0.5),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 8,
-                offset: const Offset(0, 3),
+                offset: const Offset(0, 2),
               )
             ],
           ),
           labelColor: Colors.white,
-          unselectedLabelColor: Colors.white.withValues(alpha: 0.8),
+          unselectedLabelColor: const Color(0xFFBFDBFE),
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
@@ -843,7 +857,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
                 onSelected: (val) {
                   if (val) setState(() => _selectedSemIndex = index);
                 },
-                selectedColor: const Color(0xFF2980B9),
+                selectedColor: const Color(0xFF1D4ED8),
                 backgroundColor: Colors.white,
                 labelStyle: TextStyle(
                   color: isSelected ? Colors.white : const Color(0xFF475569),
@@ -852,7 +866,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: isSelected ? const Color(0xFF2980B9) : const Color(0xFFE2E8F0)),
+                  side: BorderSide(color: isSelected ? const Color(0xFF1D4ED8) : const Color(0xFFE2E8F0)),
                 ),
                 showCheckmark: false,
               ),
@@ -861,7 +875,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
           IconButton.filledTonal(
             onPressed: _showAddSemesterDialog,
             icon: const Icon(Icons.add_rounded, size: 20),
-            style: IconButton.styleFrom(backgroundColor: const Color(0xFFF1F5F9), foregroundColor: const Color(0xFF2980B9)),
+            style: IconButton.styleFrom(backgroundColor: const Color(0xFFF1F5F9), foregroundColor: const Color(0xFF1D4ED8)),
           ),
         ],
       ),
@@ -871,94 +885,106 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
   Widget _buildSemesterSummaryCard(SemesterModel sem) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1B4F72), Color(0xFF2980B9)],
+          colors: [Color(0xFF1E40AF), Color(0xFF2563EB)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2980B9).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF1D4ED8).withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(sem.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  if (sem.isCurrent) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: const Color(0xFF10B981), borderRadius: BorderRadius.circular(8)),
-                      child: const Text('Active', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(sem.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    if (sem.isCurrent) ...[
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Active',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFB45309)),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '${sem.eligibleCredits} Eligible Credits • ${sem.subjects.length} Total Subjects',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 4),
-                  Text('${sem.passedCount} Passed', style: const TextStyle(fontSize: 11, color: Colors.white70)),
-                  if (sem.failedCount > 0) ...[
-                    const SizedBox(width: 10),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${sem.eligibleCredits} Eligible Credits • ${sem.subjects.length} Total Subjects',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFFBFDBFE), fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+                      decoration: const BoxDecoration(color: Color(0xFF34D399), shape: BoxShape.circle),
                     ),
-                    const SizedBox(width: 4),
-                    Text('${sem.failedCount} RA', style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                    const SizedBox(width: 5),
+                    Text('${sem.passedCount} Passed', style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500)),
+                    if (sem.failedCount > 0) ...[
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(color: Color(0xFFF87171), shape: BoxShape.circle),
+                      ),
+                      const SizedBox(width: 5),
+                      Text('${sem.failedCount} RA', style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500)),
+                    ],
+                    if (sem.excludedCount > 0) ...[
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(color: Color(0xFFFBBF24), shape: BoxShape.circle),
+                      ),
+                      const SizedBox(width: 5),
+                      Text('${sem.excludedCount} Excluded', style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500)),
+                    ],
                   ],
-                  if (sem.excludedCount > 0) ...[
-                    const SizedBox(width: 10),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle),
-                    ),
-                    const SizedBox(width: 4),
-                    Text('${sem.excludedCount} Excluded', style: const TextStyle(fontSize: 11, color: Colors.white70)),
-                  ],
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
             ),
             child: Column(
               children: [
-                const Text('SGPA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70)),
-                const SizedBox(height: 2),
+                const Text(
+                  'SGPA',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFBFDBFE), letterSpacing: 0.5),
+                ),
+                const SizedBox(height: 4),
                 Text(
                   sem.sgpa.toStringAsFixed(2),
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8)),
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white),
                 ),
               ],
             ),
@@ -1564,7 +1590,6 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
 
   void _removeSemRow(int index) {
     if (_calcSemRows.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Must keep at least 1 semester row.')));
       return;
     }
     setState(() {
@@ -1596,7 +1621,6 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
 
   void _removeSubjectRow(int index) {
     if (_calcSubjectRows.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Must keep at least 1 subject row.')));
       return;
     }
     setState(() {

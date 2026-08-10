@@ -129,11 +129,7 @@ class HackathonTeamManagementScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Submission window opens during hackathon execution.')),
-                      );
-                    },
+                    onPressed: () {},
                     icon: const Icon(Icons.link_rounded, size: 18),
                     label: const Text('Manage GitHub / Devpost Link'),
                     style: ElevatedButton.styleFrom(

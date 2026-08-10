@@ -8,6 +8,14 @@ import 'package:clg_application/widgets/common/main_sidebar.dart';
 import 'package:clg_application/screens/student/gradebook_screen.dart';
 import 'package:clg_application/screens/features/feature_hub_screen.dart';
 import 'package:clg_application/screens/features/fees_screen.dart';
+import 'package:clg_application/screens/features/hackathons_screen.dart';
+import 'package:clg_application/screens/features/certifications_screen.dart';
+import 'package:clg_application/screens/features/achievements_screen.dart';
+import 'package:clg_application/screens/features/events_screen.dart';
+import 'package:clg_application/screens/profile/profile_screen.dart';
+import 'package:clg_application/screens/student/modules/student_attendance_screen.dart';
+import 'package:clg_application/screens/student/modules/student_announcements_screen.dart';
+import 'package:clg_application/screens/student/modules/student_library_screen.dart';
 import 'package:clg_application/widgets/common/notification_sheet.dart';
 import 'package:clg_application/providers/notification_provider.dart';
 
@@ -29,26 +37,46 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem(label: 'My Tasks', icon: Icons.assignment_outlined, badge: '3'),
     SidebarItem(label: 'Attendance', icon: Icons.calendar_today_outlined),
     SidebarItem(label: 'Academic Marks', icon: Icons.bar_chart_outlined),
-    SidebarItem(label: 'My Profile', icon: Icons.person_outline),
+    SidebarItem(label: 'Fees & Payments', icon: Icons.payments_outlined),
+    SidebarItem.divider('CAMPUS & CAREER'),
+    SidebarItem(label: 'Hackathons', icon: Icons.sports_score_outlined, badge: 'Live'),
+    SidebarItem(label: 'Certifications', icon: Icons.workspace_premium_outlined, badge: 'Verified'),
+    SidebarItem(label: 'Achievements', icon: Icons.emoji_events_outlined),
+    SidebarItem(label: 'Campus Events', icon: Icons.event_outlined),
+    SidebarItem(label: 'Feature Hub', icon: Icons.grid_view_rounded),
     SidebarItem.divider('CAMPUS LIFE'),
     SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
     SidebarItem(label: 'Library Status', icon: Icons.local_library_outlined),
+    SidebarItem.divider('ACCOUNT'),
+    SidebarItem(label: 'My Profile', icon: Icons.person_outline),
   ];
 
   List<Widget> _getScreens() {
     return [
-      StudentHomeScreen(onNavigateToTab: _handleNavigation),
-      const InteractiveTimetableScreen(),
-      const StudentAssignmentPortal(),
-      const Center(child: Text('Detailed Attendance')),
-      GradebookScreen(
+      StudentHomeScreen(onNavigateToTab: _handleNavigation), // 0
+      const InteractiveTimetableScreen(),                    // 1
+      const StudentAssignmentPortal(),                       // 2
+      StudentAttendanceScreen(onBack: () => _handleNavigation(0)), // 3
+      GradebookScreen(                                       // 4
         key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
         initialShowPlanner: _openGpaPlannerInGradebook,
         onBack: () => _handleNavigation(0),
       ),
-      const Center(child: Text('Student Profile')),
-      const Center(child: Text('Announcements')),
-      const Center(child: Text('Library')),
+      FeesScreen(onBack: () => _handleNavigation(0)),        // 5
+      const SizedBox.shrink(),                               // 6: Divider
+      HackathonsScreen(onBack: () => _handleNavigation(0)),   // 7
+      CertificationsScreen(onBack: () => _handleNavigation(0)), // 8
+      AchievementsScreen(onBack: () => _handleNavigation(0)), // 9
+      EventsScreen(onBack: () => _handleNavigation(0)),       // 10
+      FeatureHubScreen(                                      // 11
+        onNavigateToTab: _handleNavigation,
+        onBack: () => _handleNavigation(0),
+      ),
+      const SizedBox.shrink(),                               // 12: Divider
+      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 13
+      StudentLibraryScreen(onBack: () => _handleNavigation(0)),       // 14
+      const SizedBox.shrink(),                               // 15: Divider
+      ProfileScreen(onBack: () => _handleNavigation(0)),     // 16
     ];
   }
 
@@ -68,6 +96,8 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     final notificationState = ref.watch(notificationProvider);
     final unreadCount = notificationState.unreadCount;
 
+    final bool showTopAppBar = [0, 1, 2].contains(_currentIndex);
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -86,9 +116,8 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       key: _scaffoldKey,
       backgroundColor: Colors.white,
       drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
-      appBar: _currentIndex == 4
-          ? null
-          : AppBar(
+      appBar: showTopAppBar
+          ? AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
               shadowColor: Colors.black12,
@@ -172,7 +201,8 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
                   ),
                 ),
               ],
-            ),
+            )
+          : null,
       body: Row(
         children: [
           if (isDesktop) _buildSidebar(),
@@ -576,18 +606,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 } else if (label == 'Grades') {
                   widget.onNavigateToTab(4, openCalculator: true);
                 } else if (label == 'Fees') {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const FeesScreen()),
-                  );
+                  widget.onNavigateToTab(5);
                 } else if (label == 'More') {
                   _showMoreServicesBottomSheet(context);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Opening $label...'),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
                 }
               },
               borderRadius: BorderRadius.circular(16),
@@ -641,6 +662,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       ),
     );
   }
+
+
 
   // ── Section Header ────────────────────────
   Widget _buildSectionHeader(String title, VoidCallback onSeeAll) {
@@ -939,16 +962,6 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
                       setState(() {
                         _simulateRealtimeUpdates = val;
                       });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            val
-                                ? 'Simulating real-time schedule alerts!'
-                                : 'Real-time updates simulation paused.',
-                          ),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
                     },
                   ),
                 ),
@@ -1203,28 +1216,20 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
                           _buildActionBtn(
                             label: 'Locate Room',
                             icon: Icons.map_outlined,
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Locating ${c['room']} on campus map...'),
-                                ),
-                              );
-                            },
+                            onPressed: () => showRoomLocationModal(
+                              context,
+                              c.map((k, v) => MapEntry(k, v.toString())),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           _buildActionBtn(
                             label: isLive ? 'Join Live Class' : 'Class Materials',
                             icon: isLive ? Icons.video_call_outlined : Icons.menu_book_outlined,
                             color: isLive ? AppColors.primary : null,
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(isLive
-                                      ? 'Launching Zoom Room for ${c['title']}...'
-                                      : 'Opening lecture materials for ${c['title']}...'),
-                                ),
-                              );
-                            },
+                            onPressed: () => showClassMaterialsModal(
+                              context,
+                              c.map((k, v) => MapEntry(k, v.toString())),
+                            ),
                           ),
                         ],
                       ),
@@ -1497,4 +1502,234 @@ class InteractiveTimetableScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Modals ───────────────────────────────────────────────────
+
+void showClassMaterialsModal(BuildContext context, Map<String, String> classData) {
+  final title = classData['title'] ?? 'Course';
+  final code = classData['code'] ?? 'CS301';
+  final isLive = classData['status'] == 'Live Now';
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (ctx) => Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    code,
+                    style: const TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, size: 20),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          if (isLive) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(color: Color(0xFF2563EB), shape: BoxShape.circle),
+                    child: const Icon(Icons.video_call_rounded, color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Online Session Active', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E40AF))),
+                        Text('Hosted via Zoom • Room ID: 884 902 119', style: TextStyle(fontSize: 11, color: Color(0xFF3B82F6))),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Join Room', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          const Text(
+            'Course Lecture Materials & Resources',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+          ),
+          const SizedBox(height: 12),
+          _buildMaterialItem(Icons.picture_as_pdf_rounded, 'Unit 3: Lecture Slides & Architecture', 'PDF • 4.2 MB', const Color(0xFFDC2626), const Color(0xFFFEF2F2)),
+          const SizedBox(height: 10),
+          _buildMaterialItem(Icons.folder_zip_rounded, 'Lab Exercises & Sample Code', 'ZIP • 8.5 MB', const Color(0xFFD97706), const Color(0xFFFEF3C7)),
+          const SizedBox(height: 10),
+          _buildMaterialItem(Icons.play_circle_fill_rounded, 'Recorded Video Session (Class 14)', 'MP4 • 45 min', const Color(0xFF059669), const Color(0xFFECFDF5)),
+          const SizedBox(height: 20),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildMaterialItem(IconData icon, String title, String subtitle, Color color, Color bg) {
+  return Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+    ),
+    child: Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+              Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+            ],
+          ),
+        ),
+        const Icon(Icons.download_rounded, color: Color(0xFF2563EB), size: 20),
+      ],
+    ),
+  );
+}
+
+void showRoomLocationModal(BuildContext context, Map<String, String> classData) {
+  final title = classData['title'] ?? 'Course';
+  final room = classData['room'] ?? 'Room 302';
+  final time = classData['time'] ?? '09:00 AM';
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Campus Navigation', style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12)),
+                  const SizedBox(height: 2),
+                  Text('$title ($room)', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, size: 20),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(12)),
+                      child: const Icon(Icons.domain_rounded, color: Color(0xFF2563EB), size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(room, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
+                          const Text('Tech Park Block B • Floor 3', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.schedule_rounded, size: 16, color: Color(0xFF64748B)),
+                        const SizedBox(width: 4),
+                        Text('Session: $time', style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.event_seat_rounded, size: 16, color: Color(0xFF059669)),
+                        const SizedBox(width: 4),
+                        const Text('Capacity: 60 Seats', style: TextStyle(fontSize: 12, color: Color(0xFF059669), fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    ),
+  );
 }

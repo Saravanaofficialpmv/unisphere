@@ -136,20 +136,6 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     setState(() {
       _certificates.insert(0, cert);
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white),
-            const SizedBox(width: 10),
-            Expanded(child: Text('"${cert.title}" submitted successfully for verification!')),
-          ],
-        ),
-        backgroundColor: const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
   }
 
   void _navigateBackToFeatureHub(BuildContext context) async {
@@ -664,22 +650,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   }
 
   // ── Download Action ───────────────────────────────────────────────────────
-  void _downloadCertificate(BuildContext context, CertificateModel cert) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.download_done_rounded, color: Colors.white),
-            const SizedBox(width: 10),
-            Expanded(child: Text('Downloading "${cert.title}.${cert.fileType.toLowerCase()}"...')),
-          ],
-        ),
-        backgroundColor: const Color(0xFF0F172A),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
+  void _downloadCertificate(BuildContext context, CertificateModel cert) {}
 
   // ── Preview Modal ─────────────────────────────────────────────────────────
   void _showPreviewModal(BuildContext context, CertificateModel cert) {
@@ -991,9 +962,6 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             if (titleController.text.trim().isEmpty || issuerController.text.trim().isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please fill in certificate name and issuer.')),
-                              );
                               return;
                             }
 

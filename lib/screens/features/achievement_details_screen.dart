@@ -448,11 +448,7 @@ class _AchievementDetailsScreenState extends State<AchievementDetailsScreen>
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Downloading official certificate for ${achievement.title}...')),
-                          );
-                        },
+                        onPressed: () {},
                         icon: const Icon(Icons.download_rounded, size: 16),
                         label: const Text('Download Certificate', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                         style: OutlinedButton.styleFrom(
@@ -465,11 +461,7 @@ class _AchievementDetailsScreenState extends State<AchievementDetailsScreen>
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Sharing badge ${achievement.title}...')),
-                          );
-                        },
+                        onPressed: () {},
                         icon: const Icon(Icons.share_rounded, size: 16),
                         label: const Text('Share Badge', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(

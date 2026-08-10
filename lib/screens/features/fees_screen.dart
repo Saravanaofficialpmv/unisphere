@@ -141,12 +141,6 @@ class _FeesScreenState extends State<FeesScreen> {
 
   void _showPaymentModal() {
     if (_pendingBalance <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All fees are fully paid! No pending balance.'),
-          backgroundColor: Color(0xFF059669),
-        ),
-      );
       return;
     }
 
@@ -364,9 +358,6 @@ class _FeesScreenState extends State<FeesScreen> {
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Downloading receipt $txnId PDF...')),
-              );
             },
             icon: const Icon(Icons.download_rounded, size: 16),
             label: const Text('Download Receipt'),
@@ -875,11 +866,7 @@ class _FeesScreenState extends State<FeesScreen> {
                     style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
                   ),
                   TextButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Downloading receipt PDF for ${txn.txnId}...')),
-                      );
-                    },
+                    onPressed: () {},
                     icon: const Icon(Icons.picture_as_pdf_rounded, size: 14, color: Color(0xFF2563EB)),
                     label: const Text(
                       'Download e-Receipt',

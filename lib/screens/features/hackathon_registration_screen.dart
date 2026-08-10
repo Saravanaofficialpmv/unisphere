@@ -56,13 +56,6 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(response['message'] ?? 'Successfully registered!'),
-          backgroundColor: const Color(0xFF10B981),
-        ),
-      );
-
       final updatedHackathon = widget.hackathon.copyWith(
         userRegistrationStatus: 'registered',
         registrationId: response['registrationId']?.toString() ?? 'REG-${DateTime.now().millisecondsSinceEpoch}',
@@ -75,12 +68,6 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Registration failed: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

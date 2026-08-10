@@ -355,20 +355,12 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                   children: [
                     _buildHeaderActionButton(
                       icon: Icons.search_rounded,
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Search student notices & performance records...')),
-                        );
-                      },
+                      onTap: () {},
                     ),
                     const SizedBox(width: 6),
                     _buildHeaderActionButton(
                       icon: Icons.qr_code_scanner_rounded,
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Scan Student ID / Gate Pass QR Code...')),
-                        );
-                      },
+                      onTap: () {},
                     ),
                     const SizedBox(width: 6),
                     _buildHeaderActionButton(
@@ -1430,26 +1422,12 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                     IconButton(
                       tooltip: 'Call Counselor',
                       icon: const Icon(Icons.phone_rounded, color: AppColors.primary, size: 20),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Calling ${f['name']} (${f['phone']})...'),
-                            backgroundColor: AppColors.primary,
-                          ),
-                        );
-                      },
+                      onPressed: () {},
                     ),
                     IconButton(
                       tooltip: 'Send Email',
                       icon: const Icon(Icons.email_rounded, color: AppColors.primary, size: 20),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Email composer opened for ${f['email']}'),
-                            backgroundColor: AppColors.primary,
-                          ),
-                        );
-                      },
+                      onPressed: () {},
                     ),
                   ],
                 ),
@@ -2495,11 +2473,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Downloading Attendance Report PDF...'), backgroundColor: Color(0xFF2563EB)),
-                        );
-                      },
+                      onPressed: () {},
                       icon: const Icon(Icons.download_rounded, size: 18),
                       label: Text('Download Report', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13)),
                       style: OutlinedButton.styleFrom(
@@ -2930,11 +2904,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Downloading Marksheet PDF...'), backgroundColor: Color(0xFF2563EB)),
-                        );
-                      },
+                      onPressed: () {},
                       icon: const Icon(Icons.download_rounded, size: 18),
                       label: Text('Download Marksheet', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 12)),
                       style: OutlinedButton.styleFrom(

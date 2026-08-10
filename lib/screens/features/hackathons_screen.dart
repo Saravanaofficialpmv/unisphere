@@ -171,12 +171,6 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
             onPressed: () {
               ref.read(hackathonBannerControllerProvider.notifier).refresh();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Refreshing hackathon dashboard metrics...'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
             },
           ),
           const SizedBox(width: 8),
@@ -1314,12 +1308,6 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Redirecting to Hackathon Registration Form...'),
-                        backgroundColor: Color(0xFF6366F1),
-                      ),
-                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6366F1),
