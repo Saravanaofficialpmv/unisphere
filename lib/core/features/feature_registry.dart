@@ -5,22 +5,9 @@ import 'package:clg_application/screens/features/hackathons_screen.dart';
 import 'package:clg_application/screens/features/achievements_screen.dart';
 import 'package:clg_application/screens/features/events_screen.dart';
 import 'package:clg_application/screens/student/gradebook_screen.dart';
-import 'package:clg_application/screens/features/upcoming_tasks_detail_screen.dart';
 
 class FeatureRegistry {
   static final List<FeatureItem> _registeredFeatures = [
-    FeatureItem(
-      id: 'upcoming_tasks',
-      title: 'Upcoming Tasks',
-      subtitle: 'View assignments, submission deadlines & pending coursework',
-      icon: Icons.assignment_turned_in_rounded,
-      imageAsset: 'assets/gpa.png',
-      color: const Color(0xFF2563EB),
-      pastelBg: const Color(0xFFEFF6FF),
-      category: 'Academic',
-      badge: '5 Tasks',
-      routeBuilder: (context) => const UpcomingTasksDetailScreen(),
-    ),
     FeatureItem(
       id: 'hackathons',
       title: 'Hackathons',

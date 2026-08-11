@@ -18,7 +18,6 @@ import 'package:clg_application/screens/student/modules/student_announcements_sc
 import 'package:clg_application/screens/student/modules/student_library_screen.dart';
 import 'package:clg_application/widgets/common/notification_sheet.dart';
 import 'package:clg_application/providers/notification_provider.dart';
-import 'package:clg_application/screens/features/upcoming_tasks_detail_screen.dart';
 import 'package:clg_application/screens/features/exams_detail_screen.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -660,7 +659,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
 
   Widget _buildSuggestedCard(Map<String, dynamic> item) {
     final pillBg = item['pillBg'] as Color;
-    final iconBg = item['iconBg'] as Color;
     final iconColor = item['iconColor'] as Color;
     final iconType = item['iconType'] as String;
     final tabIndex = item['tabIndex'] as int;
@@ -684,13 +682,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: () {
-            if (iconType == 'tasks') {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const UpcomingTasksDetailScreen(),
-                ),
-              );
-            } else if (iconType == 'announcement') {
+            if (iconType == 'announcement') {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => const StudentAnnouncementsScreen(),
@@ -714,34 +706,19 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 3D Icon Container
+                // Icon without background container layout
                 Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
                   children: [
-                    Container(
-                      width: 76,
-                      height: 76,
-                      decoration: BoxDecoration(
-                        color: iconBg,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: pillBg.withValues(alpha: 0.2)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: pillBg.withValues(alpha: 0.15),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: _renderSuggestedIcon(iconType, iconColor),
-                      ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: _renderSuggestedIcon(iconType, iconColor),
                     ),
                     if (iconType == 'announcement')
                       Positioned(
-                        top: -4,
-                        right: -4,
+                        top: -2,
+                        right: -6,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                           decoration: BoxDecoration(
