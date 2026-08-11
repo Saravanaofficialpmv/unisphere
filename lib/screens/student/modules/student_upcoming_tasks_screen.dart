@@ -235,7 +235,7 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
   Widget _buildHeaderCard(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -249,56 +249,68 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  border: Border.all(color: AppColors.primary, width: 2),
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    border: Border.all(color: AppColors.primary, width: 2),
+                  ),
+                  child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 24),
                 ),
-                child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 26),
-              ),
-              const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Good Morning, Tharani 👋',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
-                    ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Good Morning, Tharani 👋',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Computer Science • Section A',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Computer Science • Section A',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.all(6),
                 onPressed: () {
                   showNotificationSheet(context);
                 },
                 icon: Stack(
                   children: [
-                    const Icon(Icons.notifications_outlined, color: Color(0xFF475569), size: 26),
+                    const Icon(Icons.notifications_outlined, color: Color(0xFF475569), size: 24),
                     Positioned(
                       top: 0,
                       right: 0,
                       child: Container(
-                        width: 9,
-                        height: 9,
+                        width: 8,
+                        height: 8,
                         decoration: const BoxDecoration(
                           color: Color(0xFFEF4444),
                           shape: BoxShape.circle,
@@ -308,19 +320,21 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
                   ],
                 ),
               ),
+              const SizedBox(width: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEF2FF),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.account_circle_outlined, color: Color(0xFF4F46E5), size: 16),
+                    Icon(Icons.account_circle_outlined, color: Color(0xFF4F46E5), size: 15),
                     SizedBox(width: 4),
                     Text(
                       'Profile',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
                     ),
                   ],
                 ),
