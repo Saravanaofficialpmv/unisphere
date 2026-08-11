@@ -311,10 +311,10 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> with 
   }
 
   void _handleBack(BuildContext context) {
-    if (widget.onBack != null) {
-      widget.onBack!();
-    } else if (Navigator.canPop(context)) {
+    if (Navigator.canPop(context)) {
       Navigator.pop(context);
+    } else if (widget.onBack != null) {
+      widget.onBack!();
     }
   }
 

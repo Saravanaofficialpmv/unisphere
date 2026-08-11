@@ -50,12 +50,10 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
   }
 
   void _handleBack() async {
-    if (widget.onBack != null) {
-      widget.onBack!();
-      return;
-    }
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
+    } else if (widget.onBack != null) {
+      widget.onBack!();
     } else {
       context.go('/student');
     }

@@ -20,12 +20,10 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
   bool _tcsApplied = false;
 
   void _handleBack() {
-    if (widget.onBack != null) {
-      widget.onBack!();
-      return;
-    }
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
+    } else if (widget.onBack != null) {
+      widget.onBack!();
     }
   }
 

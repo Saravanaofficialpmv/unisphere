@@ -122,12 +122,10 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
   }
 
   void _navigateBackToFeatureHub(BuildContext context) {
-    if (widget.onBack != null) {
-      widget.onBack!();
-      return;
-    }
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
+    } else if (widget.onBack != null) {
+      widget.onBack!();
     } else {
       context.go('/student');
     }

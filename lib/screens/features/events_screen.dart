@@ -61,12 +61,10 @@ class _EventsScreenState extends State<EventsScreen> {
   ];
 
   void _navigateBackToFeatureHub(BuildContext context) async {
-    if (widget.onBack != null) {
-      widget.onBack!();
-      return;
-    }
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
+    } else if (widget.onBack != null) {
+      widget.onBack!();
     } else {
       context.go('/student');
     }

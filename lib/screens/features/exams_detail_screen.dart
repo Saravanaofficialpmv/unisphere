@@ -99,10 +99,10 @@ class _ExamsDetailScreenState extends State<ExamsDetailScreen> with SingleTicker
   }
 
   void _handleBack() {
-    if (widget.onBack != null) {
-      widget.onBack!();
-    } else if (Navigator.canPop(context)) {
+    if (Navigator.canPop(context)) {
       Navigator.pop(context);
+    } else if (widget.onBack != null) {
+      widget.onBack!();
     }
   }
 
