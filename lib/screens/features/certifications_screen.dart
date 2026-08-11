@@ -219,11 +219,11 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       ),
     );
 
-    final bool canPopRoute = Navigator.canPop(context);
+    final bool canPopRoute = ModalRoute.of(context)?.canPop ?? false;
     return PopScope(
       canPop: canPopRoute,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
+        if (didPop || !mounted) return;
         if (widget.onBack != null) {
           widget.onBack!();
         }

@@ -454,11 +454,11 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
 
   @override
   Widget build(BuildContext context) {
-    final bool canPopRoute = Navigator.canPop(context);
+    final bool canPopRoute = ModalRoute.of(context)?.canPop ?? false;
     return PopScope(
       canPop: canPopRoute,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
+        if (didPop || !mounted) return;
         if (widget.onBack != null) {
           widget.onBack!();
         }
@@ -524,10 +524,11 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
           IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
             onPressed: () {
-              if (widget.onBack != null) {
+              if (!mounted) return;
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else if (widget.onBack != null) {
                 widget.onBack!();
-              } else if (Navigator.canPop(context)) {
-                Navigator.pop(context);
               } else {
                 context.go('/student');
               }

@@ -311,8 +311,9 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> with 
   }
 
   void _handleBack(BuildContext context) {
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
+    if (!mounted) return;
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
     } else if (widget.onBack != null) {
       widget.onBack!();
     }
@@ -540,11 +541,11 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> with 
         ? _attendanceLogs
         : _attendanceLogs.where((l) => l['status'] == _historyFilter).toList();
 
-    final bool canPopRoute = Navigator.canPop(context);
+    final bool canPopRoute = ModalRoute.of(context)?.canPop ?? false;
     return PopScope(
       canPop: canPopRoute,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
+        if (didPop || !mounted) return;
         if (widget.onBack != null) {
           widget.onBack!();
         }

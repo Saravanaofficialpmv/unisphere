@@ -20,6 +20,7 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
   bool _tcsApplied = false;
 
   void _handleBack() {
+    if (!mounted) return;
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else if (widget.onBack != null) {
@@ -159,7 +160,16 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final bool canPopRoute = ModalRoute.of(context)?.canPop ?? false;
+    return PopScope(
+      canPop: canPopRoute,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop || !mounted) return;
+        if (widget.onBack != null) {
+          widget.onBack!();
+        }
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F172A),
@@ -226,8 +236,9 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── Header Card ──
   Widget _buildHeaderCard(BuildContext context) {
