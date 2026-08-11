@@ -281,6 +281,7 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
           // Equivalent Score Prominent Banner
           Container(
             width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 155),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -299,6 +300,7 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -310,7 +312,6 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
                     Icon(Icons.percent_rounded, color: Colors.white, size: 24),
                   ],
                 ),
-                const SizedBox(height: 6),
                 Text(
                   '${percentage.toStringAsFixed(2)}%',
                   style: const TextStyle(
@@ -320,9 +321,8 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(10),
@@ -548,6 +548,7 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
           // Top Eligible Credits Banner Card
           Container(
             width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 155),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -566,6 +567,7 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -577,7 +579,6 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
                     Icon(Icons.school_rounded, color: Colors.white, size: 24),
                   ],
                 ),
-                const SizedBox(height: 6),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -598,9 +599,8 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(10),
@@ -870,6 +870,7 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
           // Current SGPA Banner Card
           Container(
             width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 155),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -888,6 +889,7 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -909,7 +911,6 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
                 Text(
                   sgpaVal.toStringAsFixed(2),
                   style: const TextStyle(
@@ -919,10 +920,17 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  '${sem.eligibleCredits} Eligible Credits • ${sem.subjects.length} Registered Courses',
-                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    '${sem.eligibleCredits} Eligible Credits • ${sem.subjects.length} Registered Courses',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
                 ),
               ],
             ),
