@@ -186,14 +186,13 @@ class AchievementsScreen extends StatelessWidget {
       ),
     );
 
+    final bool canPopRoute = Navigator.canPop(context);
     return PopScope(
-      canPop: onBack == null,
+      canPop: canPopRoute,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         if (onBack != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            onBack!();
-          });
+          onBack!();
         }
       },
       child: scaffold,

@@ -85,11 +85,14 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
         ? ((totalMarksEarned / totalMaxMarksGraded) * 100).toStringAsFixed(1)
         : '94.0';
 
+    final bool canPopRoute = Navigator.canPop(context);
     return PopScope(
-      canPop: widget.onBack == null,
+      canPop: canPopRoute,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        _handleBack(context);
+        if (widget.onBack != null) {
+          widget.onBack!();
+        }
       },
       child: Scaffold(
         backgroundColor: Colors.white,

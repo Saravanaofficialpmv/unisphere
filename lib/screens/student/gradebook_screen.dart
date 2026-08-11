@@ -454,14 +454,13 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
 
   @override
   Widget build(BuildContext context) {
+    final bool canPopRoute = Navigator.canPop(context);
     return PopScope(
-      canPop: widget.onBack == null,
+      canPop: canPopRoute,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         if (widget.onBack != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) widget.onBack!();
-          });
+          widget.onBack!();
         }
       },
       child: Scaffold(

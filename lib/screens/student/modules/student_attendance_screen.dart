@@ -540,11 +540,14 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> with 
         ? _attendanceLogs
         : _attendanceLogs.where((l) => l['status'] == _historyFilter).toList();
 
+    final bool canPopRoute = Navigator.canPop(context);
     return PopScope(
-      canPop: widget.onBack == null,
+      canPop: canPopRoute,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        _handleBack(context);
+        if (widget.onBack != null) {
+          widget.onBack!();
+        }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
