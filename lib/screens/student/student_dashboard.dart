@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clg_application/core/constants/app_colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:clg_application/screens/student/modules/student_assignment_portal.dart';
+import 'package:clg_application/screens/student/modules/student_upcoming_tasks_screen.dart';
 import 'package:clg_application/widgets/common/main_sidebar.dart';
 import 'package:clg_application/screens/student/gradebook_screen.dart';
 import 'package:clg_application/screens/features/feature_hub_screen.dart';
@@ -56,7 +56,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     return [
       StudentHomeScreen(onNavigateToTab: _handleNavigation), // 0
       InteractiveTimetableScreen(onBack: () => _handleNavigation(0)), // 1
-      StudentAssignmentPortal(onBack: () => _handleNavigation(0)),    // 2
+      StudentUpcomingTasksScreen(onBack: () => _handleNavigation(0)),    // 2
       StudentAttendanceScreen(onBack: () => _handleNavigation(0)), // 3
       GradebookScreen(                                       // 4
         key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
@@ -304,12 +304,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           ),
           const SizedBox(height: 20),
           _buildQuickActions(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           _buildSectionHeader('Today\'s Classes', () => widget.onNavigateToTab(1)),
           const SizedBox(height: 12),
           _buildTodaysClasses(),
-          const SizedBox(height: 24),
-          _buildSuggestedIconsSection(),
         ],
       ),
     );
@@ -569,224 +567,141 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   );
   }
 
-  // ── Suggested Icons Section ───────────────────
-  Widget _buildSuggestedIconsSection() {
-    final suggested = [
-      {
-        'title': 'Upcoming Tasks',
-        'sub1': 'Calendar + Checklist + Clock',
-        'sub2': '(Shows upcoming to-dos & deadlines)',
-        'pillBg': const Color(0xFF6366F1),
-        'iconBg': const Color(0xFFEEF2FF),
-        'iconColor': const Color(0xFF4F46E5),
-        'accentColor': const Color(0xFFF59E0B),
-        'iconType': 'tasks',
-        'tabIndex': 2,
-      },
-      {
-        'title': 'Latest Announcement',
-        'sub1': 'Megaphone + Notification',
-        'sub2': '(Highlights new updates)',
-        'pillBg': const Color(0xFFF97316),
-        'iconBg': const Color(0xFFFEF3C7),
-        'iconColor': const Color(0xFFEA580C),
-        'accentColor': const Color(0xFFEF4444),
-        'iconType': 'announcement',
-        'tabIndex': 13,
-      },
-      {
-        'title': 'Exams',
-        'sub1': 'Test Paper + Pencil + Clock',
-        'sub2': '(Displays upcoming exams & schedules)',
-        'pillBg': const Color(0xFF0284C7),
-        'iconBg': const Color(0xFFE0F2FE),
-        'iconColor': const Color(0xFF0284C7),
-        'accentColor': const Color(0xFFF59E0B),
-        'iconType': 'exams',
-        'tabIndex': 4,
-      },
+  // ── Quick Actions ────────────────────────
+  Widget _buildQuickActions() {
+    final row1Actions = [
+      {'image': 'assets/timetable.png', 'label': 'Timetable', 'color': const Color(0xFF5C6BC0), 'type': 'timetable'},
+      {'image': 'assets/assignment.png', 'label': 'Assignments', 'color': const Color(0xFF26A69A), 'type': 'assignments'},
+      {'image': 'assets/student.png', 'label': 'Grades', 'color': const Color(0xFFEF5350), 'type': 'grades'},
+      {'image': 'assets/school.png', 'label': 'Fees', 'color': const Color(0xFFFFA726), 'type': 'fees'},
+    ];
+
+    final row2Actions = [
+      {'label': 'Tasks', 'iconBg': const Color(0xFFEEF2FF), 'iconColor': const Color(0xFF4F46E5), 'type': 'tasks'},
+      {'label': 'Announcement', 'iconBg': const Color(0xFFFEF3C7), 'iconColor': const Color(0xFFEA580C), 'type': 'announcement'},
+      {'label': 'Exams', 'iconBg': const Color(0xFFE0F2FE), 'iconColor': const Color(0xFF0284C7), 'type': 'exams'},
+      {'icon': Icons.grid_view_rounded, 'label': 'More', 'color': const Color(0xFFFF7043), 'type': 'more'},
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.auto_awesome_rounded, color: Color(0xFF818CF8), size: 18),
-            SizedBox(width: 6),
-            Text(
-              'Suggested Features',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-          ],
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: row1Actions.map((action) => Expanded(child: _buildQuickActionButton(action))).toList(),
         ),
-        const SizedBox(height: 14),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 650;
-            if (isWide) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: suggested.map((item) {
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                      child: _buildSuggestedCard(item),
-                    ),
-                  );
-                }).toList(),
-              );
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: suggested.map((item) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 14.0),
-                  child: _buildSuggestedCard(item),
-                );
-              }).toList(),
-            );
-          },
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: row2Actions.map((action) => Expanded(child: _buildQuickActionButton(action))).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildSuggestedCard(Map<String, dynamic> item) {
-    final pillBg = item['pillBg'] as Color;
-    final iconColor = item['iconColor'] as Color;
-    final iconType = item['iconType'] as String;
-    final tabIndex = item['tabIndex'] as int;
+  Widget _buildQuickActionButton(Map<String, dynamic> action) {
+    final label = action['label'] as String;
+    final type = action['type'] as String;
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: pillBg.withValues(alpha: 0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: () {
-            if (iconType == 'announcement') {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const StudentAnnouncementsScreen(),
-                ),
-              );
-            } else if (iconType == 'exams') {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const ExamsDetailScreen(),
-                ),
-              );
-            } else {
-              widget.onNavigateToTab(tabIndex);
-            }
-          },
-          borderRadius: BorderRadius.circular(20),
-          splashColor: pillBg.withValues(alpha: 0.15),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Icon without background container layout
-                Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: _renderSuggestedIcon(iconType, iconColor),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          if (type == 'timetable') {
+            widget.onNavigateToTab(1);
+          } else if (type == 'assignments') {
+            widget.onNavigateToTab(2);
+          } else if (type == 'grades') {
+            widget.onNavigateToTab(4, openCalculator: true);
+          } else if (type == 'fees') {
+            widget.onNavigateToTab(5);
+          } else if (type == 'tasks') {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const StudentUpcomingTasksScreen(),
+              ),
+            );
+          } else if (type == 'announcement') {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const StudentAnnouncementsScreen(),
+              ),
+            );
+          } else if (type == 'exams') {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const ExamsDetailScreen(),
+              ),
+            );
+          } else if (type == 'more') {
+            _showMoreServicesBottomSheet(context);
+          }
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: action.containsKey('color')
+                          ? (action['color'] as Color).withValues(alpha: 0.1)
+                          : (action['iconBg'] as Color),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: action.containsKey('color')
+                            ? (action['color'] as Color).withValues(alpha: 0.2)
+                            : (action['iconColor'] as Color).withValues(alpha: 0.2),
+                      ),
                     ),
-                    if (iconType == 'announcement')
-                      Positioned(
-                        top: -2,
-                        right: -6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Text(
-                            '1',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                    alignment: Alignment.center,
+                    child: action.containsKey('image')
+                        ? Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Image.asset(
+                              action['image'] as String,
+                              fit: BoxFit.contain,
                             ),
+                          )
+                        : action.containsKey('icon')
+                            ? Icon(action['icon'] as IconData, color: action['color'] as Color, size: 26)
+                            : _renderSuggestedIcon(type, action['iconColor'] as Color),
+                  ),
+                  if (type == 'announcement')
+                    Positioned(
+                      top: -2,
+                      right: -2,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                        child: const Text(
+                          '1',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Pill Button Tag
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: pillBg,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: pillBg.withValues(alpha: 0.3),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    item['title'] as String,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Subtitles
-                Text(
-                  item['sub1'] as String,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF475569),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  item['sub2'] as String,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF94A3B8),
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF616161), fontWeight: FontWeight.w500),
+              ),
+            ],
           ),
         ),
       ),
@@ -798,120 +713,43 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       return Stack(
         alignment: Alignment.center,
         children: [
-          Icon(Icons.calendar_month_rounded, size: 36, color: mainColor),
+          Icon(Icons.calendar_month_rounded, size: 28, color: mainColor),
           Positioned(
-            bottom: -2,
-            right: -2,
+            bottom: -1,
+            right: -1,
             child: Container(
-              padding: const EdgeInsets.all(2),
+              padding: const EdgeInsets.all(1.5),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.schedule_rounded, size: 16, color: Color(0xFFF59E0B)),
+              child: const Icon(Icons.schedule_rounded, size: 13, color: Color(0xFFF59E0B)),
             ),
           ),
         ],
       );
     } else if (type == 'announcement') {
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(Icons.campaign_rounded, size: 38, color: mainColor),
-        ],
-      );
+      return Icon(Icons.campaign_rounded, size: 30, color: mainColor);
     } else {
       return Stack(
         alignment: Alignment.center,
         children: [
-          Icon(Icons.assignment_rounded, size: 36, color: mainColor),
+          Icon(Icons.assignment_rounded, size: 28, color: mainColor),
           Positioned(
-            bottom: -2,
-            right: -2,
+            bottom: -1,
+            right: -1,
             child: Container(
-              padding: const EdgeInsets.all(2),
+              padding: const EdgeInsets.all(1.5),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.edit_rounded, size: 15, color: Color(0xFFF59E0B)),
+              child: const Icon(Icons.edit_rounded, size: 12, color: Color(0xFFF59E0B)),
             ),
           ),
         ],
       );
     }
-  }
-
-  // ── Quick Actions ────────────────────────
-  Widget _buildQuickActions() {
-    final actions = [
-      {'image': 'assets/timetable.png', 'label': 'Timetable', 'color': const Color(0xFF5C6BC0)},
-      {'image': 'assets/assignment.png', 'label': 'Assignments', 'color': const Color(0xFF26A69A)},
-      {'image': 'assets/student.png', 'label': 'Grades', 'color': const Color(0xFFEF5350)},
-      {'image': 'assets/school.png', 'label': 'Fees', 'color': const Color(0xFFFFA726)},
-      {'icon': Icons.grid_view_rounded, 'label': 'More', 'color': const Color(0xFFFF7043)},
-    ];
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: actions.map((action) {
-        final label = action['label'] as String;
-        final color = action['color'] as Color;
-        return Expanded(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                if (label == 'Timetable') {
-                  widget.onNavigateToTab(1);
-                } else if (label == 'Assignments') {
-                  widget.onNavigateToTab(2);
-                } else if (label == 'Grades') {
-                  widget.onNavigateToTab(4, openCalculator: true);
-                } else if (label == 'Fees') {
-                  widget.onNavigateToTab(5);
-                } else if (label == 'More') {
-                  _showMoreServicesBottomSheet(context);
-                }
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: color.withValues(alpha: 0.2)),
-                      ),
-                      child: action.containsKey('image')
-                          ? Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Image.asset(
-                                action['image'] as String,
-                                fit: BoxFit.contain,
-                              ),
-                            )
-                          : Icon(action['icon'] as IconData, color: color, size: 26),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF616161), fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
   }
 
   // ── Feature Hub Launcher ────────────────
