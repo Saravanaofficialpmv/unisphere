@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Custom Open Menu Button widget matching the sidebar icon & open-menu design tab.
+/// Custom Open Menu Button widget using the user provided icon asset.
 class OpenMenuButton extends StatelessWidget {
   final VoidCallback onTap;
   final double height;
@@ -8,7 +8,7 @@ class OpenMenuButton extends StatelessWidget {
   const OpenMenuButton({
     super.key,
     required this.onTap,
-    this.height = 58,
+    this.height = 68,
   });
 
   @override
@@ -20,7 +20,7 @@ class OpenMenuButton extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1D4ED8).withValues(alpha: 0.45),
+              color: const Color(0xFF1D4ED8).withValues(alpha: 0.4),
               blurRadius: 16,
               offset: const Offset(4, 4),
             ),
@@ -29,42 +29,49 @@ class OpenMenuButton extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.horizontal(right: Radius.circular(height / 2)),
           child: Image.asset(
-            'assets/sidebar_icon.png',
+            'assets/menu_icon_tab.png',
             height: height,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
               return Image.asset(
-                'assets/open_menu.png',
+                'assets/sidebar_icon.png',
                 height: height,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  return Container(
+                  return Image.asset(
+                    'assets/open_menu.png',
                     height: height,
-                    padding: const EdgeInsets.fromLTRB(12, 0, 18, 0),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF1D4ED8), Color(0xFF2563EB)],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      borderRadius: BorderRadius.horizontal(right: Radius.circular(height / 2)),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: Colors.white,
-                          size: 26,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: height,
+                        padding: const EdgeInsets.fromLTRB(14, 0, 20, 0),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1D4ED8), Color(0xFF2563EB)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.horizontal(right: Radius.circular(height / 2)),
                         ),
-                        SizedBox(width: 4),
-                        Icon(
-                          Icons.menu_rounded,
-                          color: Colors.white,
-                          size: 24,
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                            SizedBox(width: 4),
+                            Icon(
+                              Icons.menu_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               );
