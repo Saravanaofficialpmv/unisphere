@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 
-/// Custom Open Menu Button widget matching the exact blue side-tab with a large, prominent menu icon.
+/// Custom Open Menu Button widget with uniform primary blue color and crisp menu icon.
 class OpenMenuButton extends StatelessWidget {
   final VoidCallback onTap;
   final double height;
@@ -8,7 +9,7 @@ class OpenMenuButton extends StatelessWidget {
   const OpenMenuButton({
     super.key,
     required this.onTap,
-    this.height = 56,
+    this.height = 46,
   });
 
   @override
@@ -17,31 +18,20 @@ class OpenMenuButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: height,
-        padding: const EdgeInsets.fromLTRB(14, 0, 22, 0),
+        padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
         decoration: const BoxDecoration(
-          color: Color(0xFF1D61E7),
+          color: AppColors.primary,
           borderRadius: BorderRadius.only(
             topRight: Radius.circular(16),
             bottomRight: Radius.circular(16),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/menu_icon_tab.png',
-              height: height,
-              fit: BoxFit.fitHeight,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.menu_rounded,
-                  color: Colors.white,
-                  size: 34,
-                );
-              },
-            ),
-          ],
+        child: const Center(
+          child: Icon(
+            Icons.menu_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
         ),
       ),
     );
