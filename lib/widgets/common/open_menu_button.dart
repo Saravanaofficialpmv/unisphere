@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Custom Open Menu Button widget using the user provided icon asset.
+/// Custom Open Menu Button widget matching the exact blue side-tab with a large, prominent menu icon.
 class OpenMenuButton extends StatelessWidget {
   final VoidCallback onTap;
   final double height;
@@ -8,7 +8,7 @@ class OpenMenuButton extends StatelessWidget {
   const OpenMenuButton({
     super.key,
     required this.onTap,
-    this.height = 48,
+    this.height = 56,
   });
 
   @override
@@ -17,51 +17,31 @@ class OpenMenuButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: height,
-        color: Colors.transparent,
-        child: Image.asset(
-          'assets/menu_icon_tab.png',
-          height: height,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) {
-            return Image.asset(
-              'assets/sidebar_icon.png',
+        padding: const EdgeInsets.fromLTRB(14, 0, 22, 0),
+        decoration: const BoxDecoration(
+          color: Color(0xFF1D61E7),
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/menu_icon_tab.png',
               height: height,
-              fit: BoxFit.contain,
+              fit: BoxFit.fitHeight,
               errorBuilder: (context, error, stackTrace) {
-                return Image.asset(
-                  'assets/open_menu.png',
-                  height: height,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: height,
-                      padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2563EB),
-                        borderRadius: BorderRadius.horizontal(right: Radius.circular(height / 2)),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                          SizedBox(width: 4),
-                          Icon(
-                            Icons.menu_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                return const Icon(
+                  Icons.menu_rounded,
+                  color: Colors.white,
+                  size: 34,
                 );
               },
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
