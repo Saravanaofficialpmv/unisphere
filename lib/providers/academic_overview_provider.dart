@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/services/leetcode_service.dart';
 import 'package:unisphere/services/github_service.dart';
+import 'package:unisphere/services/linkedin_service.dart';
 
 /// Data model representing the student's academic overview metrics.
 class AcademicOverviewData {
@@ -19,6 +20,9 @@ class AcademicOverviewData {
   final int githubRepos;
   final int githubStars;
   final int githubCommits;
+  final String linkedinUrl;
+  final String linkedinConnections;
+  final String linkedinHeadline;
 
   const AcademicOverviewData({
     required this.attendancePercentage,
@@ -36,6 +40,9 @@ class AcademicOverviewData {
     this.githubRepos = 14,
     this.githubStars = 0,
     this.githubCommits = 87,
+    this.linkedinUrl = 'https://linkedin.com/in/Saravanaofficialpmv',
+    this.linkedinConnections = '500+',
+    this.linkedinHeadline = 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
   });
 }
 
@@ -59,11 +66,15 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
             githubRepos: 14,
             githubStars: 0,
             githubCommits: 87,
+            linkedinUrl: 'https://linkedin.com/in/Saravanaofficialpmv',
+            linkedinConnections: '500+',
+            linkedinHeadline: 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
           ),
         ) {
-    // Automatically fetch student LeetCode & GitHub stats on startup
+    // Automatically fetch student LeetCode, GitHub & LinkedIn stats on startup
     fetchLeetCodeStats(state.leetcodeUsername);
     fetchGitHubStats(state.githubUsername);
+    fetchLinkedInStats(state.linkedinUrl);
   }
 
   /// Automatically updates LeetCode solved count from public LeetCode API
@@ -85,6 +96,9 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       githubRepos: state.githubRepos,
       githubStars: state.githubStars,
       githubCommits: state.githubCommits,
+      linkedinUrl: state.linkedinUrl,
+      linkedinConnections: state.linkedinConnections,
+      linkedinHeadline: state.linkedinHeadline,
     );
   }
 
@@ -107,6 +121,34 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       githubRepos: stats.publicRepos,
       githubStars: stats.starsEarned,
       githubCommits: stats.commitsThisYear,
+      linkedinUrl: state.linkedinUrl,
+      linkedinConnections: state.linkedinConnections,
+      linkedinHeadline: state.linkedinHeadline,
+    );
+  }
+
+  /// Automatically updates LinkedIn professional profile stats
+  Future<void> fetchLinkedInStats(String urlOrHandle) async {
+    final stats = await LinkedInService.fetchProfileStats(urlOrHandle);
+    state = AcademicOverviewData(
+      attendancePercentage: state.attendancePercentage,
+      attendanceTrend: state.attendanceTrend,
+      attendanceStatus: state.attendanceStatus,
+      cgpa: state.cgpa,
+      cgpaTrend: state.cgpaTrend,
+      cgpaLabel: state.cgpaLabel,
+      odDays: state.odDays,
+      odStatus: state.odStatus,
+      leetcodeSolved: state.leetcodeSolved,
+      leetcodeStatus: state.leetcodeStatus,
+      leetcodeUsername: state.leetcodeUsername,
+      githubUsername: state.githubUsername,
+      githubRepos: state.githubRepos,
+      githubStars: state.githubStars,
+      githubCommits: state.githubCommits,
+      linkedinUrl: stats.profileUrl,
+      linkedinConnections: stats.connectionsCount,
+      linkedinHeadline: stats.headline,
     );
   }
 
@@ -126,6 +168,9 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
     int? githubRepos,
     int? githubStars,
     int? githubCommits,
+    String? linkedinUrl,
+    String? linkedinConnections,
+    String? linkedinHeadline,
   }) {
     state = AcademicOverviewData(
       attendancePercentage: attendancePercentage ?? state.attendancePercentage,
@@ -143,6 +188,9 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       githubRepos: githubRepos ?? state.githubRepos,
       githubStars: githubStars ?? state.githubStars,
       githubCommits: githubCommits ?? state.githubCommits,
+      linkedinUrl: linkedinUrl ?? state.linkedinUrl,
+      linkedinConnections: linkedinConnections ?? state.linkedinConnections,
+      linkedinHeadline: linkedinHeadline ?? state.linkedinHeadline,
     );
   }
 }
