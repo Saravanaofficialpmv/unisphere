@@ -334,6 +334,8 @@ class StudentHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
+  int _academicOverviewPageIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     final notificationState = ref.watch(notificationProvider);
@@ -735,302 +737,422 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      child: StatefulBuilder(
+        builder: (context, setCardState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
+              // Header Row: Title + Slide Indicator Dots + Details Action
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3F51B5).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.school_rounded,
-                      size: 16,
-                      color: Color(0xFF3F51B5),
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3F51B5).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.school_rounded,
+                          size: 16,
+                          color: Color(0xFF3F51B5),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Academic Overview',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2D3142),
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Animated Slide Dots (● ○)
+                      Row(
+                        children: List.generate(2, (index) {
+                          final isActive = index == _academicOverviewPageIndex;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            margin: const EdgeInsets.only(right: 4),
+                            width: isActive ? 14 : 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? const Color(0xFF3F51B5)
+                                  : const Color(0xFFCBD5E1),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Academic Overview',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF2D3142),
-                      letterSpacing: 0.2,
+                  InkWell(
+                    onTap: () => _showStudentIDCardModal(context),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3F51B5).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF3F51B5).withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Details',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF3F51B5),
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 14,
+                            color: Color(0xFF3F51B5),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-              InkWell(
-                onTap: () => _showStudentIDCardModal(context),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3F51B5).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFF3F51B5).withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Details',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF3F51B5),
-                        ),
-                      ),
-                      SizedBox(width: 2),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 14,
-                        color: Color(0xFF3F51B5),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          InkWell(
-            onTap: () => widget.onNavigateToTab(4),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
+              const SizedBox(height: 12),
+              // Slideable PageView Container
+              SizedBox(
+                height: 56,
+                child: PageView(
+                  onPageChanged: (index) {
+                    setCardState(() {
+                      _academicOverviewPageIndex = index;
+                    });
+                  },
                   children: [
-                    // Metric 1: Attendance
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularPercentIndicator(
-                          radius: 28.0,
-                          lineWidth: 5.5,
-                          percent:
-                              (overviewData.attendancePercentage / 100.0)
-                                  .clamp(0.0, 1.0),
-                          center: Text(
-                            '${overviewData.attendancePercentage.toInt()}%',
-                            style: const TextStyle(
-                              color: Color(0xFF2D3142),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
+                    // ── Slide 1: Attendance & Current CGPA ──
+                    InkWell(
+                      onTap: () => widget.onNavigateToTab(4),
+                      child: Row(
+                        children: [
+                          // Metric 1: Attendance
+                          Expanded(
+                            flex: 5,
+                            child: Row(
+                              children: [
+                                CircularPercentIndicator(
+                                  radius: 26.0,
+                                  lineWidth: 5.0,
+                                  percent:
+                                      (overviewData.attendancePercentage / 100.0)
+                                          .clamp(0.0, 1.0),
+                                  center: Text(
+                                    '${overviewData.attendancePercentage.toInt()}%',
+                                    style: const TextStyle(
+                                      color: Color(0xFF2D3142),
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                  progressColor: const Color(0xFF3F51B5),
+                                  backgroundColor: const Color(
+                                    0xFF3F51B5,
+                                  ).withValues(alpha: 0.12),
+                                  circularStrokeCap: CircularStrokeCap.round,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Text(
+                                            'Attendance',
+                                            style: TextStyle(
+                                              color: Color(0xFF757575),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 5,
+                                              vertical: 1.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFE8F5E9),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              overviewData.attendanceStatus,
+                                              style: const TextStyle(
+                                                color: Color(0xFF2E7D32),
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.arrow_upward_rounded,
+                                            color: Color(0xFF2E7D32),
+                                            size: 12,
+                                          ),
+                                          const SizedBox(width: 1),
+                                          Expanded(
+                                            child: Text(
+                                              '${overviewData.attendanceTrend.toInt()}% this month',
+                                              style: const TextStyle(
+                                                color: Color(0xFF2E7D32),
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          progressColor: const Color(0xFF3F51B5),
-                          backgroundColor: const Color(
-                            0xFF3F51B5,
-                          ).withValues(alpha: 0.12),
-                          circularStrokeCap: CircularStrokeCap.round,
-                        ),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
+                          // Divider
+                          Container(
+                            height: 40,
+                            width: 1,
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            color: Colors.black.withValues(alpha: 0.08),
+                          ),
+                          // Metric 2: CGPA
+                          Expanded(
+                            flex: 4,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  overviewData.cgpaLabel,
+                                  style: const TextStyle(
+                                    color: Color(0xFF757575),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    Text(
+                                      overviewData.cgpa.toStringAsFixed(2),
+                                      style: const TextStyle(
+                                        color: Color(0xFF2D3142),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE8F5E9),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.arrow_upward_rounded,
+                                            color: Color(0xFF2E7D32),
+                                            size: 10,
+                                          ),
+                                          const SizedBox(width: 1),
+                                          Text(
+                                            '${overviewData.cgpaTrend > 0 ? '' : ''}${overviewData.cgpaTrend.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              color: Color(0xFF2E7D32),
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // ── Slide 2: Total OD Days & OD Balance ──
+                    InkWell(
+                      onTap: () => widget.onNavigateToTab(4),
+                      child: Row(
+                        children: [
+                          // Metric 1: Total OD Days
+                          Expanded(
+                            flex: 5,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                                  ),
+                                  child: const Icon(
+                                    Icons.workspace_premium_rounded,
+                                    color: Color(0xFF2563EB),
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Text(
+                                            'Total OD Days',
+                                            style: TextStyle(
+                                              color: Color(0xFF757575),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 5,
+                                              vertical: 1.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFEFF6FF),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              overviewData.odStatus,
+                                              style: const TextStyle(
+                                                color: Color(0xFF2563EB),
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${overviewData.odDays} Days Granted',
+                                        style: const TextStyle(
+                                          color: Color(0xFF2D3142),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Divider
+                          Container(
+                            height: 40,
+                            width: 1,
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            color: Colors.black.withValues(alpha: 0.08),
+                          ),
+                          // Metric 2: Semester OD Record
+                          Expanded(
+                            flex: 4,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Text(
-                                  'Attendance',
+                                  'OD Balance',
                                   style: TextStyle(
                                     color: Color(0xFF757575),
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 1.5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F5E9),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    overviewData.attendanceStatus,
-                                    style: const TextStyle(
-                                      color: Color(0xFF2E7D32),
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    const Text(
+                                      '3 Days Left',
+                                      style: TextStyle(
+                                        color: Color(0xFF2D3142),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.3,
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: const Text(
+                                        'Sem 6',
+                                        style: TextStyle(
+                                          color: Color(0xFF475569),
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 3),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.arrow_upward_rounded,
-                                  color: Color(0xFF2E7D32),
-                                  size: 12,
-                                ),
-                                const SizedBox(width: 1),
-                                Text(
-                                  '${overviewData.attendanceTrend.toInt()}% this month',
-                                  style: const TextStyle(
-                                    color: Color(0xFF2E7D32),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    // Divider 1
-                    Container(
-                      height: 40,
-                      width: 1,
-                      margin: const EdgeInsets.symmetric(horizontal: 14),
-                      color: Colors.black.withValues(alpha: 0.08),
-                    ),
-                    // Metric 2: CGPA
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          overviewData.cgpaLabel,
-                          style: const TextStyle(
-                            color: Color(0xFF757575),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              overviewData.cgpa.toStringAsFixed(2),
-                              style: const TextStyle(
-                                color: Color(0xFF2D3142),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE8F5E9),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.arrow_upward_rounded,
-                                    color: Color(0xFF2E7D32),
-                                    size: 10,
-                                  ),
-                                  const SizedBox(width: 1),
-                                  Text(
-                                    '${overviewData.cgpaTrend > 0 ? '' : ''}${overviewData.cgpaTrend.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                      color: Color(0xFF2E7D32),
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    // Divider 2
-                    Container(
-                      height: 40,
-                      width: 1,
-                      margin: const EdgeInsets.symmetric(horizontal: 14),
-                      color: Colors.black.withValues(alpha: 0.08),
-                    ),
-                    // Metric 3: Total OD Days
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Total OD Days',
-                          style: TextStyle(
-                            color: Color(0xFF757575),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${overviewData.odDays} Days',
-                              style: const TextStyle(
-                                color: Color(0xFF2D3142),
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                overviewData.odStatus,
-                                style: const TextStyle(
-                                  color: Color(0xFF2563EB),
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
