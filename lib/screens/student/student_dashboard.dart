@@ -23,6 +23,7 @@ import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 
+
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
 
@@ -460,6 +461,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                         ),
                       ),
                       _buildAcademicOverviewCard(context),
+                      const SizedBox(height: 16),
+                      _buildProfileConnectionBanner(context),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -717,6 +720,156 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     );
   }
 
+  Widget _buildProfileConnectionBanner(BuildContext context) {
+    final overviewData = ref.watch(academicOverviewProvider);
+
+    final bool isLeetCodeConnected = overviewData.leetcodeUsername.trim().isNotEmpty;
+
+    // If both profiles are connected, don't show the prompt banner
+    if (isLeetCodeConnected) {
+      return const SizedBox.shrink();
+    }
+
+    final List<String> missingProfiles = [];
+    if (!isLeetCodeConnected) missingProfiles.add('LeetCode');
+
+    final String missingText = missingProfiles.join(' & ');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFFDBA74)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFEA580C).withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEA580C).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.notifications_active_rounded,
+              color: Color(0xFFEA580C),
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Action Required: Connect $missingText Profile',
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF9A3412),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEA580C),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'Pending Link',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Link your $missingText account to track daily problem solves, public repos, and display your verified developer rank to faculty.',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFFC2410C),
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const LeetCodeDetailScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.link_rounded, size: 14),
+                      label: Text('Connect $missingText Now'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEA580C),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.person_rounded, size: 14),
+                      label: const Text('Go to Student Profile'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF9A3412),
+                        side: const BorderSide(color: Color(0xFFFDBA74)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Academic Overview Card ───────────────
   Widget _buildAcademicOverviewCard(BuildContext context) {
     final overviewData = ref.watch(academicOverviewProvider);
 
@@ -773,9 +926,9 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Animated Slide Dots (● ○)
+                      // Animated Slide Dots (● ○ ○)
                       Row(
-                        children: List.generate(2, (index) {
+                        children: List.generate(3, (index) {
                           final isActive = index == _academicOverviewPageIndex;
                           return AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
@@ -834,12 +987,18 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
               const SizedBox(height: 12),
               // Slideable PageView Container
               SizedBox(
-                height: 56,
+                height: 62,
                 child: PageView(
                   onPageChanged: (index) {
-                    setCardState(() {
-                      _academicOverviewPageIndex = index;
-                    });
+                    if (_academicOverviewPageIndex != index) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setCardState(() {
+                            _academicOverviewPageIndex = index;
+                          });
+                        }
+                      });
+                    }
                   },
                   children: [
                     // ── Slide 1: Attendance & Current CGPA ──
@@ -1155,6 +1314,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                           fontSize: 8.5,
                                           fontWeight: FontWeight.w700,
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -1165,6 +1326,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                         ],
                       ),
                     ),
+
                   ],
                 ),
               ),
@@ -1172,6 +1334,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
           );
         },
       ),
+
     );
   }
 

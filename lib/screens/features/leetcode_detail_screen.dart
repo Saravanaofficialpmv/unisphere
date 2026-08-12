@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/services/leetcode_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
@@ -21,8 +20,8 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
   bool _isRefreshing = false;
   late TextEditingController _handleController;
   LeetCodeUserStats _fullStats = const LeetCodeUserStats(
-    username: 'tharani_dev',
-    totalSolved: 248,
+    username: 'saravanapmv',
+    totalSolved: 130,
     isFetched: true,
   );
 
@@ -60,6 +59,10 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
     }
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
+    } else if (Navigator.of(context, rootNavigator: true).canPop()) {
+      Navigator.of(context, rootNavigator: true).pop();
+    } else {
+      Navigator.pop(context);
     }
   }
 
@@ -89,7 +92,7 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
                 controller: _handleController,
                 decoration: InputDecoration(
                   labelText: 'LeetCode Username',
-                  hintText: 'e.g. tharani_dev',
+                  hintText: 'e.g. saravanapmv',
                   prefixIcon: const Icon(Icons.alternate_email_rounded, color: Color(0xFFEA580C)),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -150,11 +153,6 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
                   onBack: _handleBack,
                   margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
                   rightActions: [
-                    IconButton(
-                      icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
-                      tooltip: 'Update Handle',
-                      onPressed: _showUpdateHandleDialog,
-                    ),
                     IconButton(
                       icon: _isRefreshing
                           ? const SizedBox(

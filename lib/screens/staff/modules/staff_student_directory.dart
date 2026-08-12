@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/student_full_detail_modal.dart';
 
-class HodStudentManagement extends StatefulWidget {
-  const HodStudentManagement({super.key});
+class StaffStudentDirectory extends StatefulWidget {
+  const StaffStudentDirectory({super.key});
 
   @override
-  State<HodStudentManagement> createState() => _HodStudentManagementState();
+  State<StaffStudentDirectory> createState() => _StaffStudentDirectoryState();
 }
 
-class _HodStudentManagementState extends State<HodStudentManagement> {
+class _StaffStudentDirectoryState extends State<StaffStudentDirectory> {
   String _searchQuery = '';
   String _selectedYear = 'All';
   String _selectedSection = 'All';
-  String _selectedType = 'All';
 
   final List<Map<String, dynamic>> _studentList = [
     {
@@ -24,11 +23,28 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
       'section': 'CS-A',
       'cgpa': '9.12',
       'attendance': '96.5%',
-      'feeStatus': 'Paid',
       'advisor': 'Dr. S. Meenakshi',
       'gender': 'Male',
       'type': 'Day Scholar',
+      'email': 'aravind.s@unisphere.edu',
+      'phone': '+91 98765 43210',
       'photo': 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
+      'leetcodeUsername': 'saravanapmv',
+      'leetcodeSolved': 130,
+      'leetcodeEasy': 104,
+      'leetcodeMedium': 24,
+      'leetcodeHard': 2,
+      'leetcodeStreak': 12,
+      'githubUsername': 'saravanapmv',
+      'githubRepos': 18,
+      'githubCommits': 342,
+      'githubStars': 45,
+      'githubTopTech': ['Flutter/Dart', 'C++', 'Java', 'Python'],
+      'resumeFileName': 'Aravind_Swamy_Resume_2026.pdf',
+      'resumeUpdated': 'Updated 2 weeks ago',
+      'portfolioUrl': 'https://aravind-swamy.dev',
+      'linkedinUrl': 'https://linkedin.com/in/aravind-swamy',
+      'skills': ['Data Structures', 'Flutter App Dev', 'REST APIs', 'Firebase', 'Git'],
     },
     {
       'name': 'Priya Dharshini',
@@ -38,11 +54,28 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
       'section': 'CS-A',
       'cgpa': '8.85',
       'attendance': '92.0%',
-      'feeStatus': 'Paid',
       'advisor': 'Dr. S. Meenakshi',
       'gender': 'Female',
       'type': 'Hosteller',
+      'email': 'priya.d@unisphere.edu',
+      'phone': '+91 98765 43211',
       'photo': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      'leetcodeUsername': 'priya_dev',
+      'leetcodeSolved': 185,
+      'leetcodeEasy': 120,
+      'leetcodeMedium': 55,
+      'leetcodeHard': 10,
+      'leetcodeStreak': 24,
+      'githubUsername': 'priyadharshini',
+      'githubRepos': 24,
+      'githubCommits': 490,
+      'githubStars': 68,
+      'githubTopTech': ['Python', 'Machine Learning', 'React', 'C++'],
+      'resumeFileName': 'Priya_Dharshini_Resume_2026.pdf',
+      'resumeUpdated': 'Updated yesterday',
+      'portfolioUrl': 'https://priyadharshini.dev',
+      'linkedinUrl': 'https://linkedin.com/in/priya-dharshini',
+      'skills': ['Machine Learning', 'Python', 'React', 'Data Science', 'SQL'],
     },
     {
       'name': 'Karthik Raja',
@@ -52,11 +85,28 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
       'section': 'CS-B',
       'cgpa': '7.45',
       'attendance': '71.5%',
-      'feeStatus': 'Pending (₹15,000)',
       'advisor': 'Prof. Rajesh Kumar',
       'gender': 'Male',
       'type': 'Day Scholar',
+      'email': 'karthik.r@unisphere.edu',
+      'phone': '+91 98765 43212',
       'photo': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+      'leetcodeUsername': 'karthik_coder',
+      'leetcodeSolved': 74,
+      'leetcodeEasy': 60,
+      'leetcodeMedium': 14,
+      'leetcodeHard': 0,
+      'leetcodeStreak': 5,
+      'githubUsername': 'karthikraja',
+      'githubRepos': 8,
+      'githubCommits': 120,
+      'githubStars': 14,
+      'githubTopTech': ['Java', 'Spring Boot', 'SQL'],
+      'resumeFileName': 'Karthik_Raja_Resume.pdf',
+      'resumeUpdated': 'Updated 1 month ago',
+      'portfolioUrl': 'https://karthik.dev',
+      'linkedinUrl': 'https://linkedin.com/in/karthik-raja',
+      'skills': ['Java', 'OOP', 'Spring Boot', 'MySQL'],
     },
     {
       'name': 'Sneha Murali',
@@ -66,11 +116,28 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
       'section': 'CS-C',
       'cgpa': '9.50',
       'attendance': '98.0%',
-      'feeStatus': 'Paid',
       'advisor': 'Dr. Anita Roy',
       'gender': 'Female',
       'type': 'Hosteller',
+      'email': 'sneha.m@unisphere.edu',
+      'phone': '+91 98765 43213',
       'photo': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+      'leetcodeUsername': 'sneha_m',
+      'leetcodeSolved': 210,
+      'leetcodeEasy': 130,
+      'leetcodeMedium': 65,
+      'leetcodeHard': 15,
+      'leetcodeStreak': 40,
+      'githubUsername': 'snehamurali',
+      'githubRepos': 30,
+      'githubCommits': 620,
+      'githubStars': 95,
+      'githubTopTech': ['C++', 'Rust', 'Algorithms', 'TypeScript'],
+      'resumeFileName': 'Sneha_Murali_Resume_2026.pdf',
+      'resumeUpdated': 'Updated 3 days ago',
+      'portfolioUrl': 'https://snehamurali.dev',
+      'linkedinUrl': 'https://linkedin.com/in/sneha-murali',
+      'skills': ['Competitive Programming', 'C++', 'System Architecture', 'Rust'],
     },
   ];
 
@@ -78,11 +145,11 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
   Widget build(BuildContext context) {
     final filtered = _studentList.where((s) {
       final matchesSearch = s['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          s['regNo'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+          s['regNo'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          s['leetcodeUsername'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesYear = _selectedYear == 'All' || s['year'] == _selectedYear;
       final matchesSection = _selectedSection == 'All' || s['section'] == _selectedSection;
-      final matchesType = _selectedType == 'All' || s['type'] == _selectedType;
-      return matchesSearch && matchesYear && matchesSection && matchesType;
+      return matchesSearch && matchesYear && matchesSection;
     }).toList();
 
     return Scaffold(
@@ -93,21 +160,26 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'ACADEMIC ROSTER',
+              'FACULTY ACCESS PORTAL',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.2),
             ),
             const SizedBox(height: 4),
             const Text(
-              'Student Directory',
+              'Student Directory & Portfolios',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Access student LeetCode analytics, GitHub repositories, Resumes, CGPA & academic progress.',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 20),
             _buildSearchBar(),
             const SizedBox(height: 16),
             _buildFilters(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text(
-              'ENROLLED STUDENTS (${filtered.length})',
+              'STUDENTS FOUND (${filtered.length})',
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
             ),
             const SizedBox(height: 16),
@@ -136,7 +208,7 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
       child: TextField(
         onChanged: (val) => setState(() => _searchQuery = val),
         decoration: const InputDecoration(
-          hintText: 'Search by student name or register number...',
+          hintText: 'Search student name, reg no, or LeetCode handle...',
           prefixIcon: Icon(Icons.search_rounded, color: AppColors.primary),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -153,8 +225,6 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
           _buildFilterDropdown('Year', _selectedYear, ['All', '1st Year', '2nd Year', '3rd Year', '4th Year'], (v) => setState(() => _selectedYear = v!)),
           const SizedBox(width: 10),
           _buildFilterDropdown('Section', _selectedSection, ['All', 'CS-A', 'CS-B', 'CS-C'], (v) => setState(() => _selectedSection = v!)),
-          const SizedBox(width: 10),
-          _buildFilterDropdown('Type', _selectedType, ['All', 'Day Scholar', 'Hosteller'], (v) => setState(() => _selectedType = v!)),
         ],
       ),
     );
@@ -181,15 +251,16 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
   }
 
   Widget _buildStudentCard(BuildContext context, Map<String, dynamic> item) {
-    final double attVal = double.tryParse(item['attendance'].toString().replaceAll('%', '')) ?? 0.0;
-    final isLowAtt = attVal < 75.0;
+    final String leetcodeHandle = item['leetcodeUsername'] ?? 'saravanapmv';
+    final int solved = item['leetcodeSolved'] ?? 130;
+    final int streak = item['leetcodeStreak'] ?? 12;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 6))],
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 5))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,43 +275,51 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
                   children: [
                     Text(item['name'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                     const SizedBox(height: 2),
-                    Text('${item['regNo']} • ${item['section']}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    Text('${item['regNo']} • ${item['year']} (${item['section']})', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   ],
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isLowAtt ? AppColors.error.withValues(alpha: 0.12) : AppColors.success.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFFEDD5)),
                 ),
                 child: Text(
-                  item['attendance'],
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isLowAtt ? AppColors.error : AppColors.success),
+                  'LeetCode: $solved Solved',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 14),
+
+          // Portfolio Highlights Pills
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              _buildMiniStat('CGPA', item['cgpa'], AppColors.primary),
-              _buildMiniStat('Advisor', item['advisor'], AppColors.textPrimary),
-              _buildMiniStat('Fee Status', item['feeStatus'], item['feeStatus'] == 'Paid' ? AppColors.success : AppColors.warning),
+              _buildTagPill('@$leetcodeHandle', Icons.code_rounded, const Color(0xFFEA580C), const Color(0xFFFFF7ED)),
+              _buildTagPill('CGPA: ${item['cgpa']}', Icons.school_rounded, AppColors.primary, const Color(0xFFEFF6FF)),
+              _buildTagPill('${item['githubRepos']} Repos', Icons.integration_instructions_rounded, const Color(0xFF0F172A), const Color(0xFFF1F5F9)),
+              _buildTagPill('$streak Days Streak 🔥', Icons.local_fire_department_rounded, const Color(0xFFF59E0B), const Color(0xFFFFFBEB)),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+
+          // Primary View Button
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _showStudentProfileModal(context, item),
-              icon: const Icon(Icons.person_search_outlined, size: 18),
-              label: const Text('View Full Student Profile'),
-              style: OutlinedButton.styleFrom(
+            child: ElevatedButton.icon(
+              onPressed: () => showStudentFullDetailModal(context, item),
+              icon: const Icon(Icons.person_search_rounded, size: 18),
+              label: const Text('Access LeetCode, GitHub & Full Resume'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
@@ -249,18 +328,21 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
     );
   }
 
-  Widget _buildMiniStat(String label, String value, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-        const SizedBox(height: 2),
-        Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
-      ],
+  Widget _buildTagPill(String label, IconData icon, Color color, Color bgColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
     );
-  }
-
-  void _showStudentProfileModal(BuildContext context, Map<String, dynamic> item) {
-    showStudentFullDetailModal(context, item);
   }
 }

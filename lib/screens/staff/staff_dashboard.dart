@@ -5,6 +5,8 @@ import 'package:unisphere/widgets/common/notification_sheet.dart';
 
 import 'package:unisphere/screens/staff/modules/staff_assignment_creation.dart';
 import 'package:unisphere/screens/staff/modules/staff_submission_review.dart';
+import 'package:unisphere/screens/staff/modules/staff_student_directory.dart';
+
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {
@@ -23,6 +25,8 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
     SidebarItem(label: 'Give Assignment', icon: Icons.add_task_outlined),
     SidebarItem(label: 'Review Submissions', icon: Icons.checklist_outlined, badge: '12'),
+    SidebarItem(label: 'Student Directory & Portfolios', icon: Icons.people_alt_outlined),
+
     SidebarItem(label: 'Upload Marks', icon: Icons.upload_file_outlined),
     SidebarItem(label: 'Staff Profile', icon: Icons.person_outline),
     SidebarItem.divider('FACULTY TOOLS'),
@@ -34,6 +38,8 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     StaffHomeScreen(onNavigate: _handleNavigation),
     StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 2)),
     const StaffSubmissionReview(),
+    const StaffStudentDirectory(),
+
     const Center(child: Text('Institutional Marks Upload')),
     const Center(child: Text('Faculty Profile Details')),
     const Center(child: Text('Electronic Attendance Record')),
@@ -215,18 +221,20 @@ class StaffHomeScreen extends StatelessWidget {
         childAspectRatio: childAspectRatio,
         children: [
           _buildActionCard(
+            'Student Portfolios & Profiles',
+            'Access LeetCode, GitHub, Resumes, and CGPA of all students.',
+            Icons.people_alt_rounded,
+            const Color(0xFFEFF6FF),
+            const Color(0xFF2563EB),
+            onTap: () => onNavigate?.call(3),
+          ),
+          _buildActionCard(
             'Create Announcement',
             'Broadcast to all students or specific departments.',
             Icons.campaign_rounded,
             const Color(0xFFE0E7FF),
             const Color(0xFF4338CA),
-          ),
-          _buildActionCard(
-            'Assign Task',
-            'Delegating work to faculty members and staff.',
-            Icons.assignment_turned_in_rounded,
-            const Color(0xFFEEF2FF),
-            const Color(0xFF3730A3),
+            onTap: () => onNavigate?.call(1),
           ),
           _buildActionCard(
             'Upload Marks',
@@ -234,13 +242,15 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.upload_file_rounded,
             const Color(0xFFFEF3C7),
             const Color(0xFF92400E),
+            onTap: () => onNavigate?.call(4),
           ),
           _buildActionCard(
-            'View Reports',
-            'Analyze institution-wide performance data.',
-            Icons.bar_chart_rounded,
-            const Color(0xFFF3F4F6),
-            const Color(0xFF374151),
+            'Review Submissions',
+            'Evaluate student assignment files and publish grades.',
+            Icons.checklist_rounded,
+            const Color(0xFFECFDF5),
+            const Color(0xFF059669),
+            onTap: () => onNavigate?.call(2),
           ),
         ],
       );
@@ -252,21 +262,25 @@ class StaffHomeScreen extends StatelessWidget {
     String description,
     IconData icon,
     Color bgColor,
-    Color iconColor,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+    Color iconColor, {
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -304,8 +318,9 @@ class StaffHomeScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildRecentActionsHeader() {
     return Row(
