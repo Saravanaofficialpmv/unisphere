@@ -21,7 +21,7 @@ class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
   bool _isRefreshing = false;
   late TextEditingController _handleController;
   GitHubUserStats _fullStats = const GitHubUserStats(
-    username: 'saravanapmv',
+    username: 'Saravanaofficialpmv',
     isFetched: true,
   );
 
@@ -118,7 +118,7 @@ class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
                 controller: _handleController,
                 decoration: InputDecoration(
                   labelText: 'GitHub Username',
-                  hintText: 'e.g. saravanapmv',
+                  hintText: 'e.g. Saravanaofficialpmv',
                   prefixIcon: const Icon(Icons.alternate_email_rounded, color: Color(0xFF2563EB)),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

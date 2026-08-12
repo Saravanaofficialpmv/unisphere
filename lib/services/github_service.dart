@@ -76,7 +76,7 @@ class GitHubUserStats {
         language: 'Dart',
         stars: 24,
         forks: 8,
-        htmlUrl: 'https://github.com/saravanapmv/unisphere-mobile-app',
+        htmlUrl: 'https://github.com/Saravanaofficialpmv/unisphere-mobile-app',
         updatedAt: '2026-08-10',
       ),
       GitHubRepoItem(
@@ -85,7 +85,7 @@ class GitHubUserStats {
         language: 'C++',
         stars: 12,
         forks: 4,
-        htmlUrl: 'https://github.com/saravanapmv/leetcode-solutions-cpp',
+        htmlUrl: 'https://github.com/Saravanaofficialpmv/leetcode-solutions-cpp',
         updatedAt: '2026-08-08',
       ),
       GitHubRepoItem(
@@ -94,7 +94,7 @@ class GitHubUserStats {
         language: 'Python',
         stars: 9,
         forks: 2,
-        htmlUrl: 'https://github.com/saravanapmv/agentic-ai-workflow',
+        htmlUrl: 'https://github.com/Saravanaofficialpmv/agentic-ai-workflow',
         updatedAt: '2026-08-01',
       ),
     ],
@@ -110,7 +110,7 @@ class GitHubService {
   static Future<GitHubUserStats> fetchUserStats(String rawUsername) async {
     final username = rawUsername.trim().replaceAll('@', '');
     if (username.isEmpty) {
-      return _getFallbackStats('saravanapmv');
+      return _getFallbackStats('Saravanaofficialpmv');
     }
 
     try {
@@ -224,8 +224,8 @@ class GitHubService {
     final lastSyncedAt = 'Today at $formattedHour:$minute $period';
 
     return GitHubUserStats(
-      username: username.isEmpty ? 'saravanapmv' : username,
-      name: 'Saravana Kumar',
+      username: username.isEmpty ? 'Saravanaofficialpmv' : username,
+      name: 'saravana perumal',
       avatarUrl: 'https://github.com/$username.png',
       bio: 'Flutter Developer & AI Enthusiast • Building Smart Campus Systems @ UNISPHERE',
       publicRepos: 18,

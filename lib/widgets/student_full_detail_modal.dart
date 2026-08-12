@@ -73,8 +73,8 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
     final int leetcodeHard = s['leetcodeHard'] ?? 2;
     final int leetcodeStreak = s['leetcodeStreak'] ?? 12;
 
-    final String githubUsername = s['githubUsername'] ?? 'saravanapmv';
-    final int githubRepos = s['githubRepos'] ?? 18;
+    final String githubUsername = s['githubUsername'] ?? 'Saravanaofficialpmv';
+    final int githubRepos = s['githubRepos'] ?? 14;
     final int githubCommits = s['githubCommits'] ?? 342;
     final int githubStars = s['githubStars'] ?? 45;
     final List<String> techStack = List<String>.from(
