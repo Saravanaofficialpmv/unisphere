@@ -507,19 +507,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 }
               },
             ),
-            const SizedBox(height: 12),
-
-            // 5. Institutional SSO
-            _buildConnectedAccountCard(
-              platformName: 'Institutional Google SSO',
-              handle: 'saravana.cs22@unisphere.edu',
-              subtitle: 'Verified Campus Student Identity & Single Sign-On',
-              statusBadge: 'Active SSO 🛡️',
-              statusColor: const Color(0xFF7C3AED),
-              icon: Icons.verified_user_rounded,
-              onVisit: () {},
-              isStatic: true,
-            ),
             const SizedBox(height: 40),
           ],
         );
