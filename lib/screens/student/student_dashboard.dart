@@ -21,6 +21,7 @@ import 'package:unisphere/providers/notification_provider.dart';
 import 'package:unisphere/screens/features/exams_detail_screen.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -1010,9 +1011,15 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       ),
                     ),
 
-                    // ── Slide 2: Total OD Days & OD Balance ──
+                    // ── Slide 2: Total OD Days & LeetCode Solved ──
                     InkWell(
-                      onTap: () => widget.onNavigateToTab(4),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const LeetCodeDetailScreen(),
+                          ),
+                        );
+                      },
                       child: Row(
                         children: [
                           // Metric 1: Total OD Days
