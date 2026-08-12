@@ -3,6 +3,20 @@ import 'package:unisphere/services/leetcode_service.dart';
 import 'package:unisphere/services/github_service.dart';
 import 'package:unisphere/services/linkedin_service.dart';
 
+class CustomUserLink {
+  final String id;
+  final String title;
+  final String url;
+  final String category;
+
+  const CustomUserLink({
+    required this.id,
+    required this.title,
+    required this.url,
+    this.category = 'General',
+  });
+}
+
 /// Data model representing the student's academic overview metrics.
 class AcademicOverviewData {
   final double attendancePercentage;
@@ -23,6 +37,7 @@ class AcademicOverviewData {
   final String linkedinUrl;
   final String linkedinConnections;
   final String linkedinHeadline;
+  final List<CustomUserLink> customLinks;
 
   const AcademicOverviewData({
     required this.attendancePercentage,
@@ -43,6 +58,20 @@ class AcademicOverviewData {
     this.linkedinUrl = 'https://www.linkedin.com/in/saravana-selvaraju/',
     this.linkedinConnections = '500+',
     this.linkedinHeadline = 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
+    this.customLinks = const [
+      CustomUserLink(
+        id: 'cl_1',
+        title: 'Codeforces Handle',
+        url: 'https://codeforces.com/profile/saravanapmv',
+        category: 'Coding',
+      ),
+      CustomUserLink(
+        id: 'cl_2',
+        title: 'Kaggle AI Ranks',
+        url: 'https://kaggle.com/saravanaofficialpmv',
+        category: 'AI',
+      ),
+    ],
   });
 }
 
@@ -71,7 +100,6 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
             linkedinHeadline: 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
           ),
         ) {
-    // Automatically fetch student LeetCode, GitHub & LinkedIn stats on startup
     fetchLeetCodeStats(state.leetcodeUsername);
     fetchGitHubStats(state.githubUsername);
     fetchLinkedInStats(state.linkedinUrl);
@@ -99,6 +127,7 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       linkedinUrl: state.linkedinUrl,
       linkedinConnections: state.linkedinConnections,
       linkedinHeadline: state.linkedinHeadline,
+      customLinks: state.customLinks,
     );
   }
 
@@ -124,6 +153,7 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       linkedinUrl: state.linkedinUrl,
       linkedinConnections: state.linkedinConnections,
       linkedinHeadline: state.linkedinHeadline,
+      customLinks: state.customLinks,
     );
   }
 
@@ -149,6 +179,63 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       linkedinUrl: stats.profileUrl,
       linkedinConnections: stats.connectionsCount,
       linkedinHeadline: stats.headline,
+      customLinks: state.customLinks,
+    );
+  }
+
+  void addCustomLink({required String title, required String url, String category = 'General'}) {
+    final newLink = CustomUserLink(
+      id: 'cl_${DateTime.now().millisecondsSinceEpoch}',
+      title: title.trim(),
+      url: url.trim(),
+      category: category,
+    );
+    final updatedLinks = [...state.customLinks, newLink];
+    state = AcademicOverviewData(
+      attendancePercentage: state.attendancePercentage,
+      attendanceTrend: state.attendanceTrend,
+      attendanceStatus: state.attendanceStatus,
+      cgpa: state.cgpa,
+      cgpaTrend: state.cgpaTrend,
+      cgpaLabel: state.cgpaLabel,
+      odDays: state.odDays,
+      odStatus: state.odStatus,
+      leetcodeSolved: state.leetcodeSolved,
+      leetcodeStatus: state.leetcodeStatus,
+      leetcodeUsername: state.leetcodeUsername,
+      githubUsername: state.githubUsername,
+      githubRepos: state.githubRepos,
+      githubStars: state.githubStars,
+      githubCommits: state.githubCommits,
+      linkedinUrl: state.linkedinUrl,
+      linkedinConnections: state.linkedinConnections,
+      linkedinHeadline: state.linkedinHeadline,
+      customLinks: updatedLinks,
+    );
+  }
+
+  void removeCustomLink(String linkId) {
+    final updatedLinks = state.customLinks.where((l) => l.id != linkId).toList();
+    state = AcademicOverviewData(
+      attendancePercentage: state.attendancePercentage,
+      attendanceTrend: state.attendanceTrend,
+      attendanceStatus: state.attendanceStatus,
+      cgpa: state.cgpa,
+      cgpaTrend: state.cgpaTrend,
+      cgpaLabel: state.cgpaLabel,
+      odDays: state.odDays,
+      odStatus: state.odStatus,
+      leetcodeSolved: state.leetcodeSolved,
+      leetcodeStatus: state.leetcodeStatus,
+      leetcodeUsername: state.leetcodeUsername,
+      githubUsername: state.githubUsername,
+      githubRepos: state.githubRepos,
+      githubStars: state.githubStars,
+      githubCommits: state.githubCommits,
+      linkedinUrl: state.linkedinUrl,
+      linkedinConnections: state.linkedinConnections,
+      linkedinHeadline: state.linkedinHeadline,
+      customLinks: updatedLinks,
     );
   }
 
@@ -171,6 +258,7 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
     String? linkedinUrl,
     String? linkedinConnections,
     String? linkedinHeadline,
+    List<CustomUserLink>? customLinks,
   }) {
     state = AcademicOverviewData(
       attendancePercentage: attendancePercentage ?? state.attendancePercentage,
@@ -191,6 +279,7 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       linkedinUrl: linkedinUrl ?? state.linkedinUrl,
       linkedinConnections: linkedinConnections ?? state.linkedinConnections,
       linkedinHeadline: linkedinHeadline ?? state.linkedinHeadline,
+      customLinks: customLinks ?? state.customLinks,
     );
   }
 }

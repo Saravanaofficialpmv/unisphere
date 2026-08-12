@@ -4,8 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
-import 'package:unisphere/screens/features/github_detail_screen.dart';
-import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -251,7 +249,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                   subtitle: 'Official Professional Network Profile',
                   icon: Icons.work_rounded,
                   brandColor: const Color(0xFF0A66C2),
-                  showVisitOnly: true,
                   onOpenUrl: () async {
                     final uri = Uri.parse(overviewData.linkedinUrl);
                     if (await canLaunchUrl(uri)) {
@@ -267,11 +264,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                   subtitle: '${overviewData.githubRepos} Public Repos • ${overviewData.githubCommits} Commits',
                   icon: Icons.integration_instructions_rounded,
                   brandColor: const Color(0xFF0F172A),
-                  onOpenDashboard: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const GitHubDetailScreen()),
-                    );
-                  },
                   onOpenUrl: () async {
                     final uri = Uri.parse('https://github.com/${overviewData.githubUsername}');
                     if (await canLaunchUrl(uri)) {
@@ -287,11 +279,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                   subtitle: '${overviewData.leetcodeSolved} Problems Solved',
                   icon: Icons.code_rounded,
                   brandColor: const Color(0xFFEA580C),
-                  onOpenDashboard: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LeetCodeDetailScreen()),
-                    );
-                  },
                   onOpenUrl: () async {
                     final uri = Uri.parse('https://leetcode.com/u/${overviewData.leetcodeUsername}');
                     if (await canLaunchUrl(uri)) {
@@ -324,57 +311,57 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     required IconData icon,
     required Color brandColor,
     required VoidCallback onOpenUrl,
-    VoidCallback? onOpenDashboard,
-    bool showVisitOnly = false,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: brandColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: onOpenUrl,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
-            child: Icon(icon, color: brandColor, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                ),
-                Text(
-                  handle,
-                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: brandColor),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
-                ),
-              ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: brandColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: brandColor, size: 22),
             ),
-          ),
-          const SizedBox(width: 8),
-          if (showVisitOnly || onOpenDashboard == null)
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  ),
+                  Text(
+                    handle,
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: brandColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
             ElevatedButton.icon(
               onPressed: onOpenUrl,
               icon: const Icon(Icons.open_in_new_rounded, size: 13),
@@ -386,39 +373,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 elevation: 0,
               ),
-            )
-          else
-            Column(
-              children: [
-                ElevatedButton(
-                  onPressed: onOpenDashboard,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: brandColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    elevation: 0,
-                  ),
-                  child: const Text('Dashboard', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 4),
-                InkWell(
-                  onTap: onOpenUrl,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Open Link', style: TextStyle(fontSize: 10, color: brandColor, fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 2),
-                        Icon(Icons.open_in_new_rounded, size: 10, color: brandColor),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -492,7 +449,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
               statusBadge: 'Verified ✅',
               statusColor: const Color(0xFF0A66C2),
               icon: Icons.work_rounded,
-              showVisitOnly: true,
               onVisit: () async {
                 final uri = Uri.parse(overviewData.linkedinUrl);
                 if (await canLaunchUrl(uri)) {
@@ -510,11 +466,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
               statusBadge: 'Auto-Syncing ⚡',
               statusColor: const Color(0xFF059669),
               icon: Icons.integration_instructions_rounded,
-              onDashboard: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const GitHubDetailScreen()),
-                );
-              },
               onVisit: () async {
                 final uri = Uri.parse('https://github.com/${overviewData.githubUsername}');
                 if (await canLaunchUrl(uri)) {
@@ -532,11 +483,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
               statusBadge: 'Daily 12 AM ⏰',
               statusColor: const Color(0xFFEA580C),
               icon: Icons.code_rounded,
-              onDashboard: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const LeetCodeDetailScreen()),
-                );
-              },
               onVisit: () async {
                 final uri = Uri.parse('https://leetcode.com/u/${overviewData.leetcodeUsername}');
                 if (await canLaunchUrl(uri)) {
@@ -554,12 +500,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
               statusBadge: 'Live Site 🌐',
               statusColor: const Color(0xFF2563EB),
               icon: Icons.language_rounded,
-              onDashboard: () async {
-                final uri = Uri.parse('https://saroo.online');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
               onVisit: () async {
                 final uri = Uri.parse('https://saroo.online');
                 if (await canLaunchUrl(uri)) {
@@ -577,24 +517,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
               statusBadge: 'Active SSO 🛡️',
               statusColor: const Color(0xFF7C3AED),
               icon: Icons.verified_user_rounded,
-              onDashboard: () {},
               onVisit: () {},
               isStatic: true,
-            ),
-
-            const SizedBox(height: 20),
-
-            // Link New Platform Button
-            OutlinedButton.icon(
-              onPressed: () => _showAddPlatformModal(context),
-              icon: const Icon(Icons.add_link_rounded, size: 18),
-              label: const Text('Link Another Developer Platform (Codeforces / Kaggle / Devpost)', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold)),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary, width: 1.5),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
             ),
             const SizedBox(height: 40),
           ],
@@ -611,8 +535,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     required Color statusColor,
     required IconData icon,
     required VoidCallback onVisit,
-    VoidCallback? onDashboard,
-    bool showVisitOnly = false,
     bool isStatic = false,
   }) {
     return InkWell(
@@ -693,53 +615,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
             ),
             if (!isStatic) ...[
               const SizedBox(height: 12),
-              if (showVisitOnly || onDashboard == null)
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: onVisit,
-                    icon: const Icon(Icons.open_in_new_rounded, size: 15),
-                    label: const Text('Visit Profile', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: statusColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                    ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: onVisit,
+                  icon: const Icon(Icons.open_in_new_rounded, size: 15),
+                  label: const Text('Visit Profile', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: statusColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
                   ),
-                )
-              else
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: onDashboard,
-                        icon: const Icon(Icons.analytics_rounded, size: 14),
-                        label: const Text('Analytics Dashboard', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: statusColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: onVisit,
-                      icon: const Icon(Icons.open_in_new_rounded, size: 13),
-                      label: const Text('Visit Profile', style: TextStyle(fontSize: 11.5)),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF334155),
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                  ],
                 ),
+              ),
             ],
           ],
         ),
@@ -747,60 +637,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     );
   }
 
-  void _showAddPlatformModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.add_link_rounded, color: AppColors.primary, size: 24),
-                  const SizedBox(width: 10),
-                  const Text('Link Additional Platform', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close_rounded)),
-                ],
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Select a platform to link with your UNISPHERE student profile:',
-                style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const CircleAvatar(backgroundColor: Color(0xFFEFF6FF), child: Icon(Icons.code_rounded, color: Color(0xFF2563EB))),
-                title: const Text('Codeforces / HackerRank', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: const Text('Sync competitive programming rating and badges'),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codeforces / HackerRank link requested.')));
-                },
-              ),
-              ListTile(
-                leading: const CircleAvatar(backgroundColor: Color(0xFFECFDF5), child: Icon(Icons.data_exploration_rounded, color: Color(0xFF059669))),
-                title: const Text('Kaggle / Devpost', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: const Text('Showcase AI hackathons and ML competition ranks'),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kaggle / Devpost link requested.')));
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+
 
   // ================= TAB 3: ACADEMICS & PARENTS =================
   Widget _buildAcademicsAndParentsTab() {
