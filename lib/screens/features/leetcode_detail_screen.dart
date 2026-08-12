@@ -252,13 +252,15 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
                   children: [
                     Text(
                       '${_fullStats.todaysSolved} Problems Solved Today!',
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF9A3412)),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF9A3412)),
                     ),
-                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                       decoration: BoxDecoration(
@@ -272,7 +274,9 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
                 const SizedBox(height: 2),
                 Text(
                   'Last synced: ${_fullStats.lastSyncedAt} • Next sync: ${_fullStats.nextSyncAt}',
-                  style: const TextStyle(fontSize: 10.5, color: Color(0xFFC2410C), fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontSize: 10, color: Color(0xFFC2410C), fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -297,6 +301,7 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
       child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 48,
@@ -313,13 +318,17 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 4,
                       children: [
                         Text(
                           '@$username',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
@@ -331,21 +340,34 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    const Text('LeetCode Verified Student Profile', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    const Text(
+                      'LeetCode Verified Student Profile',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
-              ElevatedButton.icon(
-                onPressed: _showUpdateHandleDialog,
-                icon: const Icon(Icons.edit, size: 14),
-                label: const Text('Edit Handle', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF8FAFC),
-                  foregroundColor: const Color(0xFF475569),
-                  elevation: 0,
-                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: _showUpdateHandleDialog,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit, size: 13, color: Color(0xFF475569)),
+                      SizedBox(width: 4),
+                      Text('Edit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                    ],
+                  ),
                 ),
               ),
             ],
