@@ -21,13 +21,35 @@ class GitHubRepoItem {
   });
 
   factory GitHubRepoItem.fromJson(Map<String, dynamic> json) {
+    String desc = json['description']?.toString() ?? '';
+    if (desc.isEmpty) {
+      final nameLower = (json['name'] ?? '').toString().toLowerCase();
+      if (nameLower.contains('unisphere')) {
+        desc = 'Cross-platform Smart Campus ERP built with Flutter & Supabase.';
+      } else if (nameLower.contains('portfolio-v2')) {
+        desc = 'Modern Developer Portfolio v2 built with TypeScript & React.';
+      } else if (nameLower.contains('helpdesk')) {
+        desc = 'AI-powered Helpdesk Support & Ticket Management System.';
+      } else if (nameLower.contains('college')) {
+        desc = 'College Management & Academic Information Portal.';
+      } else if (nameLower.contains('crypto') || nameLower.contains('recommendation')) {
+        desc = 'Sentimental analysis & recommendation engine for Gold and Crypto assets.';
+      } else if (nameLower.contains('agency')) {
+        desc = 'Agency & Corporate landing web project.';
+      } else if (nameLower.contains('traffic')) {
+        desc = 'Smart Traffic Light Management & Control System.';
+      } else {
+        desc = 'Open source software repository by @Saravanaofficialpmv';
+      }
+    }
+
     return GitHubRepoItem(
       name: json['name'] ?? 'repository',
-      description: json['description'] ?? 'No description provided.',
+      description: desc,
       language: json['language'] ?? 'Dart',
       stars: json['stargazers_count'] ?? 0,
       forks: json['forks_count'] ?? 0,
-      htmlUrl: json['html_url'] ?? 'https://github.com',
+      htmlUrl: json['html_url'] ?? 'https://github.com/Saravanaofficialpmv',
       updatedAt: json['updated_at'] != null
           ? json['updated_at'].toString().split('T').first
           : 'Recently',
@@ -53,49 +75,68 @@ class GitHubUserStats {
 
   const GitHubUserStats({
     required this.username,
-    this.name = 'Saravana Kumar',
-    this.avatarUrl = '',
+    this.name = 'saravana perumal',
+    this.avatarUrl = 'https://avatars.githubusercontent.com/u/200975098?v=4',
     this.bio = 'Flutter Developer & AI Enthusiast • Building Smart Campus Systems @ UNISPHERE',
-    this.publicRepos = 18,
-    this.followers = 42,
-    this.following = 28,
-    this.starsEarned = 45,
-    this.commitsThisYear = 342,
-    this.topLanguages = const ['Dart', 'C++', 'Python', 'Java', 'TypeScript'],
+    this.publicRepos = 14,
+    this.followers = 2,
+    this.following = 1,
+    this.starsEarned = 0,
+    this.commitsThisYear = 124,
+    this.topLanguages = const ['HTML', 'TypeScript', 'Dart', 'JavaScript', 'Python', 'Java'],
     this.languageBreakdown = const {
-      'Dart': 45.0,
-      'C++': 25.0,
-      'Python': 15.0,
-      'Java': 10.0,
-      'TypeScript': 5.0,
+      'HTML': 33.3,
+      'TypeScript': 25.0,
+      'Dart': 16.7,
+      'JavaScript': 8.3,
+      'Python': 8.3,
+      'Java': 8.3,
     },
     this.featuredRepos = const [
       GitHubRepoItem(
-        name: 'unisphere-mobile-app',
-        description: 'Cross-platform Smart Campus ERP built with Flutter, Riverpod & Supabase.',
+        name: 'unisphere',
+        description: 'Cross-platform Smart Campus ERP built with Flutter & Supabase.',
         language: 'Dart',
-        stars: 24,
-        forks: 8,
-        htmlUrl: 'https://github.com/Saravanaofficialpmv/unisphere-mobile-app',
-        updatedAt: '2026-08-10',
+        stars: 0,
+        forks: 0,
+        htmlUrl: 'https://github.com/Saravanaofficialpmv/unisphere',
+        updatedAt: '2026-08-12',
       ),
       GitHubRepoItem(
-        name: 'leetcode-solutions-cpp',
-        description: 'Clean C++ implementations of 130+ LeetCode DSA problem sets.',
-        language: 'C++',
-        stars: 12,
-        forks: 4,
-        htmlUrl: 'https://github.com/Saravanaofficialpmv/leetcode-solutions-cpp',
-        updatedAt: '2026-08-08',
+        name: 'personal-portfolio-v2',
+        description: 'Modern Developer Portfolio v2 built with TypeScript & React.',
+        language: 'TypeScript',
+        stars: 0,
+        forks: 0,
+        htmlUrl: 'https://github.com/Saravanaofficialpmv/personal-portfolio-v2',
+        updatedAt: '2026-08-09',
       ),
       GitHubRepoItem(
-        name: 'agentic-ai-workflow',
-        description: 'Automated agentic workflow scripts and prompt pipelines.',
+        name: 'agency-sitefile',
+        description: 'Agency & Corporate landing web project.',
+        language: 'HTML',
+        stars: 0,
+        forks: 0,
+        htmlUrl: 'https://github.com/Saravanaofficialpmv/agency-sitefile',
+        updatedAt: '2026-07-03',
+      ),
+      GitHubRepoItem(
+        name: 'ai-helpdesk',
+        description: 'AI-powered Helpdesk Support & Ticket Management System.',
+        language: 'TypeScript',
+        stars: 0,
+        forks: 0,
+        htmlUrl: 'https://github.com/Saravanaofficialpmv/ai-helpdesk',
+        updatedAt: '2026-06-09',
+      ),
+      GitHubRepoItem(
+        name: 'Sentimental-Recommendation-for-Gold-Crypto',
+        description: 'Sentimental analysis & recommendation engine for Gold and Crypto assets.',
         language: 'Python',
-        stars: 9,
-        forks: 2,
-        htmlUrl: 'https://github.com/Saravanaofficialpmv/agentic-ai-workflow',
-        updatedAt: '2026-08-01',
+        stars: 0,
+        forks: 0,
+        htmlUrl: 'https://github.com/Saravanaofficialpmv/Sentimental-Recommendation-for-Gold-Crypto',
+        updatedAt: '2026-03-12',
       ),
     ],
     this.lastSyncedAt = 'Today at 12:00 AM',
@@ -116,7 +157,9 @@ class GitHubService {
     try {
       // 1. Fetch User Profile
       final profileUri = Uri.parse('$_baseUrl/$username');
-      final profileResp = await http.get(profileUri).timeout(const Duration(seconds: 8));
+      final profileResp = await http.get(profileUri, headers: {
+        'User-Agent': 'UNISPHERE-App',
+      }).timeout(const Duration(seconds: 8));
 
       if (profileResp.statusCode != 200) {
         return _getFallbackStats(username);
@@ -125,8 +168,10 @@ class GitHubService {
       final profileJson = jsonDecode(profileResp.body) as Map<String, dynamic>;
 
       // 2. Fetch User Repositories
-      final reposUri = Uri.parse('$_baseUrl/$username/repos?sort=updated&per_page=15');
-      final reposResp = await http.get(reposUri).timeout(const Duration(seconds: 8));
+      final reposUri = Uri.parse('$_baseUrl/$username/repos?sort=updated&per_page=100');
+      final reposResp = await http.get(reposUri, headers: {
+        'User-Agent': 'UNISPHERE-App',
+      }).timeout(const Duration(seconds: 8));
 
       List<GitHubRepoItem> repoItems = [];
       int totalStars = 0;
@@ -140,13 +185,38 @@ class GitHubService {
             repoItems.add(repo);
 
             totalStars += repo.stars;
-            if (item['language'] != null) {
+            if (item['language'] != null && item['language'].toString().isNotEmpty) {
               final lang = item['language'].toString();
               langCounts[lang] = (langCounts[lang] ?? 0) + 1;
             }
           }
         }
       }
+
+      // 3. Fetch User Public Events (to count total commits)
+      int totalCommitsCount = 0;
+      try {
+        final eventsUri = Uri.parse('$_baseUrl/$username/events?per_page=100');
+        final eventsResp = await http.get(eventsUri, headers: {
+          'User-Agent': 'UNISPHERE-App',
+        }).timeout(const Duration(seconds: 5));
+
+        if (eventsResp.statusCode == 200) {
+          final eventsList = jsonDecode(eventsResp.body) as List;
+          for (var ev in eventsList) {
+            if (ev is Map<String, dynamic> && ev['type'] == 'PushEvent') {
+              final payload = ev['payload'];
+              if (payload != null && payload['size'] != null) {
+                totalCommitsCount += (payload['size'] as num).toInt();
+              } else if (payload != null && payload['commits'] is List) {
+                totalCommitsCount += (payload['commits'] as List).length;
+              } else {
+                totalCommitsCount += 1;
+              }
+            }
+          }
+        }
+      } catch (_) {}
 
       // Calculate Language Breakdown
       final int totalLangRepos = langCounts.values.fold(0, (sum, count) => sum + count);
@@ -164,13 +234,14 @@ class GitHubService {
           );
         }
       } else {
-        topLanguages = ['Dart', 'C++', 'Python', 'Java', 'TypeScript'];
+        topLanguages = ['HTML', 'TypeScript', 'Dart', 'JavaScript', 'Python', 'Java'];
         languageBreakdown = {
-          'Dart': 45.0,
-          'C++': 25.0,
-          'Python': 15.0,
-          'Java': 10.0,
-          'TypeScript': 5.0,
+          'HTML': 33.3,
+          'TypeScript': 25.0,
+          'Dart': 16.7,
+          'JavaScript': 8.3,
+          'Python': 8.3,
+          'Java': 8.3,
         };
       }
 
@@ -183,14 +254,17 @@ class GitHubService {
       final lastSyncedAt = 'Today at $formattedHour:$minute $period';
 
       final publicReposCount = profileJson['public_repos'] as int? ?? repoItems.length;
-      final followers = profileJson['followers'] as int? ?? 42;
-      final following = profileJson['following'] as int? ?? 28;
-      final bio = profileJson['bio'] as String? ?? 'Flutter Developer & Open Source Contributor';
-      final name = profileJson['name'] as String? ?? username;
-      final avatarUrl = profileJson['avatar_url'] as String? ?? '';
+      final followers = profileJson['followers'] as int? ?? 2;
+      final following = profileJson['following'] as int? ?? 1;
+      final rawBio = profileJson['bio'] as String?;
+      final bio = (rawBio != null && rawBio.isNotEmpty)
+          ? rawBio
+          : 'Flutter Developer & AI Enthusiast • Building Smart Campus Systems @ UNISPHERE';
+      final rawName = profileJson['name'] as String?;
+      final name = (rawName != null && rawName.isNotEmpty) ? rawName : 'saravana perumal';
+      final avatarUrl = profileJson['avatar_url'] as String? ?? 'https://avatars.githubusercontent.com/u/200975098?v=4';
 
-      // Estimate total commits based on repos or fallback
-      final int estimatedCommits = (publicReposCount * 19) + 40;
+      final finalCommitsCount = totalCommitsCount > 0 ? totalCommitsCount : 124;
 
       return GitHubUserStats(
         username: username,
@@ -200,12 +274,14 @@ class GitHubService {
         publicRepos: publicReposCount,
         followers: followers,
         following: following,
-        starsEarned: totalStars > 0 ? totalStars : (publicReposCount * 2 + 9),
-        commitsThisYear: estimatedCommits,
-        topLanguages: topLanguages.isNotEmpty ? topLanguages : ['Dart', 'C++', 'Python'],
+        starsEarned: totalStars,
+        commitsThisYear: finalCommitsCount,
+        topLanguages: topLanguages.isNotEmpty
+            ? topLanguages
+            : ['HTML', 'TypeScript', 'Dart', 'JavaScript', 'Python', 'Java'],
         languageBreakdown: languageBreakdown,
         featuredRepos: repoItems.isNotEmpty
-            ? repoItems.take(5).toList()
+            ? repoItems.take(6).toList()
             : _getFallbackStats(username).featuredRepos,
         lastSyncedAt: lastSyncedAt,
         isFetched: true,
@@ -226,48 +302,67 @@ class GitHubService {
     return GitHubUserStats(
       username: username.isEmpty ? 'Saravanaofficialpmv' : username,
       name: 'saravana perumal',
-      avatarUrl: 'https://github.com/$username.png',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/200975098?v=4',
       bio: 'Flutter Developer & AI Enthusiast • Building Smart Campus Systems @ UNISPHERE',
-      publicRepos: 18,
-      followers: 42,
-      following: 28,
-      starsEarned: 45,
-      commitsThisYear: 342,
-      topLanguages: const ['Dart', 'C++', 'Python', 'Java', 'TypeScript'],
+      publicRepos: 14,
+      followers: 2,
+      following: 1,
+      starsEarned: 0,
+      commitsThisYear: 124,
+      topLanguages: const ['HTML', 'TypeScript', 'Dart', 'JavaScript', 'Python', 'Java'],
       languageBreakdown: const {
-        'Dart': 45.0,
-        'C++': 25.0,
-        'Python': 15.0,
-        'Java': 10.0,
-        'TypeScript': 5.0,
+        'HTML': 33.3,
+        'TypeScript': 25.0,
+        'Dart': 16.7,
+        'JavaScript': 8.3,
+        'Python': 8.3,
+        'Java': 8.3,
       },
-      featuredRepos: [
+      featuredRepos: const [
         GitHubRepoItem(
-          name: 'unisphere-mobile-app',
-          description: 'Cross-platform Smart Campus ERP built with Flutter, Riverpod & Supabase.',
+          name: 'unisphere',
+          description: 'Cross-platform Smart Campus ERP built with Flutter & Supabase.',
           language: 'Dart',
-          stars: 24,
-          forks: 8,
-          htmlUrl: 'https://github.com/$username/unisphere-mobile-app',
-          updatedAt: '2026-08-10',
+          stars: 0,
+          forks: 0,
+          htmlUrl: 'https://github.com/Saravanaofficialpmv/unisphere',
+          updatedAt: '2026-08-12',
         ),
         GitHubRepoItem(
-          name: 'leetcode-solutions-cpp',
-          description: 'Clean C++ implementations of 130+ LeetCode DSA problem sets.',
-          language: 'C++',
-          stars: 12,
-          forks: 4,
-          htmlUrl: 'https://github.com/$username/leetcode-solutions-cpp',
-          updatedAt: '2026-08-08',
+          name: 'personal-portfolio-v2',
+          description: 'Modern Developer Portfolio v2 built with TypeScript & React.',
+          language: 'TypeScript',
+          stars: 0,
+          forks: 0,
+          htmlUrl: 'https://github.com/Saravanaofficialpmv/personal-portfolio-v2',
+          updatedAt: '2026-08-09',
         ),
         GitHubRepoItem(
-          name: 'agentic-ai-workflow',
-          description: 'Automated agentic workflow scripts and prompt pipelines.',
+          name: 'agency-sitefile',
+          description: 'Agency & Corporate landing web project.',
+          language: 'HTML',
+          stars: 0,
+          forks: 0,
+          htmlUrl: 'https://github.com/Saravanaofficialpmv/agency-sitefile',
+          updatedAt: '2026-07-03',
+        ),
+        GitHubRepoItem(
+          name: 'ai-helpdesk',
+          description: 'AI-powered Helpdesk Support & Ticket Management System.',
+          language: 'TypeScript',
+          stars: 0,
+          forks: 0,
+          htmlUrl: 'https://github.com/Saravanaofficialpmv/ai-helpdesk',
+          updatedAt: '2026-06-09',
+        ),
+        GitHubRepoItem(
+          name: 'Sentimental-Recommendation-for-Gold-Crypto',
+          description: 'Sentimental analysis & recommendation engine for Gold and Crypto assets.',
           language: 'Python',
-          stars: 9,
-          forks: 2,
-          htmlUrl: 'https://github.com/$username/agentic-ai-workflow',
-          updatedAt: '2026-08-01',
+          stars: 0,
+          forks: 0,
+          htmlUrl: 'https://github.com/Saravanaofficialpmv/Sentimental-Recommendation-for-Gold-Crypto',
+          updatedAt: '2026-03-12',
         ),
       ],
       lastSyncedAt: lastSyncedAt,
