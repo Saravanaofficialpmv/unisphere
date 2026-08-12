@@ -812,143 +812,52 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 340;
-                  return Row(
-                    children: [
-                      // Metric 1: Attendance
-                      Expanded(
-                        flex: 5,
-                        child: Row(
-                          children: [
-                            CircularPercentIndicator(
-                              radius: isNarrow ? 26.0 : 30.0,
-                              lineWidth: 5.5,
-                              percent:
-                                  (overviewData.attendancePercentage / 100.0)
-                                      .clamp(0.0, 1.0),
-                              center: Text(
-                                '${overviewData.attendancePercentage.toInt()}%',
-                                style: TextStyle(
-                                  color: const Color(0xFF2D3142),
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: isNarrow ? 11 : 13,
-                                ),
-                              ),
-                              progressColor: const Color(0xFF3F51B5),
-                              backgroundColor: const Color(
-                                0xFF3F51B5,
-                              ).withValues(alpha: 0.12),
-                              circularStrokeCap: CircularStrokeCap.round,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    // Metric 1: Attendance
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularPercentIndicator(
+                          radius: 28.0,
+                          lineWidth: 5.5,
+                          percent:
+                              (overviewData.attendancePercentage / 100.0)
+                                  .clamp(0.0, 1.0),
+                          center: Text(
+                            '${overviewData.attendancePercentage.toInt()}%',
+                            style: const TextStyle(
+                              color: Color(0xFF2D3142),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
                             ),
-                            SizedBox(width: isNarrow ? 8 : 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Text(
-                                        'Attendance',
-                                        style: TextStyle(
-                                          color: Color(0xFF757575),
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 5,
-                                          vertical: 1.5,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFE8F5E9),
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          overviewData.attendanceStatus,
-                                          style: const TextStyle(
-                                            color: Color(0xFF2E7D32),
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.arrow_upward_rounded,
-                                        color: Color(0xFF2E7D32),
-                                        size: 12,
-                                      ),
-                                      const SizedBox(width: 1),
-                                      Expanded(
-                                        child: Text(
-                                          '${overviewData.attendanceTrend.toInt()}% this month',
-                                          style: const TextStyle(
-                                            color: Color(0xFF2E7D32),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          ),
+                          progressColor: const Color(0xFF3F51B5),
+                          backgroundColor: const Color(
+                            0xFF3F51B5,
+                          ).withValues(alpha: 0.12),
+                          circularStrokeCap: CircularStrokeCap.round,
                         ),
-                      ),
-                      // Divider
-                      Container(
-                        height: 44,
-                        width: 1,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: isNarrow ? 6 : 10,
-                        ),
-                        color: Colors.black.withValues(alpha: 0.08),
-                      ),
-                      // Metric 2: CGPA
-                      Expanded(
-                        flex: 4,
-                        child: Column(
+                        const SizedBox(width: 8),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              overviewData.cgpaLabel,
-                              style: const TextStyle(
-                                color: Color(0xFF757575),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 6,
-                              runSpacing: 2,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  overviewData.cgpa.toStringAsFixed(2),
+                                const Text(
+                                  'Attendance',
                                   style: TextStyle(
-                                    color: const Color(0xFF2D3142),
-                                    fontSize: isNarrow ? 18 : 22,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
+                                    color: Color(0xFF757575),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
+                                const SizedBox(width: 4),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 5,
@@ -958,83 +867,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                     color: const Color(0xFFE8F5E9),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.arrow_upward_rounded,
-                                        color: Color(0xFF2E7D32),
-                                        size: 10,
-                                      ),
-                                      const SizedBox(width: 1),
-                                      Text(
-                                        '${overviewData.cgpaTrend > 0 ? '' : ''}${overviewData.cgpaTrend.toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          color: Color(0xFF2E7D32),
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Divider 2
-                      Container(
-                        height: 44,
-                        width: 1,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: isNarrow ? 6 : 10,
-                        ),
-                        color: Colors.black.withValues(alpha: 0.08),
-                      ),
-                      // Metric 3: Total OD Days
-                      Expanded(
-                        flex: 4,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              'Total OD Days',
-                              style: TextStyle(
-                                color: Color(0xFF757575),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 6,
-                              runSpacing: 2,
-                              children: [
-                                Text(
-                                  '${overviewData.odDays} Days',
-                                  style: TextStyle(
-                                    color: const Color(0xFF2D3142),
-                                    fontSize: isNarrow ? 16 : 19,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 1.5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEFF6FF),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
                                   child: Text(
-                                    overviewData.odStatus,
+                                    overviewData.attendanceStatus,
                                     style: const TextStyle(
-                                      color: Color(0xFF2563EB),
+                                      color: Color(0xFF2E7D32),
                                       fontSize: 9,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -1042,12 +878,155 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 3),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.arrow_upward_rounded,
+                                  color: Color(0xFF2E7D32),
+                                  size: 12,
+                                ),
+                                const SizedBox(width: 1),
+                                Text(
+                                  '${overviewData.attendanceTrend.toInt()}% this month',
+                                  style: const TextStyle(
+                                    color: Color(0xFF2E7D32),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                      ),
-                    ],
-                  );
-                },
+                      ],
+                    ),
+                    // Divider 1
+                    Container(
+                      height: 40,
+                      width: 1,
+                      margin: const EdgeInsets.symmetric(horizontal: 14),
+                      color: Colors.black.withValues(alpha: 0.08),
+                    ),
+                    // Metric 2: CGPA
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          overviewData.cgpaLabel,
+                          style: const TextStyle(
+                            color: Color(0xFF757575),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              overviewData.cgpa.toStringAsFixed(2),
+                              style: const TextStyle(
+                                color: Color(0xFF2D3142),
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.arrow_upward_rounded,
+                                    color: Color(0xFF2E7D32),
+                                    size: 10,
+                                  ),
+                                  const SizedBox(width: 1),
+                                  Text(
+                                    '${overviewData.cgpaTrend > 0 ? '' : ''}${overviewData.cgpaTrend.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      color: Color(0xFF2E7D32),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    // Divider 2
+                    Container(
+                      height: 40,
+                      width: 1,
+                      margin: const EdgeInsets.symmetric(horizontal: 14),
+                      color: Colors.black.withValues(alpha: 0.08),
+                    ),
+                    // Metric 3: Total OD Days
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Total OD Days',
+                          style: TextStyle(
+                            color: Color(0xFF757575),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${overviewData.odDays} Days',
+                              style: const TextStyle(
+                                color: Color(0xFF2D3142),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                overviewData.odStatus,
+                                style: const TextStyle(
+                                  color: Color(0xFF2563EB),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
