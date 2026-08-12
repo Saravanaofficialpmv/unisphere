@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
-import 'package:unisphere/screens/features/linkedin_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 
@@ -43,152 +42,153 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              expandedHeight: 280,
-              pinned: true,
-              backgroundColor: AppColors.primaryDark,
-              leading: widget.onBack != null
-                  ? IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                      onPressed: widget.onBack,
-                    )
-                  : null,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 26),
-                  tooltip: 'Digital ID Card',
-                  onPressed: () => _showDigitalIdModal(context),
-                ),
-                const SizedBox(width: 8),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primaryDark, AppColors.primary, Color(0xFF1E3A8A)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+      body: Column(
+        children: [
+          // Fixed Stable Profile Header (Does NOT move or collapse on scroll)
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primaryDark, AppColors.primary, Color(0xFF1E3A8A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
                       children: [
-                        const SizedBox(height: 10),
-                        Stack(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(3),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
-                              ),
-                              child: const CircleAvatar(
-                                radius: 42,
-                                backgroundColor: Colors.white24,
-                                child: Icon(Icons.person, size: 52, color: Colors.white),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 2,
-                              right: 2,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.green,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.check, size: 12, color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'Saravana Kumar',
-                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '7377221CS101 • B.E. Computer Science',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13, fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '3rd Year / Semester VI • Batch 2022–2026',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildHeaderBadge(Icons.circle, 'Active Student', Colors.greenAccent),
-                            const SizedBox(width: 8),
-                            InkWell(
-                              onTap: () => _showDigitalIdModal(context),
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.badge_outlined, size: 14, color: Colors.white),
-                                    SizedBox(width: 4),
-                                    Text('Digital ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                        if (widget.onBack != null)
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                            onPressed: widget.onBack,
+                          ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 24),
+                          tooltip: 'Digital ID Card',
+                          onPressed: () => _showDigitalIdModal(context),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(48),
-                child: Container(
-                  color: Colors.white,
-                  child: TabBar(
-                    controller: _tabController,
-                    isScrollable: true,
-                    labelColor: AppColors.primary,
-                    unselectedLabelColor: AppColors.textSecondary,
-                    indicatorColor: AppColors.primary,
-                    indicatorWeight: 3,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
-                    tabs: const [
-                      Tab(text: 'Personal & Contact', icon: Icon(Icons.person_outline, size: 18)),
-                      Tab(text: 'Connected Profiles', icon: Icon(Icons.link_rounded, size: 18)),
-                      Tab(text: 'Academics & Parents', icon: Icon(Icons.school_outlined, size: 18)),
-                      Tab(text: 'Document Vault', icon: Icon(Icons.folder_shared_outlined, size: 18)),
-                      Tab(text: 'Settings & Security', icon: Icon(Icons.settings_outlined, size: 18)),
+                  Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
+                        ),
+                        child: const CircleAvatar(
+                          radius: 36,
+                          backgroundColor: Colors.white24,
+                          child: Icon(Icons.person, size: 44, color: Colors.white),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 2,
+                        right: 2,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.check, size: 10, color: Colors.white),
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Saravana Kumar',
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '7377221CS101 • B.E. Computer Science',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12.5, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '3rd Year / Semester VI • Batch 2022–2026',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 11.5),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildHeaderBadge(Icons.circle, 'Active Student', Colors.greenAccent),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () => _showDigitalIdModal(context),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.badge_outlined, size: 13, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('Digital ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
               ),
             ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildPersonalAndContactTab(),
-            _buildConnectedProfilesTab(),
-            _buildAcademicsAndParentsTab(),
-            _buildDocumentVaultTab(),
-            _buildSettingsAndSecurityTab(),
-          ],
-        ),
+          ),
+
+          // Stable TabBar
+          Container(
+            color: Colors.white,
+            width: double.infinity,
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorColor: AppColors.primary,
+              indicatorWeight: 3,
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+              tabs: const [
+                Tab(text: 'Personal & Contact', icon: Icon(Icons.person_outline, size: 18)),
+                Tab(text: 'Connected Profiles', icon: Icon(Icons.link_rounded, size: 18)),
+                Tab(text: 'Academics & Parents', icon: Icon(Icons.school_outlined, size: 18)),
+                Tab(text: 'Document Vault', icon: Icon(Icons.folder_shared_outlined, size: 18)),
+                Tab(text: 'Settings & Security', icon: Icon(Icons.settings_outlined, size: 18)),
+              ],
+            ),
+          ),
+
+          // Tab Content View
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildPersonalAndContactTab(),
+                _buildConnectedProfilesTab(),
+                _buildAcademicsAndParentsTab(),
+                _buildDocumentVaultTab(),
+                _buildSettingsAndSecurityTab(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -251,10 +251,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                   subtitle: '${overviewData.linkedinConnections} Connections • Verified Profile',
                   icon: Icons.work_rounded,
                   brandColor: const Color(0xFF0A66C2),
-                  onOpenDashboard: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LinkedInDetailScreen()),
-                    );
+                  onOpenDashboard: () async {
+                    final uri = Uri.parse(overviewData.linkedinUrl);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    }
                   },
                   onOpenUrl: () async {
                     final uri = Uri.parse(overviewData.linkedinUrl);
@@ -481,10 +482,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
               statusBadge: 'Verified ✅',
               statusColor: const Color(0xFF0A66C2),
               icon: Icons.work_rounded,
-              onDashboard: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const LinkedInDetailScreen()),
-                );
+              onDashboard: () async {
+                final uri = Uri.parse(overviewData.linkedinUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
               },
               onVisit: () async {
                 final uri = Uri.parse(overviewData.linkedinUrl);
