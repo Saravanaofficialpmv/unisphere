@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
+
 
 class StudentAttendanceScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -540,61 +543,62 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> with 
     final filteredLogs = _historyFilter == 'All'
         ? _attendanceLogs
         : _attendanceLogs.where((l) => l['status'] == _historyFilter).toList();
-
-    final bool canPopRoute = ModalRoute.of(context)?.canPop ?? false;
-    return PopScope(
-      canPop: canPopRoute,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop || !mounted) return;
-        if (widget.onBack != null) {
-          widget.onBack!();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          shadowColor: Colors.black12,
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-            onPressed: () => _handleBack(context),
-          ),
-          title: const Text(
-            'Attendance Tracker & Log',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.note_add_outlined, color: Color(0xFF2563EB)),
-              tooltip: 'Apply Leave',
-              onPressed: _showLeaveApplicationModal,
-            ),
-          ],
-          bottom: TabBar(
-            controller: _tabController,
-            onTap: (index) {
-              setState(() {
-                _selectedTabIndex = index;
-              });
-            },
-            labelColor: const Color(0xFF2563EB),
-            unselectedLabelColor: const Color(0xFF64748B),
-            indicatorColor: const Color(0xFF2563EB),
-            indicatorWeight: 3,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            tabs: const [
-              Tab(text: 'Breakdown'),
-              Tab(text: 'History Log'),
-              Tab(text: 'Leave & OD'),
-            ],
-          ),
-        ),
-        body: Column(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
+        child: Column(
           children: [
-            // Executive Header Card with Royal Blue Gradient (Gradebook Palette Alignment)
+            UnisphereHeaderCard(
+              title: 'Attendance Tracker',
+              subtitle: 'Monitor your course attendance and records',
+              onBack: () => _handleBack(context),
+              rightActions: [
+                IconButton(
+                  icon: const Icon(Icons.note_add_outlined, color: Colors.white70),
+                  tooltip: 'Apply Leave',
+                  onPressed: _showLeaveApplicationModal,
+                ),
+              ],
+              bottomWidget: Container(
+                height: 44,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  onTap: (index) {
+                    setState(() {
+                      _selectedTabIndex = index;
+                    });
+                  },
+                  indicator: BoxDecoration(
+                    color: const Color(0xFF1E3A8A),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: const Color(0xFFBFDBFE),
+                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  tabs: const [
+                    Tab(text: 'Breakdown'),
+                    Tab(text: 'History Log'),
+                    Tab(text: 'Leave & OD'),
+                  ],
+                ),
+              ),
+            ),
+
             Container(
               margin: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               padding: const EdgeInsets.all(18),

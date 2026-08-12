@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/services/auth_service.dart';
+import 'package:unisphere/services/auth_service.dart';
 
 class MainSidebar extends ConsumerWidget {
   final int selectedIndex;

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
-import 'package:clg_application/widgets/common/notification_sheet.dart';
-import 'package:clg_application/widgets/common/main_sidebar.dart';
-import 'package:clg_application/screens/admin/admin_dashboard.dart';
-import 'package:clg_application/screens/admin/modules/user_management.dart';
-import 'package:clg_application/screens/admin/modules/announcement_management.dart';
-import 'package:clg_application/screens/admin/modules/department_management.dart';
-import 'package:clg_application/screens/admin/modules/attendance_management.dart';
-import 'package:clg_application/screens/admin/modules/report_management.dart';
-import 'package:clg_application/screens/admin/modules/role_management.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/widgets/common/notification_sheet.dart';
+import 'package:unisphere/widgets/common/main_sidebar.dart';
+import 'package:unisphere/screens/admin/admin_dashboard.dart';
+import 'package:unisphere/screens/admin/modules/user_management.dart';
+import 'package:unisphere/screens/admin/modules/announcement_management.dart';
+import 'package:unisphere/screens/admin/modules/department_management.dart';
+import 'package:unisphere/screens/admin/modules/attendance_management.dart';
+import 'package:unisphere/screens/admin/modules/report_management.dart';
+import 'package:unisphere/screens/admin/modules/role_management.dart';
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -20,6 +20,7 @@ class AdminShell extends StatefulWidget {
 class _AdminShellState extends State<AdminShell> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Dashboard', icon: Icons.grid_view_rounded),
@@ -52,12 +53,16 @@ class _AdminShellState extends State<AdminShell> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 1200;
+    final isDesktop = MediaQuery.of(context).size.width >= 800;
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+          _innerNavigatorKey.currentState?.pop();
+          return;
+        }
         if (_selectedIndex != 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
@@ -77,17 +82,26 @@ class _AdminShellState extends State<AdminShell> {
         children: [
           if (isDesktop) _buildSidebar(),
           Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: _screens[_selectedIndex < _screens.length ? _selectedIndex : 0],
+            child: ClipRect(
+              child: Navigator(
+                key: _innerNavigatorKey,
+                onGenerateRoute: (settings) {
+                  return MaterialPageRoute(
+                    builder: (_) => Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: _screens[_selectedIndex < _screens.length ? _selectedIndex : 0],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -145,6 +159,9 @@ class _AdminShellState extends State<AdminShell> {
   }
 
   void _handleNavigation(int index) {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
+    }
     setState(() => _selectedIndex = index);
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop(); 

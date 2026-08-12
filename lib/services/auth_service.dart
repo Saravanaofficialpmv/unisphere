@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/models/user_model.dart';
+import 'package:unisphere/models/user_model.dart';
 
 abstract class AuthService {
   Stream<UserModel?> get authStateChanges;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 
 class AnnouncementManagementModule extends ConsumerStatefulWidget {
   const AnnouncementManagementModule({super.key});

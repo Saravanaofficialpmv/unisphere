@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/models/hackathon_model.dart';
-import 'package:clg_application/services/hackathon_service.dart';
-import 'package:clg_application/repositories/hackathon_repository.dart';
-import 'package:clg_application/controllers/hackathon_state.dart';
+import 'package:unisphere/models/hackathon_model.dart';
+import 'package:unisphere/services/hackathon_service.dart';
+import 'package:unisphere/repositories/hackathon_repository.dart';
+import 'package:unisphere/controllers/hackathon_state.dart';
 
 final hackathonServiceProvider = Provider<HackathonService>((ref) {
   return ApiHackathonService();

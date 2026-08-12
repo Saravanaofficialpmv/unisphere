@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/services/hackathon_banner_service.dart';
-import 'package:clg_application/controllers/hackathon_banner_state.dart';
+import 'package:unisphere/services/hackathon_banner_service.dart';
+import 'package:unisphere/controllers/hackathon_banner_state.dart';
 
 final hackathonBannerServiceProvider = Provider<HackathonBannerService>((ref) {
   return ApiHackathonBannerService();

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clg_application/providers/gradebook_provider.dart';
-import 'package:clg_application/screens/student/cgpa_details_screen.dart';
+import 'package:unisphere/providers/gradebook_provider.dart';
+import 'package:unisphere/screens/student/cgpa_details_screen.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
 
 // ── VSBEC GRADE SERVICE & UTILS ─────────────────────────────────────────────
 
@@ -488,75 +490,21 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
   // ── HEADER & APP BAR ────────────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E40AF), Color(0xFF2563EB)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1D4ED8).withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildAppBar(context),
-          _buildSegmentedTabBar(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-            onPressed: () {
-              if (!mounted) return;
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              } else if (widget.onBack != null) {
-                widget.onBack!();
-              } else {
-                context.go('/student');
-              }
-            },
-          ),
-          const Column(
-            children: [
-              Text(
-                'VSBEC Gradebook & CGPA',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 0.2,
-                ),
-              ),
-              Text(
-                'VSB Engineering College Rules Applied',
-                style: TextStyle(fontSize: 10, color: Color(0xFFBFDBFE), fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline_rounded, color: Colors.white70, size: 22),
-            onPressed: _showVsbecInfoDialog,
-          ),
-        ],
-      ),
+    return UnisphereHeaderCard(
+      title: 'VSBEC Gradebook & CGPA',
+      subtitle: 'VSB Engineering College Rules Applied',
+      onBack: () {
+        if (widget.onBack != null) {
+          widget.onBack!();
+        } else if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          context.go('/student');
+        }
+      },
+      onInfoPressed: _showVsbecInfoDialog,
+      infoTooltip: 'VSBEC Grading Rules',
+      bottomWidget: _buildSegmentedTabBar(),
     );
   }
 
@@ -564,61 +512,65 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen>
 
   Widget _buildSegmentedTabBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Container(
-        height: 44,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+      height: 42,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+        onTap: (index) {
+          setState(() {
+            _selectedMainTabIndex = index;
+          });
+        },
+        indicator: BoxDecoration(
+          color: const Color(0xFF1E3A8A),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )
+          ],
         ),
-        child: TabBar(
-          controller: _tabController,
-          onTap: (index) {
-            setState(() {
-              _selectedMainTabIndex = index;
-            });
-          },
-          indicator: BoxDecoration(
-            color: const Color(0xFF1E3A8A),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              )
-            ],
-          ),
-          labelColor: Colors.white,
-          unselectedLabelColor: const Color(0xFFBFDBFE),
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-          indicatorSize: TabBarIndicatorSize.tab,
-          dividerColor: Colors.transparent,
-          tabs: const [
-            Tab(
+        labelColor: Colors.white,
+        unselectedLabelColor: const Color(0xFFBFDBFE),
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        tabs: const [
+          Tab(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.auto_graph_rounded, size: 16),
-                  SizedBox(width: 6),
+                  Icon(Icons.auto_graph_rounded, size: 15),
+                  SizedBox(width: 5),
                   Text('Gradebook'),
                 ],
               ),
             ),
-            Tab(
+          ),
+          Tab(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.calculate_rounded, size: 16),
-                  SizedBox(width: 6),
+                  Icon(Icons.calculate_rounded, size: 15),
+                  SizedBox(width: 5),
                   Text('CGPA Calculator'),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

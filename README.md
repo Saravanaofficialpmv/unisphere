@@ -1,4 +1,4 @@
-# clg_application
+# UniSphere
 
 A new Flutter project.
 

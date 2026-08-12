@@ -1,4 +1,4 @@
-package com.example.clg_application
+package com.example.unisphere
 
 import io.flutter.embedding.android.FlutterActivity
 

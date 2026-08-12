@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 
 class AdminSidebar extends StatelessWidget {
   final int selectedIndex;
@@ -50,7 +50,21 @@ class AdminSidebar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          Container(width: 32, height: 32, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.hub_rounded, color: Colors.white, size: 20)),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/app_logo.png',
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.hub_rounded, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
           const SizedBox(width: 12),
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/assignment_model.dart';
-import 'package:clg_application/services/task_service.dart';
+import 'package:unisphere/models/assignment_model.dart';
+import 'package:unisphere/services/task_service.dart';
 import 'package:intl/intl.dart';
 
 class TaskDetailScreen extends StatefulWidget {

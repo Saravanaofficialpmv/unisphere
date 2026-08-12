@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
 
 class StudentLibraryScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -111,37 +113,31 @@ class _StudentLibraryScreenState extends State<StudentLibraryScreen> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          shadowColor: Colors.black12,
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-            onPressed: () => _handleBack(context),
-          ),
-          title: const Text(
-            'Library Portal & Digital Resources',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-          ),
-        ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Stats Overview Row
-            Row(
-              children: [
-                _buildStatCard('Active Loans', '${_borrowedBooks.length}', Icons.menu_book_rounded, const Color(0xFF2563EB), const Color(0xFFEFF6FF)),
-                const SizedBox(width: 12),
-                _buildStatCard('Due Soon', '1', Icons.alarm_rounded, const Color(0xFFD97706), const Color(0xFFFEF3C7)),
-                const SizedBox(width: 12),
-                _buildStatCard('Overdue Fine', '₹0', Icons.payments_rounded, const Color(0xFF059669), const Color(0xFFECFDF5)),
-              ],
+            UnisphereHeaderCard(
+              title: 'Library Portal & Digital Resources',
+              subtitle: 'Borrowed Books, Dues & E-Journals',
+              onBack: () => _handleBack(context),
             ),
-            const SizedBox(height: 20),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Stats Overview Row
+                    Row(
+                      children: [
+                        _buildStatCard('Active Loans', '${_borrowedBooks.length}', Icons.menu_book_rounded, const Color(0xFF2563EB), const Color(0xFFEFF6FF)),
+                        const SizedBox(width: 12),
+                        _buildStatCard('Due Soon', '1', Icons.alarm_rounded, const Color(0xFFD97706), const Color(0xFFFEF3C7)),
+                        const SizedBox(width: 12),
+                        _buildStatCard('Overdue Fine', '₹0', Icons.payments_rounded, const Color(0xFF059669), const Color(0xFFECFDF5)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
 
             // Currently Borrowed Books Section
             const Text(
@@ -327,7 +323,11 @@ class _StudentLibraryScreenState extends State<StudentLibraryScreen> {
         ),
       ),
     ),
-  );
+  ],
+),
+),
+),
+);
 }
 
   Widget _buildStatCard(String label, String value, IconData icon, Color color, Color bg) {

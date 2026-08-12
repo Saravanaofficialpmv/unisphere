@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/exam_model.dart';
-import 'package:clg_application/widgets/exams/exam_requirements_card.dart';
-import 'package:clg_application/widgets/exams/hall_ticket_modal.dart';
+import 'package:unisphere/models/exam_model.dart';
+import 'package:unisphere/widgets/exams/exam_requirements_card.dart';
+import 'package:unisphere/widgets/exams/hall_ticket_modal.dart';
 import 'package:intl/intl.dart';
 
 class ExamDetailScreen extends StatelessWidget {

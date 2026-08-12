@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
 import 'package:intl/intl.dart';
 
 class FeeItem {
@@ -376,88 +378,66 @@ class _FeesScreenState extends State<FeesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black12,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else if (widget.onBack != null) {
-              widget.onBack!();
-            } else {
-              Navigator.maybePop(context);
-            }
-          },
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: Column(
           children: [
-            const Text(
-              'Fee Structure & Payments',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-              ),
+            UnisphereHeaderCard(
+              title: 'Fee Structure & Payments',
+              subtitle: 'Academic Year 2025 – 2026',
+              onBack: () {
+                if (widget.onBack != null) {
+                  widget.onBack!();
+                } else if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+              },
             ),
-            Text(
-              'Academic Year 2025 – 2026',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. TOP SUMMARY CARD
+                    _buildTopSummaryCard(),
+                    const SizedBox(height: 24),
+
+                    // 2. ITEMIZED FEE STRUCTURE BREAKDOWN
+                    const Text(
+                      'Itemized Fee Component Breakdown',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Detailed breakdown of all tuition, lab, exam, and infrastructure charges.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildItemizedFeeBreakdownCard(),
+                    const SizedBox(height: 24),
+
+                    // 3. SEMESTER INSTALLMENT SCHEDULE
+                    const Text(
+                      'Semester Installment Schedule',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSemesterInstallmentsCard(),
+                    const SizedBox(height: 24),
+
+                    // 4. PAYMENT HISTORY & RECEIPTS LOG
+                    const Text(
+                      'Payment History & Official Receipts',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildPaymentHistoryCard(),
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
             ),
           ],
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. TOP SUMMARY CARD
-              _buildTopSummaryCard(),
-              const SizedBox(height: 24),
-
-              // 2. ITEMIZED FEE STRUCTURE BREAKDOWN
-              const Text(
-                'Itemized Fee Component Breakdown',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Detailed breakdown of all tuition, lab, exam, and infrastructure charges.',
-                style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 12),
-              _buildItemizedFeeBreakdownCard(),
-              const SizedBox(height: 24),
-
-              // 3. SEMESTER INSTALLMENT SCHEDULE
-              const Text(
-                'Semester Installment Schedule',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-              ),
-              const SizedBox(height: 12),
-              _buildSemesterInstallmentsCard(),
-              const SizedBox(height: 24),
-
-              // 4. PAYMENT HISTORY & RECEIPTS LOG
-              const Text(
-                'Payment History & Official Receipts',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-              ),
-              const SizedBox(height: 12),
-              _buildPaymentHistoryCard(),
-              const SizedBox(height: 32),
-            ],
-          ),
         ),
       ),
     );

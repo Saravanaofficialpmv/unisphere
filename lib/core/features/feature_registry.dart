@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/features/feature_item.dart';
-import 'package:clg_application/screens/features/certifications_screen.dart';
-import 'package:clg_application/screens/features/hackathons_screen.dart';
-import 'package:clg_application/screens/features/achievements_screen.dart';
-import 'package:clg_application/screens/features/events_screen.dart';
-import 'package:clg_application/screens/student/gradebook_screen.dart';
+import 'package:unisphere/core/features/feature_item.dart';
+import 'package:unisphere/screens/features/certifications_screen.dart';
+import 'package:unisphere/screens/features/hackathons_screen.dart';
+import 'package:unisphere/screens/features/achievements_screen.dart';
+import 'package:unisphere/screens/features/events_screen.dart';
+
 
 class FeatureRegistry {
   static final List<FeatureItem> _registeredFeatures = [
@@ -32,18 +32,7 @@ class FeatureRegistry {
       badge: 'Verified',
       routeBuilder: (context) => const CertificationsScreen(),
     ),
-    FeatureItem(
-      id: 'gradebook',
-      title: 'Gradebook & CGPA',
-      subtitle: 'View semester grades, SGPA & CGPA analytics',
-      icon: Icons.auto_graph_rounded,
-      imageAsset: 'assets/gpa.png',
-      color: const Color(0xFF059669),
-      pastelBg: const Color(0xFFFCE7F3),
-      category: 'Academic',
-      badge: 'Interactive',
-      routeBuilder: (context) => const GradebookScreen(initialShowPlanner: false),
-    ),
+
     FeatureItem(
       id: 'achievements',
       title: 'Achievements',

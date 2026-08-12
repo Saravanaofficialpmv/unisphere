@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/exam_model.dart';
+import 'package:unisphere/models/exam_model.dart';
 import 'package:intl/intl.dart';
 
 class ExamCard extends StatelessWidget {

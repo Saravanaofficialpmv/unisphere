@@ -1,5 +1,5 @@
-import 'package:clg_application/models/hackathon_model.dart';
-import 'package:clg_application/services/hackathon_service.dart';
+import 'package:unisphere/models/hackathon_model.dart';
+import 'package:unisphere/services/hackathon_service.dart';
 
 class HackathonRepository {
   final HackathonService _service;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/announcement_model.dart';
-import 'package:clg_application/services/announcement_service.dart';
+import 'package:unisphere/models/announcement_model.dart';
+import 'package:unisphere/services/announcement_service.dart';
 import 'package:intl/intl.dart';
 
 class AnnouncementDetailScreen extends StatefulWidget {

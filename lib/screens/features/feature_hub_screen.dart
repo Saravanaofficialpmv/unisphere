@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clg_application/core/features/feature_registry.dart';
-import 'package:clg_application/core/features/feature_item.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
+import 'package:unisphere/core/features/feature_registry.dart';
+import 'package:unisphere/core/features/feature_item.dart';
 
 class FeatureHubScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -67,118 +69,105 @@ class _FeatureHubScreenState extends State<FeatureHubScreen> {
 
     final scaffold = Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: _handleBack,
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.grid_view_rounded, color: Color(0xFF818CF8), size: 22),
-            SizedBox(width: 8),
-            Text(
-              'Feature Hub',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Hub Header Banner
-            _buildHeroHeader(),
-            const SizedBox(height: 20),
-
-            // Search Bar
-            TextField(
-              controller: _searchController,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Search features, modules, tools...',
-                hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18),
-                        onPressed: () => setState(() => _searchController.clear()),
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 1.5),
-                ),
-              ),
+            UnisphereHeaderCard(
+              title: 'Feature Hub & Modules',
+              subtitle: 'All Campus Tools, Portals & Resources',
+              onBack: _handleBack,
             ),
-            const SizedBox(height: 14),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Hero Hub Header Banner
+                    _buildHeroHeader(),
+                    const SizedBox(height: 20),
 
-            // Category Choice Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: categories.map((cat) {
-                  final isSelected = _selectedCategory == cat;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: ChoiceChip(
-                      label: Text(cat),
-                      selected: isSelected,
-                      onSelected: (val) {
-                        if (val) setState(() => _selectedCategory = cat);
-                      },
-                      selectedColor: const Color(0xFF4F46E5),
-                      backgroundColor: Colors.white,
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : const Color(0xFF475569),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                    // Search Bar
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Search features, modules, tools...',
+                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, size: 18),
+                                onPressed: () => setState(() => _searchController.clear()),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFFE2E8F0)),
-                      ),
-                      showCheckmark: false,
                     ),
-                  );
-                }).toList(),
+                    const SizedBox(height: 16),
+
+                    // Category Filter Pills Row
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: categories.map((cat) {
+                          final isSelected = cat == _selectedCategory;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(cat),
+                              selected: isSelected,
+                              selectedColor: const Color(0xFF1E40AF),
+                              backgroundColor: Colors.white,
+                              labelStyle: TextStyle(
+                                color: isSelected ? Colors.white : const Color(0xFF64748B),
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                fontSize: 12,
+                              ),
+                              side: BorderSide(
+                                color: isSelected ? const Color(0xFF1E40AF) : const Color(0xFFE2E8F0),
+                              ),
+                              onSelected: (_) => setState(() => _selectedCategory = cat),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Grid of Features
+                    if (_filteredFeatures.isEmpty)
+                      _buildEmptyState()
+                    else
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 14,
+                          childAspectRatio: 0.72,
+                        ),
+                        itemCount: _filteredFeatures.length,
+                        itemBuilder: (context, index) {
+                          final feature = _filteredFeatures[index];
+                          return _buildFeatureCard(feature);
+                        },
+                      ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 20),
-
-            // Responsive Feature Grid
-            if (_filteredFeatures.isEmpty)
-              _buildEmptyState()
-            else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 0.72,
-                ),
-                itemCount: _filteredFeatures.length,
-                itemBuilder: (context, index) {
-                  final feature = _filteredFeatures[index];
-                  return _buildFeatureCard(feature);
-                },
-              ),
           ],
         ),
       ),

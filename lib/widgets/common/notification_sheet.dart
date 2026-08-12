@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
-import 'package:clg_application/core/features/feature_registry.dart';
-import 'package:clg_application/providers/notification_provider.dart';
-import 'package:clg_application/screens/features/feature_hub_screen.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/core/features/feature_registry.dart';
+import 'package:unisphere/providers/notification_provider.dart';
+import 'package:unisphere/screens/features/feature_hub_screen.dart';
 
 void showNotificationSheet(
   BuildContext context, {

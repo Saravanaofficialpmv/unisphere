@@ -1,4 +1,4 @@
-import 'package:clg_application/models/hackathon_banner_model.dart';
+import 'package:unisphere/models/hackathon_banner_model.dart';
 
 enum HackathonBannerStatus { initial, loading, success, empty, error }
 

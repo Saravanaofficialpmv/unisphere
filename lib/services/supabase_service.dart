@@ -1,10 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/models/announcement_model.dart';
-import 'package:clg_application/models/assignment_model.dart';
-import 'package:clg_application/models/mark_model.dart';
-import 'package:clg_application/models/attendance_model.dart';
-import 'package:clg_application/models/submission_model.dart';
+import 'package:unisphere/models/announcement_model.dart';
+import 'package:unisphere/models/assignment_model.dart';
+import 'package:unisphere/models/mark_model.dart';
+import 'package:unisphere/models/attendance_model.dart';
+import 'package:unisphere/models/submission_model.dart';
 import 'dart:async';
 
 bool get shouldUseMock => true; // Set to false to use real Supabase in production

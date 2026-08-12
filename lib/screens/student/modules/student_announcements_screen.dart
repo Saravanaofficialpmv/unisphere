@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/services/announcement_service.dart';
-import 'package:clg_application/widgets/announcements/announcement_card.dart';
-import 'package:clg_application/widgets/announcements/create_announcement_dialog.dart';
-import 'package:clg_application/screens/announcements/announcement_detail_screen.dart';
+import 'package:unisphere/services/announcement_service.dart';
+import 'package:unisphere/widgets/announcements/announcement_card.dart';
+import 'package:unisphere/widgets/announcements/create_announcement_dialog.dart';
+import 'package:unisphere/screens/announcements/announcement_detail_screen.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
 
 class StudentAnnouncementsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -464,238 +466,207 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
       },
       child: Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black12,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-          onPressed: () => _handleBack(context),
-        ),
-        title: AnimatedBuilder(
-          animation: annService,
-          builder: (context, _) {
-            final unread = annService.unreadCount;
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Flexible(
-                  child: Text(
-                    'Announcements',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            UnisphereHeaderCard(
+              title: 'Campus Announcements',
+              subtitle: 'Official Updates, Circulars & Notices',
+              onBack: () => _handleBack(context),
+              rightActions: [
+                IconButton(
+                  icon: const Icon(Icons.add_alert_rounded, color: Colors.white),
+                  tooltip: 'Publish Announcement',
+                  onPressed: () => CreateAnnouncementDialog.show(context),
                 ),
-                if (unread > 0) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$unread UNREAD',
-                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
               ],
-            );
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_alert_rounded, color: Color(0xFFF97316)),
-            tooltip: 'Publish Announcement (Admin/HOD)',
-            onPressed: () => CreateAnnouncementDialog.show(context),
-          ),
-        ],
-      ),
-      body: AnimatedBuilder(
-        animation: annService,
-        builder: (context, child) {
-          final announcements = annService.getFilteredAnnouncements(
-            category: _selectedCategory,
-            unreadOnly: _unreadOnly,
-            importantOnly: _importantOnly,
-            searchQuery: _searchController.text,
-          );
+            ),
+            Expanded(
+              child: AnimatedBuilder(
+                animation: annService,
+                builder: (context, child) {
+                  final announcements = annService.getFilteredAnnouncements(
+                    category: _selectedCategory,
+                    unreadOnly: _unreadOnly,
+                    importantOnly: _importantOnly,
+                    searchQuery: _searchController.text,
+                  );
 
-          return Column(
-            children: [
-              // Search & Filter Header Section
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              hintText: 'Search announcements, publishers...',
-                              hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-                              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        // Filter Modal Trigger Button
-                        Material(
-                          color: _activeFilterCount > 0 ? const Color(0xFFFFF7ED) : Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          child: InkWell(
-                            onTap: () => _showCategoryFilterModal(context),
-                            borderRadius: BorderRadius.circular(14),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: _activeFilterCount > 0 ? const Color(0xFFF97316) : const Color(0xFFE2E8F0),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.tune_rounded,
-                                    size: 20,
-                                    color: _activeFilterCount > 0 ? const Color(0xFFF97316) : const Color(0xFF64748B),
-                                  ),
-                                  if (_activeFilterCount > 0) ...[
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.all(5),
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFF97316),
-                                        shape: BoxShape.circle,
+                  return Column(
+                    children: [
+                      // Search & Filter Header Section
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _searchController,
+                                    onChanged: (_) => setState(() {}),
+                                    decoration: InputDecoration(
+                                      hintText: 'Search announcements, publishers...',
+                                      hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                                      prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                       ),
-                                      child: Text(
-                                        '$_activeFilterCount',
-                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                       ),
                                     ),
-                                  ],
-                                ],
-                              ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                // Filter Modal Trigger Button
+                                Material(
+                                  color: _activeFilterCount > 0 ? const Color(0xFFFFF7ED) : Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: InkWell(
+                                    onTap: () => _showCategoryFilterModal(context),
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: _activeFilterCount > 0 ? const Color(0xFFF97316) : const Color(0xFFE2E8F0),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.tune_rounded,
+                                            size: 20,
+                                            color: _activeFilterCount > 0 ? const Color(0xFFF97316) : const Color(0xFF64748B),
+                                          ),
+                                          if (_activeFilterCount > 0) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.all(5),
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFF97316),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Text(
+                                                '$_activeFilterCount',
+                                                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Active Filter Bar
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.campaign_rounded, size: 14, color: Color(0xFFF97316)),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Category: $_selectedCategory',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                        if (_activeFilterCount > 0)
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedCategory = 'All';
-                                _unreadOnly = false;
-                                _importantOnly = false;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFEE2E2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(Icons.close_rounded, size: 14, color: Color(0xFFDC2626)),
-                                  SizedBox(width: 2),
-                                  Text('Reset', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Announcement List
-              Expanded(
-                child: announcements.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.mark_email_read_rounded, size: 48, color: Color(0xFFCBD5E1)),
-                            const SizedBox(height: 12),
-                            const Text('No announcements found', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                            const SizedBox(height: 4),
-                            Text(
-                              _activeFilterCount > 0 ? 'Try clearing active filters.' : 'Check back later for new updates!',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            const SizedBox(height: 10),
+                            // Active Filter Bar
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.campaign_rounded, size: 14, color: Color(0xFFF97316)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Category: $_selectedCategory',
+                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Spacer(),
+                                if (_activeFilterCount > 0)
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCategory = 'All';
+                                        _unreadOnly = false;
+                                        _importantOnly = false;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFEE2E2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          Icon(Icons.close_rounded, size: 14, color: Color(0xFFDC2626)),
+                                          SizedBox(width: 2),
+                                          Text('Reset', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ],
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        itemCount: announcements.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final ann = announcements[index];
-                          return AnnouncementCard(
-                            announcement: ann,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => AnnouncementDetailScreen(announcement: ann)),
-                              );
-                            },
-                          );
-                        },
                       ),
+
+                      // Announcement List
+                      Expanded(
+                        child: announcements.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.mark_email_read_rounded, size: 48, color: Color(0xFFCBD5E1)),
+                                    const SizedBox(height: 12),
+                                    const Text('No announcements found', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _activeFilterCount > 0 ? 'Try clearing active filters.' : 'Check back later for new updates!',
+                                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                itemCount: announcements.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final ann = announcements[index];
+                                  return AnnouncementCard(
+                                    announcement: ann,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => AnnouncementDetailScreen(announcement: ann)),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  );
+                },
               ),
-            ],
-          );
-        },
+            ),
+          ],
+        ),
       ),
     ),
   );

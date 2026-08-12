@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 
 class HodAnnouncements extends StatefulWidget {
   const HodAnnouncements({super.key});

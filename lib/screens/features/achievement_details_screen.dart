@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/achievement_model.dart';
+import 'package:unisphere/models/achievement_model.dart';
 
 class AchievementDetailsScreen extends StatefulWidget {
   final int initialIndex;

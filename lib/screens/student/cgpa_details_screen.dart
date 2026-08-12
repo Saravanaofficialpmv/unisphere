@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/providers/gradebook_provider.dart';
-import 'package:clg_application/screens/student/semester_grade_details_screen.dart';
+import 'package:unisphere/providers/gradebook_provider.dart';
+import 'package:unisphere/screens/student/semester_grade_details_screen.dart';
 
 class CgpaDetailsScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;

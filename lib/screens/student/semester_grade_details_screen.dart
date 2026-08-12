@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/providers/gradebook_provider.dart';
+import 'package:unisphere/providers/gradebook_provider.dart';
 
 class SemesterGradeDetailsScreen extends ConsumerWidget {
   final int semesterIndex;

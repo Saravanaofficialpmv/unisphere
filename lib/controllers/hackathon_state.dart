@@ -1,4 +1,4 @@
-import 'package:clg_application/models/hackathon_model.dart';
+import 'package:unisphere/models/hackathon_model.dart';
 
 enum HackathonStatus { initial, loading, success, empty, error }
 

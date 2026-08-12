@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/models/hackathon_model.dart';
-import 'package:clg_application/controllers/hackathon_controller.dart';
-import 'package:clg_application/screens/features/hackathon_team_management_screen.dart';
+import 'package:unisphere/models/hackathon_model.dart';
+import 'package:unisphere/controllers/hackathon_controller.dart';
+import 'package:unisphere/screens/features/hackathon_team_management_screen.dart';
 
 class HackathonRegistrationScreen extends ConsumerStatefulWidget {
   final HackathonModel hackathon;

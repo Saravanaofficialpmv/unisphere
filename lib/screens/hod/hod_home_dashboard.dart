@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
-import 'package:clg_application/widgets/common/apple_glass_card.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/widgets/common/apple_glass_card.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class HodHomeDashboard extends StatelessWidget {

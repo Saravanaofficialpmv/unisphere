@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
-import 'package:clg_application/models/assignment_model.dart';
-import 'package:clg_application/services/assignment_service.dart';
-import 'package:clg_application/widgets/common/apple_glass_card.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/models/assignment_model.dart';
+import 'package:unisphere/services/assignment_service.dart';
+import 'package:unisphere/widgets/common/apple_glass_card.dart';
 
 class StaffAssignmentCreation extends StatefulWidget {
   final VoidCallback? onCreated;

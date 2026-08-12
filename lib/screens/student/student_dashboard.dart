@@ -1,24 +1,26 @@
-import 'dart:ui';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:clg_application/screens/student/modules/student_upcoming_tasks_screen.dart';
-import 'package:clg_application/widgets/common/main_sidebar.dart';
-import 'package:clg_application/screens/student/gradebook_screen.dart';
-import 'package:clg_application/screens/features/feature_hub_screen.dart';
-import 'package:clg_application/screens/features/fees_screen.dart';
-import 'package:clg_application/screens/features/hackathons_screen.dart';
-import 'package:clg_application/screens/features/certifications_screen.dart';
-import 'package:clg_application/screens/features/achievements_screen.dart';
-import 'package:clg_application/screens/features/events_screen.dart';
-import 'package:clg_application/screens/profile/profile_screen.dart';
-import 'package:clg_application/screens/student/modules/student_attendance_screen.dart';
-import 'package:clg_application/screens/student/modules/student_announcements_screen.dart';
-import 'package:clg_application/screens/student/modules/student_library_screen.dart';
-import 'package:clg_application/widgets/common/notification_sheet.dart';
-import 'package:clg_application/providers/notification_provider.dart';
-import 'package:clg_application/screens/features/exams_detail_screen.dart';
+import 'package:unisphere/screens/student/modules/student_upcoming_tasks_screen.dart';
+import 'package:unisphere/widgets/common/main_sidebar.dart';
+import 'package:unisphere/screens/student/gradebook_screen.dart';
+import 'package:unisphere/screens/features/feature_hub_screen.dart';
+import 'package:unisphere/screens/features/fees_screen.dart';
+import 'package:unisphere/screens/features/hackathons_screen.dart';
+import 'package:unisphere/screens/features/certifications_screen.dart';
+import 'package:unisphere/screens/features/achievements_screen.dart';
+import 'package:unisphere/screens/features/events_screen.dart';
+import 'package:unisphere/screens/profile/profile_screen.dart';
+import 'package:unisphere/screens/student/modules/student_attendance_screen.dart';
+import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
+import 'package:unisphere/screens/student/modules/student_library_screen.dart';
+import 'package:unisphere/widgets/common/notification_sheet.dart';
+import 'package:unisphere/providers/notification_provider.dart';
+import 'package:unisphere/screens/features/exams_detail_screen.dart';
+import 'package:unisphere/providers/academic_overview_provider.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -31,6 +33,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   int _currentIndex = 0;
   bool _openGpaPlannerInGradebook = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
@@ -40,8 +43,16 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem(label: 'Academic Marks', icon: Icons.bar_chart_outlined),
     SidebarItem(label: 'Fees & Payments', icon: Icons.payments_outlined),
     SidebarItem.divider('CAMPUS & CAREER'),
-    SidebarItem(label: 'Hackathons', icon: Icons.sports_score_outlined, badge: 'Live'),
-    SidebarItem(label: 'Certifications', icon: Icons.workspace_premium_outlined, badge: 'Verified'),
+    SidebarItem(
+      label: 'Hackathons',
+      icon: Icons.sports_score_outlined,
+      badge: 'Live',
+    ),
+    SidebarItem(
+      label: 'Certifications',
+      icon: Icons.workspace_premium_outlined,
+      badge: 'Verified',
+    ),
     SidebarItem(label: 'Achievements', icon: Icons.emoji_events_outlined),
     SidebarItem(label: 'Campus Events', icon: Icons.event_outlined),
     SidebarItem(label: 'Feature Hub', icon: Icons.grid_view_rounded),
@@ -54,34 +65,43 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 
   List<Widget> _getScreens() {
     return [
-      StudentHomeScreen(onNavigateToTab: _handleNavigation), // 0
+      StudentHomeScreen(
+        onNavigateToTab: _handleNavigation,
+        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+      ), // 0
       InteractiveTimetableScreen(onBack: () => _handleNavigation(0)), // 1
-      StudentUpcomingTasksScreen(onBack: () => _handleNavigation(0)),    // 2
+      StudentUpcomingTasksScreen(onBack: () => _handleNavigation(0)), // 2
       StudentAttendanceScreen(onBack: () => _handleNavigation(0)), // 3
-      GradebookScreen(                                       // 4
+      GradebookScreen(
+        // 4
         key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
         initialShowPlanner: _openGpaPlannerInGradebook,
         onBack: () => _handleNavigation(0),
       ),
-      FeesScreen(onBack: () => _handleNavigation(0)),        // 5
-      const SizedBox.shrink(),                               // 6: Divider
-      HackathonsScreen(onBack: () => _handleNavigation(0)),   // 7
+      FeesScreen(onBack: () => _handleNavigation(0)), // 5
+      const SizedBox.shrink(), // 6: Divider
+      HackathonsScreen(onBack: () => _handleNavigation(0)), // 7
       CertificationsScreen(onBack: () => _handleNavigation(0)), // 8
       AchievementsScreen(onBack: () => _handleNavigation(0)), // 9
-      EventsScreen(onBack: () => _handleNavigation(0)),       // 10
-      FeatureHubScreen(                                      // 11
+      EventsScreen(onBack: () => _handleNavigation(0)), // 10
+      FeatureHubScreen(
+        // 11
         onNavigateToTab: _handleNavigation,
         onBack: () => _handleNavigation(0),
       ),
-      const SizedBox.shrink(),                               // 12: Divider
+      const SizedBox.shrink(), // 12: Divider
       StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 13
-      StudentLibraryScreen(onBack: () => _handleNavigation(0)),       // 14
-      const SizedBox.shrink(),                               // 15: Divider
-      ProfileScreen(onBack: () => _handleNavigation(0)),     // 16
+      StudentLibraryScreen(onBack: () => _handleNavigation(0)), // 14
+      const SizedBox.shrink(), // 15: Divider
+      ProfileScreen(onBack: () => _handleNavigation(0)), // 16
     ];
   }
 
   void _handleNavigation(int index, {bool openCalculator = false}) {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
+    }
+    if (index == _currentIndex && !_openGpaPlannerInGradebook) return;
     setState(() {
       _currentIndex = index;
       _openGpaPlannerInGradebook = openCalculator;
@@ -93,134 +113,48 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 1200;
-    final notificationState = ref.watch(notificationProvider);
-    final unreadCount = notificationState.unreadCount;
-
-    final bool showTopAppBar = _currentIndex == 0;
+    final isDesktop = MediaQuery.of(context).size.width >= 800;
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+          _innerNavigatorKey.currentState?.pop();
+          return;
+        }
         if (_currentIndex != 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-          });
+          _handleNavigation(0);
         }
       },
       child: Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: Colors.white,
-      drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
-      appBar: showTopAppBar
-          ? AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              shadowColor: Colors.black12,
-              surfaceTintColor: Colors.transparent,
-              leading: Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu_rounded, color: Color(0xFF2D3142), size: 26),
-                  onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        key: _scaffoldKey,
+        backgroundColor: Colors.white,
+        drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
+        appBar: null,
+        body: Row(
+          children: [
+            if (isDesktop) _buildSidebar(),
+            Expanded(
+              child: ClipRect(
+                child: Navigator(
+                  key: _innerNavigatorKey,
+                  onGenerateRoute: (settings) {
+                    return MaterialPageRoute(
+                      builder: (_) => SmoothPageTransition(
+                        currentIndex: _currentIndex,
+                        children: _getScreens(),
+                      ),
+                    );
+                  },
                 ),
               ),
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.hub_rounded, color: Colors.white, size: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'UNISPHERE',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF2D3142),
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      Text(
-                        'SRM',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              centerTitle: true,
-              actions: [
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF2D3142), size: 26),
-                        onPressed: () {
-                          showNotificationSheet(
-                            context,
-                            onNavigateToTab: _handleNavigation,
-                          );
-                        },
-                      ),
-                      if (unreadCount > 0)
-                        Positioned(
-                          right: 10,
-                          top: 10,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            )
-          : null,
-      body: Row(
-        children: [
-          if (isDesktop) _buildSidebar(),
-          Expanded(
-            child: Builder(
-              builder: (context) {
-                final screens = _getScreens();
-                return screens[_currentIndex < screens.length ? _currentIndex : 0];
-              },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildSidebar() {
     return MainSidebar(
@@ -234,80 +168,363 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 }
 
 // ─────────────────────────────────────────
-//  Home Screen
+//  Ultra-Smooth Right-to-Left Slide Transition with Depth Parallax
 // ─────────────────────────────────────────
-class StudentHomeScreen extends StatefulWidget {
-  final Function(int index, {bool openCalculator}) onNavigateToTab;
-  const StudentHomeScreen({super.key, required this.onNavigateToTab});
+class SmoothPageTransition extends StatefulWidget {
+  final int currentIndex;
+  final List<Widget> children;
+
+  const SmoothPageTransition({
+    super.key,
+    required this.currentIndex,
+    required this.children,
+  });
 
   @override
-  State<StudentHomeScreen> createState() => _StudentHomeScreenState();
+  State<SmoothPageTransition> createState() => _SmoothPageTransitionState();
 }
 
-class _StudentHomeScreenState extends State<StudentHomeScreen> {
+class _SmoothPageTransitionState extends State<SmoothPageTransition>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  int _oldIndex = 0;
+  int _newIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _oldIndex = widget.currentIndex;
+    _newIndex = widget.currentIndex;
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 480),
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: const Cubic(0.16, 1.0, 0.3, 1.0),
+    );
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (mounted) {
+          setState(() {
+            _oldIndex = _newIndex;
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(SmoothPageTransition oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentIndex != widget.currentIndex) {
+      setState(() {
+        _oldIndex = oldWidget.currentIndex;
+        _newIndex = widget.currentIndex;
+      });
+      _controller.forward(from: 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildWelcomeSection(),
-          const SizedBox(height: 20),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned(
-                      top: -20,
-                      left: 20,
-                      child: Container(
-                        width: 160,
-                        height: 160,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              const Color(0xFF3F51B5).withValues(alpha: 0.45),
-                              const Color(0xFF3F51B5).withValues(alpha: 0.0),
-                            ],
-                          ),
-                        ),
-                      ),
+    if (_oldIndex == _newIndex) {
+      return widget.children[_newIndex < widget.children.length
+          ? _newIndex
+          : 0];
+    }
+
+    final bool isForward = _newIndex > _oldIndex;
+
+    final Widget underneathScreen = isForward
+        ? widget.children[_oldIndex < widget.children.length ? _oldIndex : 0]
+        : widget.children[_newIndex < widget.children.length ? _newIndex : 0];
+
+    final Widget topScreen = isForward
+        ? widget.children[_newIndex < widget.children.length ? _newIndex : 0]
+        : widget.children[_oldIndex < widget.children.length ? _oldIndex : 0];
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final progress = _animation.value;
+
+        final underneathDx = isForward
+            ? -0.25 * progress
+            : -0.25 * (1.0 - progress);
+
+        final underneathOpacity = isForward
+            ? (1.0 - progress * 0.35)
+            : (0.65 + progress * 0.35);
+
+        final topDx = isForward ? (1.0 - progress) : progress;
+
+        final shadowAlpha = isForward
+            ? (0.18 * progress)
+            : (0.18 * (1.0 - progress));
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = constraints.maxWidth;
+
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                // 1. Underneath Screen (Home Dashboard with parallax & dim)
+                Transform.translate(
+                  offset: Offset(underneathDx * screenWidth, 0),
+                  child: ColoredBox(
+                    color: const Color(0xFFF8FAFC),
+                    child: Opacity(
+                      opacity: underneathOpacity.clamp(0.0, 1.0),
+                      child: underneathScreen,
                     ),
-                    Positioned(
-                      bottom: -20,
-                      right: 40,
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              const Color(0xFF69F0AE).withValues(alpha: 0.35),
-                              const Color(0xFF69F0AE).withValues(alpha: 0.0),
-                            ],
+                  ),
+                ),
+                // 2. Top Screen (Section Module sliding over Home with drop shadow)
+                Transform.translate(
+                  offset: Offset(topDx * screenWidth, 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: shadowAlpha.clamp(0.0, 1.0),
                           ),
+                          blurRadius: 24,
+                          offset: const Offset(-8, 0),
                         ),
+                      ],
+                    ),
+                    child: topScreen,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// ─────────────────────────────────────────
+//  Home Screen
+// ─────────────────────────────────────────
+class StudentHomeScreen extends ConsumerStatefulWidget {
+  final Function(int index, {bool openCalculator}) onNavigateToTab;
+  final VoidCallback? onOpenDrawer;
+
+  const StudentHomeScreen({
+    super.key,
+    required this.onNavigateToTab,
+    this.onOpenDrawer,
+  });
+
+  @override
+  ConsumerState<StudentHomeScreen> createState() => _StudentHomeScreenState();
+}
+
+class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final notificationState = ref.watch(notificationProvider);
+    final unreadCount = notificationState.unreadCount;
+
+    return SafeArea(
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              // Home Top Header Bar (Redesigned with Profile Greeting & Notification Bell)
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+                color: Colors.white,
+                child: Row(
+                  children: [
+                    // Profile Avatar + Greetings & Student Details
+                    Expanded(
+                      child: _buildWelcomeSection(),
+                    ),
+                    const SizedBox(width: 8),
+                    // Notification Bell Action Icon
+                    SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.notifications_none_rounded,
+                              color: Color(0xFF2D3142),
+                              size: 26,
+                            ),
+                            onPressed: () {
+                              showNotificationSheet(
+                                context,
+                                onNavigateToTab: widget.onNavigateToTab,
+                              );
+                            },
+                          ),
+                          if (unreadCount > 0)
+                            Positioned(
+                              right: 10,
+                              top: 10,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-              _buildAttendanceCard(context),
-            ],
+              Expanded(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 960),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Positioned(
+                              top: -20,
+                              left: 20,
+                              child: Container(
+                                width: 160,
+                                height: 160,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      const Color(
+                                        0xFF3F51B5,
+                                      ).withValues(alpha: 0.45),
+                                      const Color(
+                                        0xFF3F51B5,
+                                      ).withValues(alpha: 0.0),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: -20,
+                              right: 40,
+                              child: Container(
+                                width: 150,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      const Color(
+                                        0xFF69F0AE,
+                                      ).withValues(alpha: 0.35),
+                                      const Color(
+                                        0xFF69F0AE,
+                                      ).withValues(alpha: 0.0),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _buildAcademicOverviewCard(context),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildQuickActions(),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader(
+                    'Today\'s Classes',
+                    () => widget.onNavigateToTab(1),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTodaysClasses(),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 20),
-          _buildQuickActions(),
-          const SizedBox(height: 24),
-          _buildSectionHeader('Today\'s Classes', () => widget.onNavigateToTab(1)),
-          const SizedBox(height: 12),
-          _buildTodaysClasses(),
+        ),
+      ),
+    ],
+  ),
+  // Floating Detached Menubar Opener Handle (Left Edge - Mobile Only)
+          if (MediaQuery.of(context).size.width < 800)
+            Positioned(
+              left: 0,
+              bottom: 24,
+              child: GestureDetector(
+                onTap: () {
+                  if (widget.onOpenDrawer != null) {
+                    widget.onOpenDrawer!();
+                  }
+                },
+                child: Container(
+                  height: 38,
+                  padding: const EdgeInsets.fromLTRB(4, 0, 8, 0),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E40AF), Color(0xFF2563EB)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: const BorderRadius.horizontal(
+                      right: Radius.circular(19),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1E40AF).withValues(alpha: 0.38),
+                        blurRadius: 10,
+                        offset: const Offset(2, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      Icon(
+                        Icons.menu_rounded,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -384,7 +601,14 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
             ],
           ),
           const SizedBox(width: 12),
-          Container(width: 3, height: 44, decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(2))),
+          Container(
+            width: 3,
+            height: 44,
+            decoration: BoxDecoration(
+              color: accentColor,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -392,12 +616,19 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFF2D3142)),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: Color(0xFF2D3142),
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   '$timeRange • $room',
-                  style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 12),
+                  style: const TextStyle(
+                    color: Color(0xFF9E9E9E),
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -405,7 +636,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, color: accentColor, size: 22),
           ),
         ],
@@ -418,47 +652,60 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     return Row(
       children: [
         Container(
-          width: 58,
-          height: 58,
+          width: 50,
+          height: 50,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 2.5),
+            border: Border.all(color: AppColors.primary, width: 2.2),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: AppColors.primary.withValues(alpha: 0.18),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: ClipOval(
             child: Container(
               color: const Color(0xFFE8EAF6),
-              child: const Icon(Icons.person, color: AppColors.primary, size: 36),
+              child: const Icon(
+                Icons.person,
+                color: AppColors.primary,
+                size: 30,
+              ),
             ),
           ),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 12),
         const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Hello, Welcome Back! 👋',
-                style: TextStyle(fontSize: 14, color: Color(0xFF757575)),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              SizedBox(height: 2),
+              SizedBox(height: 1),
               Text(
                 'Alex Johnson',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF2D3142),
+                  color: Color(0xFF0F172A),
                 ),
               ),
               Text(
                 'Computer Science • 3rd Year',
-                style: TextStyle(fontSize: 13, color: Color(0xFF9E9E9E)),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF94A3B8),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -467,132 +714,356 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     );
   }
 
-  Widget _buildAttendanceCard(BuildContext context) {
-    return RepaintBoundary(
-      child: ClipRRect(
+  Widget _buildAcademicOverviewCard(BuildContext context) {
+    final overviewData = ref.watch(academicOverviewProvider);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withValues(alpha: 0.32),
-                Colors.white.withValues(alpha: 0.08),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.45),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-              ),
-              BoxShadow(
-                color: const Color(0xFF3F51B5).withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E40AF).withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          child: Row(
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CircularPercentIndicator(
-                radius: 42.0,
-                lineWidth: 7.0,
-                percent: 0.85,
-                center: const Text(
-                  '85%',
-                  style: TextStyle(
-                    color: Color(0xFF2D3142),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3F51B5).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.school_rounded,
+                      size: 16,
+                      color: Color(0xFF3F51B5),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Academic Overview',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF2D3142),
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => _showStudentIDCardModal(context),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3F51B5).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF3F51B5).withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Details',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF3F51B5),
+                        ),
+                      ),
+                      SizedBox(width: 2),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 14,
+                        color: Color(0xFF3F51B5),
+                      ),
+                    ],
                   ),
                 ),
-                progressColor: const Color(0xFF3F51B5),
-                backgroundColor: const Color(0xFF3F51B5).withValues(alpha: 0.1),
-                circularStrokeCap: CircularStrokeCap.round,
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Average Attendance',
-                      style: TextStyle(color: Color(0xFF757575), fontSize: 13, fontWeight: FontWeight.w500),
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Your presence\nis great! 🎉',
-                      style: TextStyle(
-                        color: Color(0xFF2D3142),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        height: 1.3,
-                      ),
-                    ),
-                    SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Icon(Icons.arrow_upward_rounded, color: Color(0xFF2E7D32), size: 14),
-                        SizedBox(width: 2),
-                        Text(
-                          '5% this month',
-                          style: TextStyle(color: Color(0xFF2E7D32), fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Image.asset(
-                'assets/calendar.png',
-                width: 60,
-                height: 60,
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: () => widget.onNavigateToTab(4),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 340;
+                  return Row(
+                    children: [
+                      // Metric 1: Attendance
+                      Expanded(
+                        flex: 5,
+                        child: Row(
+                          children: [
+                            CircularPercentIndicator(
+                              radius: isNarrow ? 26.0 : 30.0,
+                              lineWidth: 5.5,
+                              percent:
+                                  (overviewData.attendancePercentage / 100.0)
+                                      .clamp(0.0, 1.0),
+                              center: Text(
+                                '${overviewData.attendancePercentage.toInt()}%',
+                                style: TextStyle(
+                                  color: const Color(0xFF2D3142),
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: isNarrow ? 11 : 13,
+                                ),
+                              ),
+                              progressColor: const Color(0xFF3F51B5),
+                              backgroundColor: const Color(
+                                0xFF3F51B5,
+                              ).withValues(alpha: 0.12),
+                              circularStrokeCap: CircularStrokeCap.round,
+                            ),
+                            SizedBox(width: isNarrow ? 8 : 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        'Attendance',
+                                        style: TextStyle(
+                                          color: Color(0xFF757575),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE8F5E9),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          overviewData.attendanceStatus,
+                                          style: const TextStyle(
+                                            color: Color(0xFF2E7D32),
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.arrow_upward_rounded,
+                                        color: Color(0xFF2E7D32),
+                                        size: 12,
+                                      ),
+                                      const SizedBox(width: 1),
+                                      Expanded(
+                                        child: Text(
+                                          '${overviewData.attendanceTrend.toInt()}% this month',
+                                          style: const TextStyle(
+                                            color: Color(0xFF2E7D32),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Divider
+                      Container(
+                        height: 44,
+                        width: 1,
+                        margin: EdgeInsets.symmetric(
+                          horizontal: isNarrow ? 6 : 10,
+                        ),
+                        color: Colors.black.withValues(alpha: 0.08),
+                      ),
+                      // Metric 2: CGPA
+                      Expanded(
+                        flex: 4,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              overviewData.cgpaLabel,
+                              style: const TextStyle(
+                                color: Color(0xFF757575),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 6,
+                              runSpacing: 2,
+                              children: [
+                                Text(
+                                  overviewData.cgpa.toStringAsFixed(2),
+                                  style: TextStyle(
+                                    color: const Color(0xFF2D3142),
+                                    fontSize: isNarrow ? 18 : 22,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F5E9),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.arrow_upward_rounded,
+                                        color: Color(0xFF2E7D32),
+                                        size: 10,
+                                      ),
+                                      const SizedBox(width: 1),
+                                      Text(
+                                        '${overviewData.cgpaTrend > 0 ? '' : ''}${overviewData.cgpaTrend.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          color: Color(0xFF2E7D32),
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
-    ),
-  );
+    );
   }
 
   // ── Quick Actions ────────────────────────
   Widget _buildQuickActions() {
     final row1Actions = [
-      {'image': 'assets/timetable.png', 'label': 'Timetable', 'color': const Color(0xFF5C6BC0), 'type': 'timetable'},
-      {'image': 'assets/assignment.png', 'label': 'Assignments', 'color': const Color(0xFF26A69A), 'type': 'assignments'},
-      {'image': 'assets/student.png', 'label': 'Grades', 'color': const Color(0xFFEF5350), 'type': 'grades'},
-      {'image': 'assets/school.png', 'label': 'Fees', 'color': const Color(0xFFFFA726), 'type': 'fees'},
+      {
+        'image': 'assets/timetable.png',
+        'label': 'Timetable',
+        'color': const Color(0xFF5C6BC0),
+        'type': 'timetable',
+      },
+      {
+        'image': 'assets/assignment.png',
+        'label': 'Assignments',
+        'color': const Color(0xFF26A69A),
+        'type': 'assignments',
+      },
+      {
+        'image': 'assets/student.png',
+        'label': 'Grades',
+        'color': const Color(0xFFEF5350),
+        'type': 'grades',
+      },
+      {
+        'image': 'assets/school.png',
+        'label': 'Fees',
+        'color': const Color(0xFFFFA726),
+        'type': 'fees',
+      },
     ];
 
     final row2Actions = [
-      {'label': 'Tasks', 'iconBg': const Color(0xFFEEF2FF), 'iconColor': const Color(0xFF4F46E5), 'type': 'tasks'},
-      {'label': 'Announcement', 'iconBg': const Color(0xFFFEF3C7), 'iconColor': const Color(0xFFEA580C), 'type': 'announcement'},
-      {'label': 'Exams', 'iconBg': const Color(0xFFE0F2FE), 'iconColor': const Color(0xFF0284C7), 'type': 'exams'},
-      {'icon': Icons.grid_view_rounded, 'label': 'More', 'color': const Color(0xFFFF7043), 'type': 'more'},
+      {
+        'label': 'Tasks',
+        'iconBg': const Color(0xFFEEF2FF),
+        'iconColor': const Color(0xFF4F46E5),
+        'type': 'tasks',
+      },
+      {
+        'label': 'Announcement',
+        'iconBg': const Color(0xFFFEF3C7),
+        'iconColor': const Color(0xFFEA580C),
+        'type': 'announcement',
+      },
+      {
+        'label': 'Exams',
+        'iconBg': const Color(0xFFE0F2FE),
+        'iconColor': const Color(0xFF0284C7),
+        'type': 'exams',
+      },
+      {
+        'icon': Icons.grid_view_rounded,
+        'label': 'More',
+        'color': const Color(0xFFFF7043),
+        'type': 'more',
+      },
     ];
 
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: row1Actions.map((action) => Expanded(child: _buildQuickActionButton(action))).toList(),
+          children: row1Actions
+              .map((action) => Expanded(child: _buildQuickActionButton(action)))
+              .toList(),
         ),
         const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: row2Actions.map((action) => Expanded(child: _buildQuickActionButton(action))).toList(),
+          children: row2Actions
+              .map((action) => Expanded(child: _buildQuickActionButton(action)))
+              .toList(),
         ),
       ],
     );
@@ -615,25 +1086,15 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           } else if (type == 'fees') {
             widget.onNavigateToTab(5);
           } else if (type == 'tasks') {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const StudentUpcomingTasksScreen(),
-              ),
-            );
+            widget.onNavigateToTab(2);
           } else if (type == 'announcement') {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const StudentAnnouncementsScreen(),
-              ),
-            );
+            widget.onNavigateToTab(13);
           } else if (type == 'exams') {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const ExamsDetailScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const ExamsDetailScreen()),
             );
           } else if (type == 'more') {
-            _showMoreServicesBottomSheet(context);
+            widget.onNavigateToTab(11);
           }
         },
         borderRadius: BorderRadius.circular(16),
@@ -655,7 +1116,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       border: Border.all(
                         color: action.containsKey('color')
                             ? (action['color'] as Color).withValues(alpha: 0.2)
-                            : (action['iconColor'] as Color).withValues(alpha: 0.2),
+                            : (action['iconColor'] as Color).withValues(
+                                alpha: 0.2,
+                              ),
                       ),
                     ),
                     alignment: Alignment.center,
@@ -668,15 +1131,25 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                             ),
                           )
                         : action.containsKey('icon')
-                            ? Icon(action['icon'] as IconData, color: action['color'] as Color, size: 26)
-                            : _renderSuggestedIcon(type, action['iconColor'] as Color),
+                        ? Icon(
+                            action['icon'] as IconData,
+                            color: action['color'] as Color,
+                            size: 26,
+                          )
+                        : _renderSuggestedIcon(
+                            type,
+                            action['iconColor'] as Color,
+                          ),
                   ),
                   if (type == 'announcement')
                     Positioned(
                       top: -2,
                       right: -2,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFEF4444),
                           borderRadius: BorderRadius.circular(10),
@@ -699,7 +1172,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF616161), fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF616161),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -723,7 +1200,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.schedule_rounded, size: 13, color: Color(0xFFF59E0B)),
+              child: const Icon(
+                Icons.schedule_rounded,
+                size: 13,
+                color: Color(0xFFF59E0B),
+              ),
             ),
           ),
         ],
@@ -744,7 +1225,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.edit_rounded, size: 12, color: Color(0xFFF59E0B)),
+              child: const Icon(
+                Icons.edit_rounded,
+                size: 12,
+                color: Color(0xFFF59E0B),
+              ),
             ),
           ),
         ],
@@ -757,14 +1242,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         settings: const RouteSettings(name: '/feature_hub'),
-        builder: (context) => FeatureHubScreen(
-          onNavigateToTab: widget.onNavigateToTab,
-        ),
+        builder: (context) =>
+            FeatureHubScreen(onNavigateToTab: widget.onNavigateToTab),
       ),
     );
   }
-
-
 
   // ── Section Header ────────────────────────
   Widget _buildSectionHeader(String title, VoidCallback onSeeAll) {
@@ -788,14 +1270,990 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           ),
           child: const Text(
             'See All',
-            style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
           ),
         ),
       ],
     );
   }
 
+  // ── Digital Student ID Card (CR80 Flippable 3D Card Modal) ──
+  void _showStudentIDCardModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const StudentIDCardFlipModal(),
+    );
+  }
+}
 
+class StudentIDCardFlipModal extends StatefulWidget {
+  const StudentIDCardFlipModal({super.key});
+
+  @override
+  State<StudentIDCardFlipModal> createState() => _StudentIDCardFlipModalState();
+}
+
+class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool _isFront = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 550),
+    );
+    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+    );
+  }
+
+  void _toggleFlip() {
+    if (_controller.isAnimating) return;
+    if (_isFront) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+    setState(() {
+      _isFront = !_isFront;
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.92),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black38,
+            blurRadius: 25,
+            offset: Offset(0, -6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Top Drag Handle & Bar
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF0F3E8B,
+                            ).withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.badge_rounded,
+                            color: Color(0xFF0F3E8B),
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Official Student ID Card (CR80)',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            Text(
+                              _isFront
+                                  ? 'Front Side • Tap card or button to flip 🔄'
+                                  : 'Back Side • Tap card or button to flip 🔄',
+                              style: const TextStyle(
+                                fontSize: 10.5,
+                                color: Color(0xFF64748B),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Color(0xFF64748B),
+                        size: 20,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFFF1F5F9),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+
+          // 3D Flippable CR80 ID Card Display Area
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: _toggleFlip,
+                    child: AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, child) {
+                        final angle = _animation.value * math.pi;
+                        final isBack = angle >= (math.pi / 2);
+
+                        return Transform(
+                          transform: Matrix4.identity()
+                            ..setEntry(3, 2, 0.0015)
+                            ..rotateY(angle),
+                          alignment: Alignment.center,
+                          child: isBack
+                              ? Transform(
+                                  transform: Matrix4.identity()
+                                    ..rotateY(math.pi),
+                                  alignment: Alignment.center,
+                                  child: _buildBackCard(),
+                                )
+                              : _buildFrontCard(),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Bottom Controls
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _toggleFlip,
+                          icon: const Icon(
+                            Icons.flip_camera_android_rounded,
+                            size: 18,
+                          ),
+                          label: Text(
+                            _isFront
+                                ? 'Flip to Back Side 🔄'
+                                : 'Flip to Front Side 🔄',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF0F3E8B),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            side: const BorderSide(
+                              color: Color(0xFF0F3E8B),
+                              width: 1.5,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Digital Student ID downloaded successfully!',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: const Color(0xFF10B981),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                            Navigator.pop(context);
+                          },
+                          icon: const Icon(Icons.download_rounded, size: 18),
+                          label: const Text(
+                            'Download ID Card',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0F3E8B),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── FRONT SIDE CARD (CR80 Aspect Ratio 1:1.587) ──
+  Widget _buildFrontCard() {
+    return Container(
+      width: 310,
+      height: 492,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Stack(
+          children: [
+            // White Base Background
+            Positioned.fill(child: Container(color: Colors.white)),
+
+            // Card Layout
+            Column(
+              children: [
+                // Top Header Section: Lanyard Hole + VSB Header Logo Asset
+                Container(
+                  color: Colors.white,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      // Lanyard Slot Cutout
+                      Container(
+                        width: 44,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      // VSB College Header Logo
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Image.asset(
+                          'assets/vsb_header_logo.png',
+                          height: 40,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) =>
+                              _buildFallbackHeaderLogo(),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                  ),
+                ),
+
+                // Middle Blue Curved Wave Area with Student Photo & Core Details
+                Expanded(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Curved Blue Background Shape
+                      ClipPath(
+                        clipper: VsbFrontWaveClipper(),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Color(0xFF024CAA),
+                                Color(0xFF0952B9),
+                                Color(0xFF00388A),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Student Info
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 4),
+                          // Student Photo Avatar
+                          Container(
+                            width: 86,
+                            height: 86,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: Image.network(
+                                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: Colors.white,
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    size: 50,
+                                    color: Color(0xFF024CAA),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'SARAVANA PERUMAL S',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'B.TECH - AI&DS',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFE0F2FE),
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          const Text(
+                            'REG. NO: 922523243100',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Lower White Details Section
+                Container(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+                  color: Colors.white,
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left Attributes Grid
+                          Expanded(
+                            flex: 6,
+                            child: Column(
+                              children: [
+                                _buildFrontSpecRow(
+                                  Icons.calendar_today_rounded,
+                                  'DATE OF BIRTH',
+                                  '12.11.2005',
+                                ),
+                                const SizedBox(height: 6),
+                                _buildFrontSpecRow(
+                                  Icons.bloodtype_rounded,
+                                  'BLOOD GROUP',
+                                  'O+',
+                                ),
+                                const SizedBox(height: 6),
+                                _buildFrontSpecRow(
+                                  Icons.school_rounded,
+                                  'COURSE',
+                                  'B.Tech - AI&DS',
+                                ),
+                                const SizedBox(height: 6),
+                                _buildFrontSpecRow(
+                                  Icons.event_available_rounded,
+                                  'VALIDITY',
+                                  '2023 - 2027',
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Right QR Code
+                          Container(
+                            width: 82,
+                            height: 82,
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFF024CAA),
+                                width: 1.2,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black12, blurRadius: 4),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.qr_code_2_rounded,
+                                  size: 54,
+                                  color: Color(0xFF0F172A),
+                                ),
+                                SizedBox(height: 1),
+                                Text(
+                                  'VERIFIED',
+                                  style: TextStyle(
+                                    fontSize: 7,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF024CAA),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Signature Block
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: const [
+                          Column(
+                            children: [
+                              Text(
+                                'Saravana',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: 'cursive',
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF024CAA),
+                                ),
+                              ),
+                              Text(
+                                'PRINCIPAL',
+                                style: TextStyle(
+                                  fontSize: 7.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF475569),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Bottom Blue Footer Bar
+                Container(
+                  height: 12,
+                  width: double.infinity,
+                  color: const Color(0xFF024CAA),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackHeaderLogo() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Color(0xFFFEF08A),
+          ),
+          alignment: Alignment.center,
+          child: Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFDC2626),
+              border: Border.all(color: const Color(0xFFCA8A04), width: 1.5),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.school_rounded,
+              color: Colors.white,
+              size: 16,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'VSB ENGINEERING COLLEGE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF024CAA),
+                  letterSpacing: 0.2,
+                ),
+              ),
+              Text(
+                '(AN AUTONOMOUS INSTITUTION)',
+                style: TextStyle(
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0284C7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFrontSpecRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: const Color(0xFF024CAA).withValues(alpha: 0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 11, color: const Color(0xFF024CAA)),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── BACK SIDE CARD (CR80 Aspect Ratio 1:1.587) ──
+  Widget _buildBackCard() {
+    return Container(
+      width: 310,
+      height: 492,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Column(
+          children: [
+            // Top Blue Section (Wave Curved Bottom)
+            ClipPath(
+              clipper: VsbBackWaveClipper(),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 22),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF024CAA),
+                      Color(0xFF0952B9),
+                      Color(0xFF00388A),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    // Lanyard Slot Cutout
+                    Container(
+                      width: 44,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'VSB ENGINEERING COLLEGE',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const Text(
+                      '(AN AUTONOMOUS INSTITUTION)',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFBAE6FD),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    Container(width: 44, height: 1.5, color: Colors.white38),
+                    const SizedBox(height: 10),
+
+                    _buildBackBadgeRow(
+                      Icons.verified_user_rounded,
+                      'Approved by AICTE, New Delhi and Affiliated to Anna University, Chennai',
+                    ),
+                    const SizedBox(height: 6),
+                    _buildBackBadgeRow(
+                      Icons.verified_rounded,
+                      'NBA Accredited Courses',
+                    ),
+                    const SizedBox(height: 6),
+                    _buildBackBadgeRow(
+                      Icons.star_rounded,
+                      'NAAC Accredited & ISO Certified Institution',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Lower White Contact & Instructions Section
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
+                color: Colors.white,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBackContactRow(
+                      Icons.location_on_rounded,
+                      'KARUDAYAMPALAYAM PO,\nKARUR - 639 111',
+                    ),
+                    const SizedBox(height: 5),
+                    _buildBackContactRow(
+                      Icons.phone_rounded,
+                      'Phone: 99944 96212, 82200 80832,\n82705 96212',
+                    ),
+                    const SizedBox(height: 5),
+                    _buildBackContactRow(
+                      Icons.language_rounded,
+                      'www.vsbec.ac.in',
+                    ),
+                    const SizedBox(height: 5),
+                    _buildBackContactRow(
+                      Icons.email_rounded,
+                      'info@vsbec.ac.in',
+                    ),
+
+                    const SizedBox(height: 8),
+                    const Text(
+                      'INSTRUCTIONS',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF024CAA),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      '• This card is the property of VSB Engineering College.',
+                      style: TextStyle(
+                        fontSize: 7.5,
+                        color: Color(0xFF334155),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Text(
+                      '• This card is non-transferable.',
+                      style: TextStyle(
+                        fontSize: 7.5,
+                        color: Color(0xFF334155),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Text(
+                      '• Carry this card at all times within the campus.',
+                      style: TextStyle(
+                        fontSize: 7.5,
+                        color: Color(0xFF334155),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Text(
+                      '• Loss of this card must be reported immediately to the administration.',
+                      style: TextStyle(
+                        fontSize: 7.5,
+                        color: Color(0xFF334155),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    // Barcode & Reg No
+                    Center(
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              34,
+                              (i) => Container(
+                                width: (i % 4 == 0)
+                                    ? 2.5
+                                    : ((i % 2 == 0) ? 1.8 : 1.0),
+                                height: 26,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 1.0,
+                                ),
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          const Text(
+                            '922523243100',
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Bottom Blue Footer Bar
+            Container(
+              height: 12,
+              width: double.infinity,
+              color: const Color(0xFF024CAA),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackBadgeRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 12, color: Colors.white),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 8,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBackContactRow(IconData icon, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: const Color(0xFF024CAA).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(icon, size: 11, color: const Color(0xFF024CAA)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 8.5,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Custom Wave Clippers for VSB ID Card ──
+class VsbFrontWaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.moveTo(0, 14);
+    path.quadraticBezierTo(size.width * 0.5, -10, size.width, 14);
+    path.lineTo(size.width, size.height - 16);
+    path.quadraticBezierTo(
+      size.width * 0.5,
+      size.height + 14,
+      0,
+      size.height - 16,
+    );
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class VsbBackWaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.moveTo(0, 0);
+    path.lineTo(size.width, 0);
+    path.lineTo(size.width, size.height - 16);
+    path.quadraticBezierTo(
+      size.width * 0.5,
+      size.height + 14,
+      0,
+      size.height - 16,
+    );
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class InteractiveTimetable extends StatefulWidget {
@@ -806,8 +2264,10 @@ class InteractiveTimetable extends StatefulWidget {
 }
 
 class _InteractiveTimetableState extends State<InteractiveTimetable> {
-  int _selectedDayIndex = 0; // 0 = Mon, 1 = Tue, 2 = Wed, 3 = Thu, 4 = Fri, 5 = Sat
-  int? _selectedClassIndex = 1; // Default select 1 (e.g. Computer Science live class)
+  int _selectedDayIndex =
+      0; // 0 = Mon, 1 = Tue, 2 = Wed, 3 = Thu, 4 = Fri, 5 = Sat
+  int? _selectedClassIndex =
+      1; // Default select 1 (e.g. Computer Science live class)
   bool _simulateRealtimeUpdates = false;
 
   final List<String> _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1052,7 +2512,11 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
               children: [
                 const Text(
                   'Live Updates',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF757575)),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF757575),
+                  ),
                 ),
                 const SizedBox(width: 4),
                 Transform.scale(
@@ -1090,19 +2554,26 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
                 },
                 child: Container(
                   margin: const EdgeInsets.only(right: 8, bottom: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isSelected ? 0.15 : 0.03),
+                        color: Colors.black.withValues(
+                          alpha: isSelected ? 0.15 : 0.03,
+                        ),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
                     ],
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : const Color(0xFFEEEEEE),
+                      color: isSelected
+                          ? AppColors.primary
+                          : const Color(0xFFEEEEEE),
                     ),
                   ),
                   child: Text(
@@ -1110,7 +2581,9 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
-                      color: isSelected ? Colors.white : const Color(0xFF616161),
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF616161),
                     ),
                   ),
                 ),
@@ -1140,7 +2613,9 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
             String? status = c['status'] as String?;
             String? statusText = c['statusText'] as String?;
 
-            if (_simulateRealtimeUpdates && _selectedDayIndex == 0 && c['title'] == 'Advanced Mathematics') {
+            if (_simulateRealtimeUpdates &&
+                _selectedDayIndex == 0 &&
+                c['title'] == 'Advanced Mathematics') {
               // Simulate rescheduling Advanced Mathematics on Monday
               status = 'rescheduled';
               statusText = 'Rescheduled to 01:00 PM';
@@ -1151,7 +2626,9 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
             final isRescheduled = status == 'rescheduled';
             final isSelectedCard = _selectedClassIndex == classIndex;
 
-            final accentColor = isCancelled ? const Color(0xFFE53935) : (c['accentColor'] as Color);
+            final accentColor = isCancelled
+                ? const Color(0xFFE53935)
+                : (c['accentColor'] as Color);
 
             return GestureDetector(
               onTap: () {
@@ -1165,160 +2642,206 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
                 decoration: BoxDecoration(
                   color: isSelectedCard
                       ? Colors.white
-                      : (isLive ? Colors.white : Colors.white.withValues(alpha: 0.95)),
+                      : (isLive
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.95)),
                   borderRadius: BorderRadius.circular(16),
                   border: isSelectedCard
-                      ? Border.all(color: const Color(0xFF2563EB), width: 2.5) // Vibrant Blue outline on click!
+                      ? Border.all(
+                          color: const Color(0xFF2563EB),
+                          width: 2.5,
+                        ) // Vibrant Blue outline on click!
                       : (isLive
-                          ? Border.all(color: const Color(0xFF10B981), width: 1.5) // Emerald green border for Live class!
-                          : Border.all(color: const Color(0xFFEEEEEE), width: 1)),
+                            ? Border.all(
+                                color: const Color(0xFF10B981),
+                                width: 1.5,
+                              ) // Emerald green border for Live class!
+                            : Border.all(
+                                color: const Color(0xFFEEEEEE),
+                                width: 1,
+                              )),
                   boxShadow: [
                     BoxShadow(
                       color: isSelectedCard
-                          ? const Color(0xFF2563EB).withValues(alpha: 0.22) // Blue glow shadow on click!
+                          ? const Color(0xFF2563EB).withValues(
+                              alpha: 0.22,
+                            ) // Blue glow shadow on click!
                           : (isLive
-                              ? const Color(0xFF10B981).withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.03)),
+                                ? const Color(
+                                    0xFF10B981,
+                                  ).withValues(alpha: 0.08)
+                                : Colors.black.withValues(alpha: 0.03)),
                       blurRadius: isSelectedCard ? 12 : (isLive ? 12 : 8),
-                      offset: isSelectedCard ? const Offset(0, 4) : const Offset(0, 3),
+                      offset: isSelectedCard
+                          ? const Offset(0, 4)
+                          : const Offset(0, 3),
                     ),
                   ],
                 ),
                 child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    // Time column
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          isRescheduled ? '01:00' : (c['time'] as String),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                            color: isCancelled ? const Color(0xFFB71C1C) : const Color(0xFF2D3142),
-                            decoration: isCancelled ? TextDecoration.lineThrough : null,
-                          ),
-                        ),
-                        Text(
-                          c['period'] as String,
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 12),
-                    // Indicator
-                    Container(
-                      width: 3,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: accentColor,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Information
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      // Time column
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  c['title'] as String,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                    color: const Color(0xFF2D3142),
-                                    decoration: isCancelled ? TextDecoration.lineThrough : null,
-                                  ),
-                                ),
-                              ),
-                              if (isLive)
-                                Container(
-                                  margin: const EdgeInsets.only(left: 6),
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F5E9),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: const Color(0xFF81C784)),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.fiber_manual_record, color: Colors.green, size: 8),
-                                      SizedBox(width: 3),
-                                      Text(
-                                        'LIVE NOW',
-                                        style: TextStyle(
-                                          fontSize: 8,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
+                          Text(
+                            isRescheduled ? '01:00' : (c['time'] as String),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              color: isCancelled
+                                  ? const Color(0xFFB71C1C)
+                                  : const Color(0xFF2D3142),
+                              decoration: isCancelled
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Lecturer: ${c['lecturer']}',
-                                  style: const TextStyle(color: Color(0xFF757575), fontSize: 11, fontWeight: FontWeight.w500),
-                                ),
-                              ),
-                              if (isCancelled || isRescheduled) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: isCancelled ? const Color(0xFFFFEBEE) : const Color(0xFFFFF3E0),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    statusText!,
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      color: isCancelled ? const Color(0xFFD32F2F) : const Color(0xFFEF6C00),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
+                          Text(
+                            c['period'] as String,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF9E9E9E),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    // Icon
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: c['iconBg'] as Color,
-                        borderRadius: BorderRadius.circular(10),
+                      const SizedBox(width: 12),
+                      // Indicator
+                      Container(
+                        width: 3,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: accentColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                      child: Icon(c['icon'] as IconData, color: c['accentColor'] as Color, size: 20),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      // Information
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    c['title'] as String,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                      color: const Color(0xFF2D3142),
+                                      decoration: isCancelled
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                                if (isLive)
+                                  Container(
+                                    margin: const EdgeInsets.only(left: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE8F5E9),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: const Color(0xFF81C784),
+                                      ),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.fiber_manual_record,
+                                          color: Colors.green,
+                                          size: 8,
+                                        ),
+                                        SizedBox(width: 3),
+                                        Text(
+                                          'LIVE NOW',
+                                          style: TextStyle(
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Lecturer: ${c['lecturer']}',
+                                    style: const TextStyle(
+                                      color: Color(0xFF757575),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                if (isCancelled || isRescheduled) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isCancelled
+                                          ? const Color(0xFFFFEBEE)
+                                          : const Color(0xFFFFF3E0),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      statusText!,
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: isCancelled
+                                            ? const Color(0xFFD32F2F)
+                                            : const Color(0xFFEF6C00),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Icon
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: c['iconBg'] as Color,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          c['icon'] as IconData,
+                          color: c['accentColor'] as Color,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          }),
       ],
     );
   }
 }
-
-
-
-
 
 class InteractiveTimetableScreen extends StatelessWidget {
   final VoidCallback? onBack;
@@ -1342,25 +2865,23 @@ class InteractiveTimetableScreen extends StatelessWidget {
         _handleBack(context);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F6FA),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          shadowColor: Colors.black12,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-            tooltip: 'Back to Home',
-            onPressed: () => _handleBack(context),
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Column(
+            children: [
+              UnisphereHeaderCard(
+                title: 'Interactive Timetable & Schedule',
+                subtitle: 'Real-Time Class Schedule & Lecture Rooms',
+                onBack: () => _handleBack(context),
+              ),
+              const Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(16.0),
+                  child: InteractiveTimetable(),
+                ),
+              ),
+            ],
           ),
-          title: const Text(
-            'Interactive Timetable & Schedule',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-          ),
-        ),
-        body: const SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
-          child: InteractiveTimetable(),
         ),
       ),
     );
@@ -1369,7 +2890,10 @@ class InteractiveTimetableScreen extends StatelessWidget {
 
 // ── Modals ───────────────────────────────────────────────────
 
-void showClassMaterialsModal(BuildContext context, Map<String, String> classData) {
+void showClassMaterialsModal(
+  BuildContext context,
+  Map<String, String> classData,
+) {
   final title = classData['title'] ?? 'Course';
   final code = classData['code'] ?? 'CS301';
   final isLive = classData['status'] == 'Live Now';
@@ -1396,12 +2920,20 @@ void showClassMaterialsModal(BuildContext context, Map<String, String> classData
                 children: [
                   Text(
                     code,
-                    style: const TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12),
+                    style: const TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
                   ),
                 ],
               ),
@@ -1426,16 +2958,36 @@ void showClassMaterialsModal(BuildContext context, Map<String, String> classData
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(color: Color(0xFF2563EB), shape: BoxShape.circle),
-                    child: const Icon(Icons.video_call_rounded, color: Colors.white, size: 20),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2563EB),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.video_call_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Online Session Active', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E40AF))),
-                        Text('Hosted via Zoom • Room ID: 884 902 119', style: TextStyle(fontSize: 11, color: Color(0xFF3B82F6))),
+                        Text(
+                          'Online Session Active',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Color(0xFF1E40AF),
+                          ),
+                        ),
+                        Text(
+                          'Hosted via Zoom • Room ID: 884 902 119',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1444,9 +2996,17 @@ void showClassMaterialsModal(BuildContext context, Map<String, String> classData
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: const Text('Join Room', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Join Room',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1455,14 +3015,36 @@ void showClassMaterialsModal(BuildContext context, Map<String, String> classData
           ],
           const Text(
             'Course Lecture Materials & Resources',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
           ),
           const SizedBox(height: 12),
-          _buildMaterialItem(Icons.picture_as_pdf_rounded, 'Unit 3: Lecture Slides & Architecture', 'PDF • 4.2 MB', const Color(0xFFDC2626), const Color(0xFFFEF2F2)),
+          _buildMaterialItem(
+            Icons.picture_as_pdf_rounded,
+            'Unit 3: Lecture Slides & Architecture',
+            'PDF • 4.2 MB',
+            const Color(0xFFDC2626),
+            const Color(0xFFFEF2F2),
+          ),
           const SizedBox(height: 10),
-          _buildMaterialItem(Icons.folder_zip_rounded, 'Lab Exercises & Sample Code', 'ZIP • 8.5 MB', const Color(0xFFD97706), const Color(0xFFFEF3C7)),
+          _buildMaterialItem(
+            Icons.folder_zip_rounded,
+            'Lab Exercises & Sample Code',
+            'ZIP • 8.5 MB',
+            const Color(0xFFD97706),
+            const Color(0xFFFEF3C7),
+          ),
           const SizedBox(height: 10),
-          _buildMaterialItem(Icons.play_circle_fill_rounded, 'Recorded Video Session (Class 14)', 'MP4 • 45 min', const Color(0xFF059669), const Color(0xFFECFDF5)),
+          _buildMaterialItem(
+            Icons.play_circle_fill_rounded,
+            'Recorded Video Session (Class 14)',
+            'MP4 • 45 min',
+            const Color(0xFF059669),
+            const Color(0xFFECFDF5),
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -1470,7 +3052,13 @@ void showClassMaterialsModal(BuildContext context, Map<String, String> classData
   );
 }
 
-Widget _buildMaterialItem(IconData icon, String title, String subtitle, Color color, Color bg) {
+Widget _buildMaterialItem(
+  IconData icon,
+  String title,
+  String subtitle,
+  Color color,
+  Color bg,
+) {
   return Container(
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
@@ -1482,7 +3070,10 @@ Widget _buildMaterialItem(IconData icon, String title, String subtitle, Color co
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(10),
+          ),
           child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(width: 12),
@@ -1490,8 +3081,18 @@ Widget _buildMaterialItem(IconData icon, String title, String subtitle, Color co
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
-              Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+              ),
             ],
           ),
         ),
@@ -1501,7 +3102,10 @@ Widget _buildMaterialItem(IconData icon, String title, String subtitle, Color co
   );
 }
 
-void showRoomLocationModal(BuildContext context, Map<String, String> classData) {
+void showRoomLocationModal(
+  BuildContext context,
+  Map<String, String> classData,
+) {
   final title = classData['title'] ?? 'Course';
   final room = classData['room'] ?? 'Room 302';
   final time = classData['time'] ?? '09:00 AM';
@@ -1525,9 +3129,23 @@ void showRoomLocationModal(BuildContext context, Map<String, String> classData) 
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Campus Navigation', style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12)),
+                  const Text(
+                    'Campus Navigation',
+                    style: TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text('$title ($room)', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                  Text(
+                    '$title ($room)',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
                 ],
               ),
               IconButton(
@@ -1550,16 +3168,36 @@ void showRoomLocationModal(BuildContext context, Map<String, String> classData) 
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(12)),
-                      child: const Icon(Icons.domain_rounded, color: Color(0xFF2563EB), size: 22),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.domain_rounded,
+                        color: Color(0xFF2563EB),
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(room, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
-                          const Text('Tech Park Block B • Floor 3', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          Text(
+                            room,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          const Text(
+                            'Tech Park Block B • Floor 3',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1573,16 +3211,37 @@ void showRoomLocationModal(BuildContext context, Map<String, String> classData) 
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.schedule_rounded, size: 16, color: Color(0xFF64748B)),
+                        const Icon(
+                          Icons.schedule_rounded,
+                          size: 16,
+                          color: Color(0xFF64748B),
+                        ),
                         const SizedBox(width: 4),
-                        Text('Session: $time', style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                        Text(
+                          'Session: $time',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF475569),
+                          ),
+                        ),
                       ],
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.event_seat_rounded, size: 16, color: Color(0xFF059669)),
+                        const Icon(
+                          Icons.event_seat_rounded,
+                          size: 16,
+                          color: Color(0xFF059669),
+                        ),
                         const SizedBox(width: 4),
-                        const Text('Capacity: 60 Seats', style: TextStyle(fontSize: 12, color: Color(0xFF059669), fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Capacity: 60 Seats',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF059669),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ],

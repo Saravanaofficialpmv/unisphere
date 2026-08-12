@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/exam_model.dart';
-import 'package:clg_application/services/exam_service.dart';
+import 'package:unisphere/models/exam_model.dart';
+import 'package:unisphere/services/exam_service.dart';
 import 'package:intl/intl.dart';
 
 class CreateExamDialog extends StatefulWidget {

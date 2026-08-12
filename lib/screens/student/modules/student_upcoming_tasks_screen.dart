@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
-import 'package:clg_application/widgets/common/notification_sheet.dart';
-import 'package:clg_application/screens/features/exams_detail_screen.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/widgets/common/notification_sheet.dart';
+import 'package:unisphere/screens/features/exams_detail_screen.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
 
 class StudentUpcomingTasksScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -171,69 +173,71 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
       },
       child: Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: _handleBack,
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.task_alt_rounded, color: Color(0xFF818CF8), size: 22),
-            SizedBox(width: 8),
-            Text(
-              'Upcoming Tasks & Portal',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+      body: SafeArea(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: Column(
+              children: [
+                UnisphereHeaderCard(
+                  title: 'Upcoming Tasks & Portal',
+                  subtitle: 'Assignments, Exams & Deadlines Overview',
+                  onBack: _handleBack,
+                  margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── 1. Top Header Card (Greeting + Notification & Profile) ──
+                        _buildHeaderCard(context),
+                        const SizedBox(height: 10),
+
+                        // ── 2. Stat Summary Metrics Bar ──
+                        _buildMetricsBar(),
+                        const SizedBox(height: 12),
+
+                        // ── 3. 🔥 UPCOMING TASKS Section ──
+                        _buildUpcomingTasksSection(context),
+                        const SizedBox(height: 12),
+
+                        // ── 4. Side-by-Side: Today's Classes & Notifications ──
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            if (constraints.maxWidth > 550) {
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: _buildTodaysClassesCard()),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: _buildNotificationsCard()),
+                                ],
+                              );
+                            }
+                            return Column(
+                              children: [
+                                _buildTodaysClassesCard(),
+                                const SizedBox(height: 10),
+                                _buildNotificationsCard(),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+
+                        // ── 5. ⚠️ Attendance Alert Banner ──
+                        _buildAttendanceAlertCard(),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── 1. Top Header Card (Greeting + Notification & Profile) ──
-            _buildHeaderCard(context),
-            const SizedBox(height: 16),
-
-            // ── 2. Stat Summary Metrics Bar ──
-            _buildMetricsBar(),
-            const SizedBox(height: 20),
-
-            // ── 3. 🔥 UPCOMING TASKS Section ──
-            _buildUpcomingTasksSection(context),
-            const SizedBox(height: 20),
-
-            // ── 4. Side-by-Side: Today's Classes & Notifications ──
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth > 650) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _buildTodaysClassesCard()),
-                      const SizedBox(width: 14),
-                      Expanded(child: _buildNotificationsCard()),
-                    ],
-                  );
-                }
-                return Column(
-                  children: [
-                    _buildTodaysClassesCard(),
-                    const SizedBox(height: 14),
-                    _buildNotificationsCard(),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // ── 5. ⚠️ Attendance Alert Banner ──
-            _buildAttendanceAlertCard(),
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
     ),
@@ -244,16 +248,16 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
   Widget _buildHeaderCard(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Color(0x06000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -359,39 +363,38 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
         final color = metric['color'] as Color;
         return Expanded(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            margin: const EdgeInsets.symmetric(horizontal: 2.5),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x06000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 2),
+                  color: Color(0x04000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 1.5),
                 ),
               ],
             ),
             child: Column(
               children: [
-                Icon(metric['icon'] as IconData, color: color, size: 18),
-                const SizedBox(height: 4),
+                Icon(metric['icon'] as IconData, color: color, size: 16),
+                const SizedBox(height: 2),
                 Text(
                   metric['value'] as String,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: color,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   metric['label'] as String,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 9.5,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF64748B),
                   ),
@@ -407,16 +410,16 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
   // ── UPCOMING TASKS Section ──
   Widget _buildUpcomingTasksSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Color(0x06000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -425,20 +428,20 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
         children: [
           const Row(
             children: [
-              Text('🔥', style: TextStyle(fontSize: 18)),
+              Text('🔥', style: TextStyle(fontSize: 15)),
               SizedBox(width: 6),
               Text(
                 'UPCOMING TASKS',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.4,
                   color: Color(0xFF0F172A),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
 
           // Task 1: 📚 DBMS Assignment [Submit]
           _buildTaskItem(
@@ -454,7 +457,7 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
               }
             },
           ),
-          const Divider(height: 24, color: Color(0xFFF1F5F9)),
+          const Divider(height: 16, color: Color(0xFFF1F5F9)),
 
           // Task 2: 📝 AI Internal Exam [View]
           _buildTaskItem(
@@ -471,7 +474,7 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
               );
             },
           ),
-          const Divider(height: 24, color: Color(0xFFF1F5F9)),
+          const Divider(height: 16, color: Color(0xFFF1F5F9)),
 
           // Task 3: 💼 TCS Placement Drive [Apply]
           _buildTaskItem(
@@ -504,17 +507,17 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
     return Row(
       children: [
         Container(
-          width: 42,
-          height: 42,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
           alignment: Alignment.center,
-          child: Text(icon, style: const TextStyle(fontSize: 20)),
+          child: Text(icon, style: const TextStyle(fontSize: 16)),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,16 +525,16 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1E293B),
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               Text(
                 subtitle,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10.5,
                   color: Color(0xFF64748B),
                 ),
               ),
@@ -545,18 +548,18 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
             backgroundColor: isDone ? const Color(0xFFECFDF5) : buttonColor,
             foregroundColor: isDone ? const Color(0xFF059669) : Colors.white,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            minimumSize: Size.zero,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            minimumSize: const Size(0, 30),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               side: isDone ? const BorderSide(color: Color(0xFFA7F3D0)) : BorderSide.none,
             ),
           ),
           child: Text(
             buttonLabel,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.bold,
               color: isDone ? const Color(0xFF059669) : Colors.white,
             ),
@@ -569,16 +572,16 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
   // ── Today's Classes Card ──
   Widget _buildTodaysClassesCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 3),
+            color: Color(0x04000000),
+            blurRadius: 5,
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -587,21 +590,21 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
         children: [
           const Row(
             children: [
-              Text('📅', style: TextStyle(fontSize: 16)),
+              Text('📅', style: TextStyle(fontSize: 14)),
               SizedBox(width: 6),
               Text(
                 'Today\'s Classes',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0F172A),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          _buildClassRow('ML', '10:00 AM', const Color(0xFF6366F1)),
           const SizedBox(height: 8),
+          _buildClassRow('ML', '10:00 AM', const Color(0xFF6366F1)),
+          const SizedBox(height: 6),
           _buildClassRow('DBMS', '11:00 AM', const Color(0xFF10B981)),
         ],
       ),
@@ -610,10 +613,10 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
 
   Widget _buildClassRow(String subject, String time, Color accent) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -621,20 +624,20 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
           Row(
             children: [
               Container(
-                width: 8,
-                height: 8,
+                width: 7,
+                height: 7,
                 decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
               ),
               const SizedBox(width: 8),
               Text(
                 subject,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF334155)),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF334155)),
               ),
             ],
           ),
           Text(
             time,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
           ),
         ],
       ),
@@ -644,16 +647,16 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
   // ── Notifications Card ──
   Widget _buildNotificationsCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 3),
+            color: Color(0x04000000),
+            blurRadius: 5,
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -662,21 +665,21 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
         children: [
           const Row(
             children: [
-              Text('📢', style: TextStyle(fontSize: 16)),
+              Text('📢', style: TextStyle(fontSize: 14)),
               SizedBox(width: 6),
               Text(
                 'Notifications',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0F172A),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          _buildNotificationRow('Exam timetable released'),
           const SizedBox(height: 8),
+          _buildNotificationRow('Exam timetable released'),
+          const SizedBox(height: 6),
           _buildNotificationRow('Placement drive registration open'),
         ],
       ),
@@ -685,22 +688,22 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
 
   Widget _buildNotificationRow(String title) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFBEB),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFFDE68A)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.circle, size: 6, color: Color(0xFFD97706)),
-          const SizedBox(width: 8),
+          const Icon(Icons.circle, size: 5, color: Color(0xFFD97706)),
+          const SizedBox(width: 6),
           Expanded(
             child: Text(
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF92400E)),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF92400E)),
             ),
           ),
         ],
@@ -712,30 +715,30 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
   Widget _buildAttendanceAlertCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFFCA5A5)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 8,
-            offset: Offset(0, 3),
+            color: Color(0x04000000),
+            blurRadius: 5,
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(6),
             decoration: const BoxDecoration(
               color: Color(0xFFFEE2E2),
               shape: BoxShape.circle,
             ),
-            child: const Text('⚠️', style: TextStyle(fontSize: 18)),
+            child: const Text('⚠️', style: TextStyle(fontSize: 14)),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -743,16 +746,16 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
                 Text(
                   'Attendance Alert',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF991B1B),
                   ),
                 ),
-                SizedBox(height: 3),
+                SizedBox(height: 1),
                 Text(
                   'Data Mining: 72% — Attendance is low',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFFB91C1C),
                   ),

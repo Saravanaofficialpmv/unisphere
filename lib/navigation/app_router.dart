@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clg_application/services/auth_service.dart';
-import 'package:clg_application/models/user_model.dart';
-import 'package:clg_application/screens/auth/auth_screen.dart';
-import 'package:clg_application/screens/auth/request_submitted_screen.dart';
-import 'package:clg_application/screens/student/student_dashboard.dart';
-import 'package:clg_application/screens/staff/staff_dashboard.dart';
-import 'package:clg_application/screens/parent/parent_dashboard.dart';
-import 'package:clg_application/screens/onboarding/onboarding_screen.dart';
+import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/models/user_model.dart';
+import 'package:unisphere/screens/auth/auth_screen.dart';
+import 'package:unisphere/screens/auth/request_submitted_screen.dart';
+import 'package:unisphere/screens/student/student_dashboard.dart';
+import 'package:unisphere/screens/staff/staff_dashboard.dart';
+import 'package:unisphere/screens/parent/parent_dashboard.dart';
+import 'package:unisphere/screens/onboarding/onboarding_screen.dart';
 
-import 'package:clg_application/screens/admin/admin_shell.dart';
-import 'package:clg_application/screens/hod/hod_shell.dart';
-import 'package:clg_application/screens/student/cgpa_details_screen.dart';
+import 'package:unisphere/screens/admin/admin_shell.dart';
+import 'package:unisphere/screens/hod/hod_shell.dart';
+import 'package:unisphere/screens/student/cgpa_details_screen.dart';
 
 final authStateProvider = StreamProvider<UserModel?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;

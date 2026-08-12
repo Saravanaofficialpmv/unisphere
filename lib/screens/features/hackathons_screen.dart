@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:clg_application/controllers/hackathon_banner_controller.dart';
-import 'package:clg_application/controllers/hackathon_banner_state.dart';
+import 'package:unisphere/controllers/hackathon_banner_controller.dart';
+import 'package:unisphere/controllers/hackathon_banner_state.dart';
 
 class RegisteredStudentItem {
   final int index;
@@ -147,38 +149,29 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black.withValues(alpha: 0.05),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-          onPressed: () => _navigateBackToFeatureHub(context),
-        ),
-        title: const Text(
-          'Hackathon Dashboard',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F172A),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
-            onPressed: () {
-              ref.read(hackathonBannerControllerProvider.notifier).refresh();
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            UnisphereHeaderCard(
+              title: 'Hackathon Dashboard',
+              subtitle: 'Live Challenges, Registrations & Leaderboard',
+              onBack: () => _navigateBackToFeatureHub(context),
+              rightActions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                  tooltip: 'Refresh Banner',
+                  onPressed: () {
+                    ref.read(hackathonBannerControllerProvider.notifier).refresh();
+                  },
+                ),
+              ],
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
             // 1. TOP EVENT BANNER CARD
             _buildTopHeroBannerCard(context, bannerState),
             const SizedBox(height: 20),
@@ -233,8 +226,12 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  ],
+),
+),
+);
+}
 
   // ───────────────────────────────────────────────────────────────────────────
   // 1. HERO EVENT BANNER CARD

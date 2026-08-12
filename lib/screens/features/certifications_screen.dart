@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
 
 class CertificateModel {
   final String id;
@@ -157,64 +159,52 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
 
     final scaffold = Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () => _navigateBackToFeatureHub(context),
-        ),
-        title: const Text(
-          'Certifications & Uploads',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0, top: 6.0, bottom: 6.0),
-            child: ElevatedButton.icon(
-              onPressed: () => _showUploadCertificateDialog(context),
-              icon: const Icon(Icons.upload_file_rounded, size: 16),
-              label: const Text('Upload New', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      body: SafeArea(
+        child: Column(
+          children: [
+            UnisphereHeaderCard(
+              title: 'Certifications & Uploads',
+              subtitle: 'Verified Certificates, Verification & Transcripts',
+              onBack: () => _navigateBackToFeatureHub(context),
+              rightActions: [
+                IconButton(
+                  icon: const Icon(Icons.upload_file_rounded, color: Colors.white),
+                  tooltip: 'Upload Certificate',
+                  onPressed: () => _showUploadCertificateDialog(context),
+                ),
+              ],
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Analytics Overview Header
+                    _buildAnalyticsCards(totalCount, approvedCount, pendingCount, rejectedCount),
+                    const SizedBox(height: 20),
+
+                    // Search & Filter Controls
+                    _buildSearchAndFilterControls(),
+                    const SizedBox(height: 16),
+
+                    // Certificates List
+                    if (_filteredCertificates.isEmpty)
+                      _buildEmptyState()
+                    else
+                      Column(
+                        children: _filteredCertificates.map((cert) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: _buildCertificateCard(cert),
+                          );
+                        }).toList(),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Analytics Overview Header
-              _buildAnalyticsCards(totalCount, approvedCount, pendingCount, rejectedCount),
-              const SizedBox(height: 20),
-
-              // Search & Filter Controls
-              _buildSearchAndFilterControls(),
-              const SizedBox(height: 16),
-
-              // Certificates List
-              if (_filteredCertificates.isEmpty)
-                _buildEmptyState()
-              else
-                Column(
-                  children: _filteredCertificates.map((cert) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: _buildCertificateCard(cert),
-                    );
-                  }).toList(),
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );

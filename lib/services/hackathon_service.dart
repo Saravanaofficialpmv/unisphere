@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:clg_application/models/hackathon_model.dart';
+import 'package:unisphere/models/hackathon_model.dart';
 
 abstract class HackathonService {
   Future<List<HackathonModel>> getHackathons({int page = 1, int limit = 10, String? category});

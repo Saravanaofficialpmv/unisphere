@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:clg_application/models/hackathon_model.dart';
-import 'package:clg_application/screens/features/hackathon_registration_screen.dart';
-import 'package:clg_application/screens/features/hackathon_team_management_screen.dart';
+import 'package:unisphere/models/hackathon_model.dart';
+import 'package:unisphere/screens/features/hackathon_registration_screen.dart';
+import 'package:unisphere/screens/features/hackathon_team_management_screen.dart';
 
 class HackathonDetailsScreen extends StatelessWidget {
   final HackathonModel hackathon;

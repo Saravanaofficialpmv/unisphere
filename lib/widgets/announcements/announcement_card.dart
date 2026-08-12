@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/announcement_model.dart';
+import 'package:unisphere/models/announcement_model.dart';
 import 'package:intl/intl.dart';
 
 class AnnouncementCard extends StatelessWidget {

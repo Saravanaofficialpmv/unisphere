@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/exam_model.dart';
-import 'package:clg_application/services/exam_service.dart';
-import 'package:clg_application/widgets/exams/exam_card.dart';
-import 'package:clg_application/screens/exams/exam_detail_screen.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+
+import 'package:unisphere/models/exam_model.dart';
+import 'package:unisphere/services/exam_service.dart';
+import 'package:unisphere/widgets/exams/exam_card.dart';
+import 'package:unisphere/screens/exams/exam_detail_screen.dart';
 
 class ExamsDetailScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -193,9 +195,10 @@ class _ExamsDetailScreenState extends State<ExamsDetailScreen> with SingleTicker
 
                           return InkWell(
                             onTap: () {
-                              setModalState(() {
-                                tempSelected = option['type'] as String;
+                              setState(() {
+                                _selectedExamType = option['type'] as String;
                               });
+                              Navigator.pop(context);
                             },
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
@@ -386,33 +389,55 @@ class _ExamsDetailScreenState extends State<ExamsDetailScreen> with SingleTicker
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black12,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-          onPressed: _handleBack,
-        ),
-        title: const Text(
-          'Exams & Schedule',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: const Color(0xFF0284C7),
-          unselectedLabelColor: const Color(0xFF64748B),
-          indicatorColor: const Color(0xFF0284C7),
-          indicatorWeight: 3,
-          tabs: const [
-            Tab(text: 'Upcoming Exams'),
-            Tab(text: 'Completed Exams'),
-          ],
-        ),
-      ),
-      body: AnimatedBuilder(
+      body: SafeArea(
+        child: Column(
+          children: [
+            UnisphereHeaderCard(
+              title: 'Exams & Schedule',
+              subtitle: 'Internal Assessments, Model & Semester Exams',
+              onBack: _handleBack,
+              rightActions: [
+                IconButton(
+                  icon: const Icon(Icons.filter_list_rounded, color: Colors.white),
+                  tooltip: 'Filter Exam Type',
+                  onPressed: () => _showExamTypeFilterModal(context),
+                ),
+              ],
+              bottomWidget: Container(
+                height: 44,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: const Color(0xFF1E3A8A),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: const Color(0xFFBFDBFE),
+                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  tabs: const [
+                    Tab(text: 'Upcoming Exams'),
+                    Tab(text: 'Completed Exams'),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: AnimatedBuilder(
         animation: examService,
         builder: (context, child) {
           final upcoming = examService.getFilteredExams(
@@ -503,26 +528,38 @@ class _ExamsDetailScreenState extends State<ExamsDetailScreen> with SingleTicker
                     ),
                     const SizedBox(height: 10),
 
-                    // Active Filter Chip Display
+                    // Active Filter Chip Display (Tap to open filter modal)
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
+                        Material(
+                          color: _selectedExamType != 'All' ? const Color(0xFFEEF2FF) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            onTap: () => _showExamTypeFilterModal(context),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.filter_list_rounded, size: 14, color: Color(0xFF4F46E5)),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Exam Type: $_selectedExamType',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _selectedExamType != 'All' ? const Color(0xFF4F46E5) : const Color(0xFFCBD5E1),
+                                  width: 1.2,
+                                ),
                               ),
-                            ],
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.tune_rounded, size: 14, color: Color(0xFF4F46E5)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Exam Type: $_selectedExamType',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF475569)),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                         const Spacer(),
@@ -530,14 +567,15 @@ class _ExamsDetailScreenState extends State<ExamsDetailScreen> with SingleTicker
                           GestureDetector(
                             onTap: () => setState(() => _selectedExamType = 'All'),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFEE2E2),
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFFCA5A5)),
                               ),
-                              child: Row(
+                              child: const Row(
                                 mainAxisSize: MainAxisSize.min,
-                                children: const [
+                                children: [
                                   Icon(Icons.close_rounded, size: 14, color: Color(0xFFDC2626)),
                                   SizedBox(width: 2),
                                   Text('Reset', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
@@ -565,7 +603,11 @@ class _ExamsDetailScreenState extends State<ExamsDetailScreen> with SingleTicker
           );
         },
       ),
-    );
+    ),
+            ],
+          ),
+        ),
+      );
   }
 
   Widget _buildExamList(BuildContext context, List<ExamModel> list, String emptyMsg) {

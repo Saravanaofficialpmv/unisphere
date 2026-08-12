@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
-import 'package:clg_application/widgets/common/main_sidebar.dart';
-import 'package:clg_application/widgets/common/notification_sheet.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/widgets/common/main_sidebar.dart';
+import 'package:unisphere/widgets/common/notification_sheet.dart';
 
 import 'hod_home_dashboard.dart';
 import 'modules/hod_staff_management.dart';
@@ -26,6 +26,7 @@ class HodShell extends ConsumerStatefulWidget {
 class _HodShellState extends ConsumerState<HodShell> {
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
@@ -63,6 +64,9 @@ class _HodShellState extends ConsumerState<HodShell> {
   }
 
   void _handleNavigation(int index) {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
+    }
     setState(() => _currentIndex = index);
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
@@ -71,12 +75,16 @@ class _HodShellState extends ConsumerState<HodShell> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 1200;
+    final isDesktop = MediaQuery.of(context).size.width >= 800;
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+          _innerNavigatorKey.currentState?.pop();
+          return;
+        }
         if (_currentIndex != 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
@@ -131,7 +139,18 @@ class _HodShellState extends ConsumerState<HodShell> {
       body: Row(
         children: [
           if (isDesktop) _buildSidebar(),
-          Expanded(child: _screens[_currentIndex < _screens.length ? _currentIndex : 0]),
+          Expanded(
+            child: ClipRect(
+              child: Navigator(
+                key: _innerNavigatorKey,
+                onGenerateRoute: (settings) {
+                  return MaterialPageRoute(
+                    builder: (_) => _screens[_currentIndex < _screens.length ? _currentIndex : 0],
+                  );
+                },
+              ),
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: isDesktop ? null : _buildBottomNavBar(),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/announcement_model.dart';
+import 'package:unisphere/models/announcement_model.dart';
 
 class AnnouncementService extends ChangeNotifier {
   static final AnnouncementService _instance = AnnouncementService._internal();

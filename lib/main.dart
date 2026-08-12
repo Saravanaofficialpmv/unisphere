@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:clg_application/core/theme/app_theme.dart';
-import 'package:clg_application/navigation/app_router.dart';
+import 'package:unisphere/core/theme/app_theme.dart';
+import 'package:unisphere/navigation/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

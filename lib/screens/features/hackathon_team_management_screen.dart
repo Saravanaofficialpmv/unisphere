@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/hackathon_model.dart';
+import 'package:unisphere/models/hackathon_model.dart';
 
 class HackathonTeamManagementScreen extends StatelessWidget {
   final HackathonModel hackathon;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/models/assignment_model.dart';
-import 'package:clg_application/models/submission_model.dart';
+import 'package:unisphere/models/assignment_model.dart';
+import 'package:unisphere/models/submission_model.dart';
 
 class TaskService extends ChangeNotifier {
   static final TaskService _instance = TaskService._internal();

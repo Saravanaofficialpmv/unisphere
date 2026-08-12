@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clg_application/core/constants/app_colors.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class HodAttendanceManagement extends StatefulWidget {
