@@ -75,8 +75,8 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
 
     final String githubUsername = s['githubUsername'] ?? 'Saravanaofficialpmv';
     final int githubRepos = s['githubRepos'] ?? 14;
-    final int githubCommits = s['githubCommits'] ?? 342;
-    final int githubStars = s['githubStars'] ?? 45;
+    final int githubCommits = s['githubCommits'] ?? 87;
+    final int githubStars = s['githubStars'] ?? 0;
     final List<String> techStack = List<String>.from(
       s['githubTopTech'] ?? ['Flutter/Dart', 'C++', 'Java', 'Python'],
     );

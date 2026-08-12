@@ -35,7 +35,7 @@ class AcademicOverviewData {
     this.githubUsername = 'Saravanaofficialpmv',
     this.githubRepos = 14,
     this.githubStars = 0,
-    this.githubCommits = 124,
+    this.githubCommits = 87,
   });
 }
 
@@ -58,7 +58,7 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
             githubUsername: 'Saravanaofficialpmv',
             githubRepos: 14,
             githubStars: 0,
-            githubCommits: 124,
+            githubCommits: 87,
           ),
         ) {
     // Automatically fetch student LeetCode & GitHub stats on startup

@@ -82,7 +82,7 @@ class GitHubUserStats {
     this.followers = 2,
     this.following = 1,
     this.starsEarned = 0,
-    this.commitsThisYear = 124,
+    this.commitsThisYear = 87,
     this.topLanguages = const ['HTML', 'TypeScript', 'Dart', 'JavaScript', 'Python', 'Java'],
     this.languageBreakdown = const {
       'HTML': 33.3,
@@ -264,7 +264,7 @@ class GitHubService {
       final name = (rawName != null && rawName.isNotEmpty) ? rawName : 'saravana perumal';
       final avatarUrl = profileJson['avatar_url'] as String? ?? 'https://avatars.githubusercontent.com/u/200975098?v=4';
 
-      final finalCommitsCount = totalCommitsCount > 0 ? totalCommitsCount : 124;
+      final finalCommitsCount = totalCommitsCount > 0 ? totalCommitsCount : 87;
 
       return GitHubUserStats(
         username: username,
@@ -308,7 +308,7 @@ class GitHubService {
       followers: 2,
       following: 1,
       starsEarned: 0,
-      commitsThisYear: 124,
+      commitsThisYear: 87,
       topLanguages: const ['HTML', 'TypeScript', 'Dart', 'JavaScript', 'Python', 'Java'],
       languageBreakdown: const {
         'HTML': 33.3,
