@@ -127,29 +127,43 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
 
           const SizedBox(height: 14),
 
-          // Tab Bar Navigation
+          // Tab Bar Navigation (Pill Segmented Style)
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            height: 44,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            height: 46,
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: TabBar(
               controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              dividerColor: Colors.transparent,
+              indicatorSize: TabBarIndicatorSize.tab,
+              padding: const EdgeInsets.all(4),
               indicator: BoxDecoration(
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               labelColor: Colors.white,
               unselectedLabelColor: const Color(0xFF64748B),
-              labelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
-              unselectedLabelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
+              labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 16),
               tabs: const [
-                Tab(text: 'Vision & Mission'),
-                Tab(text: 'PEOs (3)'),
-                Tab(text: 'POs (12)'),
-                Tab(text: 'PSOs (3)'),
+                Tab(text: '🎯 Vision & Mission'),
+                Tab(text: '🎓 PEOs (3)'),
+                Tab(text: '📊 POs (12)'),
+                Tab(text: '⚡ PSOs (3)'),
               ],
             ),
           ),
