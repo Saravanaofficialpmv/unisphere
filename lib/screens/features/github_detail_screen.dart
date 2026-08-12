@@ -184,14 +184,19 @@ class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          // Header Card
-          UnisphereHeaderCard(
-            title: 'GitHub Developer Analytics',
-            subtitle: '@${_fullStats.username} • Open Source & Repositories',
-            onBack: _handleBack,
-          ),
+      body: SafeArea(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: Column(
+              children: [
+                // Header Card
+                UnisphereHeaderCard(
+                  title: 'GitHub Developer Analytics',
+                  subtitle: '@${_fullStats.username} • Open Source & Repositories',
+                  onBack: _handleBack,
+                ),
 
           Expanded(
             child: RefreshIndicator(
@@ -236,6 +241,9 @@ class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
           ),
         ],
       ),
+    ),
+  ),
+),
     );
   }
 
