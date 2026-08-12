@@ -8,6 +8,8 @@ class AcademicOverviewData {
   final double cgpa;
   final double cgpaTrend;
   final String cgpaLabel;
+  final int odDays;
+  final String odStatus;
 
   const AcademicOverviewData({
     required this.attendancePercentage,
@@ -16,6 +18,8 @@ class AcademicOverviewData {
     required this.cgpa,
     required this.cgpaTrend,
     required this.cgpaLabel,
+    this.odDays = 4,
+    this.odStatus = 'Approved',
   });
 }
 
@@ -30,6 +34,8 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
             cgpa: 8.72,
             cgpaTrend: 0.24,
             cgpaLabel: 'Current CGPA',
+            odDays: 4,
+            odStatus: 'Approved',
           ),
         );
 
@@ -40,6 +46,8 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
     double? cgpa,
     double? cgpaTrend,
     String? cgpaLabel,
+    int? odDays,
+    String? odStatus,
   }) {
     state = AcademicOverviewData(
       attendancePercentage: attendancePercentage ?? state.attendancePercentage,
@@ -48,6 +56,8 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       cgpa: cgpa ?? state.cgpa,
       cgpaTrend: cgpaTrend ?? state.cgpaTrend,
       cgpaLabel: cgpaLabel ?? state.cgpaLabel,
+      odDays: odDays ?? state.odDays,
+      odStatus: odStatus ?? state.odStatus,
     );
   }
 }

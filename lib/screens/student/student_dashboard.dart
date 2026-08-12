@@ -983,6 +983,68 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                           ],
                         ),
                       ),
+                      // Divider 2
+                      Container(
+                        height: 44,
+                        width: 1,
+                        margin: EdgeInsets.symmetric(
+                          horizontal: isNarrow ? 6 : 10,
+                        ),
+                        color: Colors.black.withValues(alpha: 0.08),
+                      ),
+                      // Metric 3: Total OD Days
+                      Expanded(
+                        flex: 4,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Total OD Days',
+                              style: TextStyle(
+                                color: Color(0xFF757575),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 6,
+                              runSpacing: 2,
+                              children: [
+                                Text(
+                                  '${overviewData.odDays} Days',
+                                  style: TextStyle(
+                                    color: const Color(0xFF2D3142),
+                                    fontSize: isNarrow ? 16 : 19,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    overviewData.odStatus,
+                                    style: const TextStyle(
+                                      color: Color(0xFF2563EB),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   );
                 },
