@@ -23,6 +23,7 @@ import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
+import 'package:unisphere/widgets/common/open_menu_button.dart';
 
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -488,48 +489,12 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             Positioned(
               left: 0,
               bottom: 24,
-              child: GestureDetector(
+              child: OpenMenuButton(
                 onTap: () {
                   if (widget.onOpenDrawer != null) {
                     widget.onOpenDrawer!();
                   }
                 },
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.fromLTRB(4, 0, 8, 0),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1E40AF), Color(0xFF2563EB)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: const BorderRadius.horizontal(
-                      right: Radius.circular(19),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1E40AF).withValues(alpha: 0.38),
-                        blurRadius: 10,
-                        offset: const Offset(2, 3),
-                      ),
-                    ],
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      Icon(
-                        Icons.menu_rounded,
-                        color: Colors.white,
-                        size: 15,
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
         ],
