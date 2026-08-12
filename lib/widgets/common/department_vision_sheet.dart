@@ -116,7 +116,7 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Official Document • Published by Dr. R. Sundaram (HOD - AI & DS)',
+                      'Official Document • Published by Dr. R. Kumar, Ph.D. (HOD - AI & DS)',
                       style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF15803D)),
                     ),
                   ),
