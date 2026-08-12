@@ -84,7 +84,7 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
     final String resumeFileName = s['resumeFileName'] ?? '${name.replaceAll(' ', '_')}_Resume_2026.pdf';
     final String resumeUpdated = s['resumeUpdated'] ?? 'Updated 2 weeks ago';
     final String portfolioUrl = s['portfolioUrl'] ?? 'https://$leetcodeUsername.dev';
-    final String linkedinUrl = s['linkedinUrl'] ?? 'https://linkedin.com/in/$leetcodeUsername';
+    final String linkedinUrl = s['linkedinUrl'] ?? 'https://linkedin.com/in/saravana-selvaraju';
     final List<String> skills = List<String>.from(
       s['skills'] ?? ['Data Structures', 'Algorithms', 'Flutter App Dev', 'REST APIs', 'System Design', 'Git'],
     );

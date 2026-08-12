@@ -21,8 +21,8 @@ class _LinkedInDetailScreenState extends ConsumerState<LinkedInDetailScreen> {
   bool _isRefreshing = false;
   late TextEditingController _urlController;
   LinkedInProfileStats _profileStats = const LinkedInProfileStats(
-    username: 'Saravanaofficialpmv',
-    profileUrl: 'https://linkedin.com/in/Saravanaofficialpmv',
+    username: 'saravana-selvaraju',
+    profileUrl: 'https://linkedin.com/in/saravana-selvaraju',
   );
 
   @override
@@ -116,7 +116,7 @@ class _LinkedInDetailScreenState extends ConsumerState<LinkedInDetailScreen> {
                 controller: _urlController,
                 decoration: InputDecoration(
                   labelText: 'LinkedIn URL or Handle',
-                  hintText: 'https://linkedin.com/in/Saravanaofficialpmv',
+                  hintText: 'https://linkedin.com/in/saravana-selvaraju',
                   prefixIcon: const Icon(Icons.link_rounded, color: Color(0xFF0A66C2)),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

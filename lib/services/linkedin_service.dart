@@ -91,7 +91,7 @@ class LinkedInService {
       }
     }
     cleanHandle = cleanHandle.replaceAll('in/', '').replaceAll('@', '').replaceAll('/', '');
-    if (cleanHandle.isEmpty) cleanHandle = 'Saravanaofficialpmv';
+    if (cleanHandle.isEmpty) cleanHandle = 'saravana-selvaraju';
 
     final fullUrl = 'https://linkedin.com/in/$cleanHandle';
 

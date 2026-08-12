@@ -40,7 +40,7 @@ class AcademicOverviewData {
     this.githubRepos = 14,
     this.githubStars = 0,
     this.githubCommits = 87,
-    this.linkedinUrl = 'https://linkedin.com/in/Saravanaofficialpmv',
+    this.linkedinUrl = 'https://linkedin.com/in/saravana-selvaraju',
     this.linkedinConnections = '500+',
     this.linkedinHeadline = 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
   });
@@ -66,7 +66,7 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
             githubRepos: 14,
             githubStars: 0,
             githubCommits: 87,
-            linkedinUrl: 'https://linkedin.com/in/Saravanaofficialpmv',
+            linkedinUrl: 'https://linkedin.com/in/saravana-selvaraju',
             linkedinConnections: '500+',
             linkedinHeadline: 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
           ),
