@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
+import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/screens/features/fees_screen.dart';
 
@@ -161,9 +162,8 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
               tooltip: 'Dept Vision & POs',
               onPressed: () => showDepartmentVisionSheet(context),
             ),
-            IconButton(
-              icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
-              onPressed: () => showNotificationSheet(context),
+            NotificationBellButton(
+              onTap: () => showNotificationSheet(context),
             ),
             const SizedBox(width: 8),
           ],

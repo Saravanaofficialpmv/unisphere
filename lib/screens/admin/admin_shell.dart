@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
+import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/screens/admin/admin_dashboard.dart';
 import 'package:unisphere/screens/admin/modules/user_management.dart';
@@ -152,9 +153,8 @@ class _AdminShellState extends State<AdminShell> {
           onPressed: () => showDepartmentVisionSheet(context),
         ),
         IconButton(icon: const Icon(Icons.help_outline_rounded, color: AppColors.textPrimary, size: 22), onPressed: () {}),
-        IconButton(
-          icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary, size: 22),
-          onPressed: () => showNotificationSheet(context),
+        NotificationBellButton(
+          onTap: () => showNotificationSheet(context),
         ),
       ],
       bottom: PreferredSize(

@@ -8,8 +8,8 @@ import 'package:unisphere/screens/staff/modules/staff_submission_review.dart';
 import 'package:unisphere/screens/staff/modules/staff_student_directory.dart';
 
 import 'package:unisphere/widgets/common/main_sidebar.dart';
-
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
+import 'package:unisphere/widgets/common/notification_bell_button.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {
   const StaffDashboard({super.key});
@@ -112,9 +112,8 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
             tooltip: 'Department Vision & POs',
             onPressed: () => showDepartmentVisionSheet(context),
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
-            onPressed: () => showNotificationSheet(context),
+          NotificationBellButton(
+            onTap: () => showNotificationSheet(context),
           ),
           const SizedBox(width: 8),
         ],

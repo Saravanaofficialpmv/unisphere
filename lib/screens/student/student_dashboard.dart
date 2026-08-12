@@ -26,6 +26,7 @@ import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:unisphere/widgets/common/open_menu_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
+import 'package:unisphere/widgets/common/notification_bell_button.dart';
 
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -394,40 +395,14 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     ),
                     const SizedBox(width: 4),
                     // Notification Bell Action Icon
-                    SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.notifications_none_rounded,
-                              color: Color(0xFF2D3142),
-                              size: 26,
-                            ),
-                            onPressed: () {
-                              showNotificationSheet(
-                                context,
-                                onNavigateToTab: widget.onNavigateToTab,
-                              );
-                            },
-                          ),
-                          if (unreadCount > 0)
-                            Positioned(
-                              right: 10,
-                              top: 10,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
+                    NotificationBellButton(
+                      unreadCount: unreadCount,
+                      onTap: () {
+                        showNotificationSheet(
+                          context,
+                          onNavigateToTab: widget.onNavigateToTab,
+                        );
+                      },
                     ),
                   ],
                 ),
