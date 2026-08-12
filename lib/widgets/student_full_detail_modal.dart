@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
+import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Comprehensive Modal Sheet allowing Staff & HOD to view full student details:
@@ -530,16 +531,37 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
                     ],
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _launchURL('https://github.com/$username'),
-                  icon: const Icon(Icons.open_in_new_rounded, size: 14),
-                  label: const Text('GitHub'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
+                Column(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const GitHubDetailScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.analytics_rounded, size: 14),
+                      label: const Text('Analytics'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F172A),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    OutlinedButton.icon(
+                      onPressed: () => _launchURL('https://github.com/$username'),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 13),
+                      label: const Text('GitHub', style: TextStyle(fontSize: 11)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Color(0xFF334155)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

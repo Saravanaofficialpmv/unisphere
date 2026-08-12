@@ -22,6 +22,7 @@ import 'package:unisphere/screens/features/exams_detail_screen.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
+import 'package:unisphere/screens/features/github_detail_screen.dart';
 
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -1327,6 +1328,164 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       ),
                     ),
 
+                    // ── Slide 3: GitHub Repos & Stars ──
+                    InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const GitHubDetailScreen(),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          // Metric 1: GitHub Repos
+                          Expanded(
+                            flex: 5,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                                  ),
+                                  child: const Icon(
+                                    Icons.integration_instructions_rounded,
+                                    color: Color(0xFF0F172A),
+                                    size: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Wrap(
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        spacing: 4,
+                                        runSpacing: 2,
+                                        children: [
+                                          const Text(
+                                            'GitHub Repos',
+                                            style: TextStyle(
+                                              color: Color(0xFF757575),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                              vertical: 1.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF1F5F9),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              '@${overviewData.githubUsername}',
+                                              style: const TextStyle(
+                                                color: Color(0xFF0F172A),
+                                                fontSize: 8.5,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 1),
+                                      Text(
+                                        '${overviewData.githubRepos} Repos',
+                                        style: const TextStyle(
+                                          color: Color(0xFF2D3142),
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Divider
+                          Container(
+                            height: 36,
+                            width: 1,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            color: Colors.black.withValues(alpha: 0.08),
+                          ),
+                          // Metric 2: Stars & Commits
+                          Expanded(
+                            flex: 5,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'GitHub Contributions',
+                                  style: TextStyle(
+                                    color: Color(0xFF757575),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 1),
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 4,
+                                  runSpacing: 2,
+                                  children: [
+                                    Text(
+                                      '${overviewData.githubStars} ⭐ Stars',
+                                      style: const TextStyle(
+                                        color: Color(0xFF2D3142),
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFECFDF5),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: const Color(0xFFA7F3D0),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${overviewData.githubCommits} Commits',
+                                        style: const TextStyle(
+                                          color: Color(0xFF059669),
+                                          fontSize: 8.5,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

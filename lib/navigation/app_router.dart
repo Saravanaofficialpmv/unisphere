@@ -14,6 +14,7 @@ import 'package:unisphere/screens/admin/admin_shell.dart';
 import 'package:unisphere/screens/hod/hod_shell.dart';
 import 'package:unisphere/screens/student/cgpa_details_screen.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
+import 'package:unisphere/screens/features/github_detail_screen.dart';
 
 final authStateProvider = StreamProvider<UserModel?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
@@ -120,6 +121,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/leetcode-details',
         builder: (context, state) => const LeetCodeDetailScreen(),
+      ),
+      GoRoute(
+        path: '/github-details',
+        builder: (context, state) => const GitHubDetailScreen(),
       ),
     ],
   );
