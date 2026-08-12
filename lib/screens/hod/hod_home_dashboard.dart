@@ -379,7 +379,8 @@ class HodHomeDashboard extends StatelessWidget {
       {'label': 'Attendance', 'icon': Icons.fact_check_outlined, 'index': 4},
       {'label': 'Timetable', 'icon': Icons.calendar_month_outlined, 'index': 6},
       {'label': 'Reports', 'icon': Icons.insights_outlined, 'index': 3},
-      {'label': 'Announcements', 'icon': Icons.campaign_outlined, 'index': 8},
+      {'label': 'Upload CO/PO/PSO', 'icon': Icons.upload_file_rounded, 'index': 9},
+      {'label': 'Announcements', 'icon': Icons.campaign_outlined, 'index': 10},
     ];
 
     return Column(

@@ -17,6 +17,7 @@ import 'modules/hod_leave_management.dart';
 import 'modules/hod_announcements.dart';
 import 'modules/hod_reports_analytics.dart';
 import 'modules/hod_settings.dart';
+import 'modules/hod_charter_upload_screen.dart';
 
 class HodShell extends ConsumerStatefulWidget {
   const HodShell({super.key});
@@ -42,6 +43,7 @@ class _HodShellState extends ConsumerState<HodShell> {
     SidebarItem(label: 'Timetable Management', icon: Icons.calendar_month_outlined),
     SidebarItem(label: 'Examination & Marks', icon: Icons.assessment_outlined),
     SidebarItem(label: 'Leave & OD Approvals', icon: Icons.pending_actions_outlined, badge: '5'),
+    SidebarItem(label: 'CO / PO / PSO Uploads', icon: Icons.upload_file_rounded, badge: 'New'),
     SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
   ];
 
@@ -61,6 +63,7 @@ class _HodShellState extends ConsumerState<HodShell> {
       const HodTimetableManagement(),
       const HodExamManagement(),
       const HodLeaveManagement(),
+      const HodCharterUploadScreen(),
       const HodAnnouncements(),
     ];
   }
