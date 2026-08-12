@@ -93,7 +93,7 @@ class LinkedInService {
     cleanHandle = cleanHandle.replaceAll('in/', '').replaceAll('@', '').replaceAll('/', '');
     if (cleanHandle.isEmpty) cleanHandle = 'saravana-selvaraju';
 
-    final fullUrl = 'https://linkedin.com/in/$cleanHandle';
+    final fullUrl = 'https://www.linkedin.com/in/$cleanHandle/';
 
     final now = DateTime.now();
     final hour = now.hour;
