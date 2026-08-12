@@ -1093,7 +1093,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 10),
                             color: Colors.black.withValues(alpha: 0.08),
                           ),
-                          // Metric 2: Semester OD Record
+                          // Metric 2: LeetCode Solved
                           Expanded(
                             flex: 4,
                             child: Column(
@@ -1101,7 +1101,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Text(
-                                  'OD Balance',
+                                  'LeetCode Solved',
                                   style: TextStyle(
                                     color: Color(0xFF757575),
                                     fontSize: 11,
@@ -1111,9 +1111,9 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                 const SizedBox(height: 2),
                                 Row(
                                   children: [
-                                    const Text(
-                                      '3 Days Left',
-                                      style: TextStyle(
+                                    Text(
+                                      '${overviewData.leetcodeSolved} Solved',
+                                      style: const TextStyle(
                                         color: Color(0xFF2D3142),
                                         fontSize: 15,
                                         fontWeight: FontWeight.w800,
@@ -1127,13 +1127,16 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                         vertical: 1.5,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF1F5F9),
+                                        color: const Color(0xFFFFF7ED),
                                         borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: const Color(0xFFFFEDD5),
+                                        ),
                                       ),
-                                      child: const Text(
-                                        'Sem 6',
-                                        style: TextStyle(
-                                          color: Color(0xFF475569),
+                                      child: Text(
+                                        overviewData.leetcodeStatus,
+                                        style: const TextStyle(
+                                          color: Color(0xFFEA580C),
                                           fontSize: 9,
                                           fontWeight: FontWeight.w700,
                                         ),

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unisphere/services/leetcode_service.dart';
 
 /// Data model representing the student's academic overview metrics.
 class AcademicOverviewData {
@@ -10,6 +11,9 @@ class AcademicOverviewData {
   final String cgpaLabel;
   final int odDays;
   final String odStatus;
+  final int leetcodeSolved;
+  final String leetcodeStatus;
+  final String leetcodeUsername;
 
   const AcademicOverviewData({
     required this.attendancePercentage,
@@ -20,6 +24,9 @@ class AcademicOverviewData {
     required this.cgpaLabel,
     this.odDays = 4,
     this.odStatus = 'Approved',
+    this.leetcodeSolved = 248,
+    this.leetcodeStatus = 'Top 15%',
+    this.leetcodeUsername = 'tharani_dev',
   });
 }
 
@@ -36,8 +43,32 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
             cgpaLabel: 'Current CGPA',
             odDays: 4,
             odStatus: 'Approved',
+            leetcodeSolved: 248,
+            leetcodeStatus: 'Top 15%',
+            leetcodeUsername: 'tharani_dev',
           ),
-        );
+        ) {
+    // Automatically fetch student LeetCode count on startup
+    fetchLeetCodeStats(state.leetcodeUsername);
+  }
+
+  /// Automatically updates LeetCode solved count from public LeetCode API
+  Future<void> fetchLeetCodeStats(String username) async {
+    final stats = await LeetCodeService.fetchUserStats(username);
+    state = AcademicOverviewData(
+      attendancePercentage: state.attendancePercentage,
+      attendanceTrend: state.attendanceTrend,
+      attendanceStatus: state.attendanceStatus,
+      cgpa: state.cgpa,
+      cgpaTrend: state.cgpaTrend,
+      cgpaLabel: state.cgpaLabel,
+      odDays: state.odDays,
+      odStatus: state.odStatus,
+      leetcodeSolved: stats.totalSolved,
+      leetcodeStatus: stats.status,
+      leetcodeUsername: username,
+    );
+  }
 
   void updateData({
     double? attendancePercentage,
@@ -48,6 +79,9 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
     String? cgpaLabel,
     int? odDays,
     String? odStatus,
+    int? leetcodeSolved,
+    String? leetcodeStatus,
+    String? leetcodeUsername,
   }) {
     state = AcademicOverviewData(
       attendancePercentage: attendancePercentage ?? state.attendancePercentage,
@@ -58,6 +92,9 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
       cgpaLabel: cgpaLabel ?? state.cgpaLabel,
       odDays: odDays ?? state.odDays,
       odStatus: odStatus ?? state.odStatus,
+      leetcodeSolved: leetcodeSolved ?? state.leetcodeSolved,
+      leetcodeStatus: leetcodeStatus ?? state.leetcodeStatus,
+      leetcodeUsername: leetcodeUsername ?? state.leetcodeUsername,
     );
   }
 }
