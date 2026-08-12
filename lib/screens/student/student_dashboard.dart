@@ -483,6 +483,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                   ),
                   const SizedBox(height: 12),
                   _buildTodaysClasses(),
+
                 ],
               ),
             ),
@@ -1720,16 +1721,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     }
   }
 
-  // ── Feature Hub Launcher ────────────────
-  void _showMoreServicesBottomSheet(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        settings: const RouteSettings(name: '/feature_hub'),
-        builder: (context) =>
-            FeatureHubScreen(onNavigateToTab: widget.onNavigateToTab),
-      ),
-    );
-  }
 
   // ── Section Header ────────────────────────
   Widget _buildSectionHeader(String title, VoidCallback onSeeAll) {

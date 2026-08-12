@@ -9,6 +9,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:unisphere/controllers/hackathon_banner_controller.dart';
 import 'package:unisphere/controllers/hackathon_banner_state.dart';
+import 'package:intl/intl.dart';
+import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/models/hackathon_registration_model.dart';
+import 'package:unisphere/controllers/hackathon_registration_controller.dart';
+import 'package:unisphere/screens/features/hackathon_details_screen.dart';
 
 class RegisteredStudentItem {
   final int index;
@@ -193,16 +198,16 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
                         child: _buildRegisteredStudentsCard(),
                       ),
                       const SizedBox(width: 20),
-                      // Right Column: Analytics Charts & Countdown
+                      // Right Column: My Registered Hackathons & Analytics
                       Expanded(
                         flex: 5,
                         child: Column(
                           children: [
+                            _buildMyRegisteredHackathonsSection(),
+                            const SizedBox(height: 20),
                             _buildRegistrationsOverviewWidget(),
                             const SizedBox(height: 20),
                             _buildRegistrationsOverTimeWidget(),
-                            const SizedBox(height: 20),
-                            _buildCountdownTimerWidget(),
                           ],
                         ),
                       ),
@@ -211,13 +216,13 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
                 } else {
                   return Column(
                     children: [
+                      _buildMyRegisteredHackathonsSection(),
+                      const SizedBox(height: 20),
                       _buildRegisteredStudentsCard(),
                       const SizedBox(height: 20),
                       _buildRegistrationsOverviewWidget(),
                       const SizedBox(height: 20),
                       _buildRegistrationsOverTimeWidget(),
-                      const SizedBox(height: 20),
-                      _buildCountdownTimerWidget(),
                     ],
                   );
                 }
@@ -434,78 +439,106 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildMetricsOverviewCards() {
+    final currentUser = ref.watch(authServiceProvider).currentUser;
+    final studentId = currentUser?.uid ?? 'STU-2026-042';
+    final notifier = ref.read(hackathonRegistrationProvider.notifier);
+    ref.watch(hackathonRegistrationProvider);
+    final userRegs = notifier.getStudentRegistrations(studentId);
+
+    final totalRegistered = userRegs.length;
+    final ongoingCount = userRegs.where((r) => r.isOngoing).length;
+    final pendingCount = userRegs.where((r) => r.isPending).length;
+    final completedCount = userRegs.where((r) => r.isCompleted).length;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final totalWidth = constraints.maxWidth;
-        int crossAxisCount = 5;
-        if (totalWidth < 600) {
-          crossAxisCount = 1;
-        } else if (totalWidth < 900) {
-          crossAxisCount = 2;
-        } else if (totalWidth < 1200) {
-          crossAxisCount = 3;
+        final isMobile = constraints.maxWidth < 640;
+        if (isMobile) {
+          return GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.25,
+            children: [
+              _buildSummaryStatCard(
+                title: 'Total Registered',
+                count: totalRegistered,
+                icon: Icons.emoji_events_rounded,
+                accentColor: const Color(0xFF4F46E5),
+                bgColor: const Color(0xFFEEF2FF),
+              ),
+              _buildSummaryStatCard(
+                title: 'Ongoing',
+                count: ongoingCount,
+                icon: Icons.play_circle_fill_rounded,
+                accentColor: const Color(0xFF10B981),
+                bgColor: const Color(0xFFECFDF5),
+                badgeDot: Colors.green,
+              ),
+              _buildSummaryStatCard(
+                title: 'Pending',
+                count: pendingCount,
+                icon: Icons.pending_actions_rounded,
+                accentColor: const Color(0xFFF59E0B),
+                bgColor: const Color(0xFFFFFBEB),
+                badgeDot: Colors.amber,
+              ),
+              _buildSummaryStatCard(
+                title: 'Completed',
+                count: completedCount,
+                icon: Icons.check_circle_rounded,
+                accentColor: const Color(0xFF3B82F6),
+                bgColor: const Color(0xFFEFF6FF),
+                badgeDot: Colors.blue,
+              ),
+            ],
+          );
         }
-
-        final double cardWidth = (totalWidth - (12 * (crossAxisCount - 1))) / crossAxisCount;
-
-        return Wrap(
-          spacing: 12,
-          runSpacing: 12,
+        return Row(
           children: [
-            _buildStatCard(
-              width: cardWidth,
-              title: 'Total Registrations',
-              value: '142',
-              subtitle: 'Students Registered',
-              trend: '↗ 18% from yesterday',
-              trendIsPositive: true,
-              icon: Icons.groups_rounded,
-              iconColor: const Color(0xFF6366F1),
-              iconBgColor: const Color(0xFFEEF2FF),
+            Expanded(
+              child: _buildSummaryStatCard(
+                title: 'Total Registered',
+                count: totalRegistered,
+                icon: Icons.emoji_events_rounded,
+                accentColor: const Color(0xFF4F46E5),
+                bgColor: const Color(0xFFEEF2FF),
+              ),
             ),
-            _buildStatCard(
-              width: cardWidth,
-              title: 'Verified Registrations',
-              value: '138',
-              subtitle: 'Verified Students',
-              trend: '↗ 16% from yesterday',
-              trendIsPositive: true,
-              icon: Icons.check_circle_rounded,
-              iconColor: const Color(0xFF10B981),
-              iconBgColor: const Color(0xFFD1FAE5),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSummaryStatCard(
+                title: 'Ongoing',
+                count: ongoingCount,
+                icon: Icons.play_circle_fill_rounded,
+                accentColor: const Color(0xFF10B981),
+                bgColor: const Color(0xFFECFDF5),
+                badgeDot: Colors.green,
+              ),
             ),
-            _buildStatCard(
-              width: cardWidth,
-              title: 'Pending Approvals',
-              value: '4',
-              subtitle: 'Awaiting Verification',
-              trend: '↘ 2% from yesterday',
-              trendIsPositive: false,
-              icon: Icons.access_time_filled_rounded,
-              iconColor: const Color(0xFFF59E0B),
-              iconBgColor: const Color(0xFFFEF3C7),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSummaryStatCard(
+                title: 'Pending',
+                count: pendingCount,
+                icon: Icons.pending_actions_rounded,
+                accentColor: const Color(0xFFF59E0B),
+                bgColor: const Color(0xFFFFFBEB),
+                badgeDot: Colors.amber,
+              ),
             ),
-            _buildStatCard(
-              width: cardWidth,
-              title: 'Teams Formed',
-              value: '38',
-              subtitle: 'Active Teams',
-              trend: '↗ 12% from yesterday',
-              trendIsPositive: true,
-              icon: Icons.people_outline_rounded,
-              iconColor: const Color(0xFF3B82F6),
-              iconBgColor: const Color(0xFFDBEAFE),
-            ),
-            _buildStatCard(
-              width: cardWidth,
-              title: 'Registrations Today',
-              value: '27',
-              subtitle: 'New Registrations',
-              trend: '↗ 35% from yesterday',
-              trendIsPositive: true,
-              icon: Icons.show_chart_rounded,
-              iconColor: const Color(0xFF8B5CF6),
-              iconBgColor: const Color(0xFFF3E8FF),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSummaryStatCard(
+                title: 'Completed',
+                count: completedCount,
+                icon: Icons.check_circle_rounded,
+                accentColor: const Color(0xFF3B82F6),
+                bgColor: const Color(0xFFEFF6FF),
+                badgeDot: Colors.blue,
+              ),
             ),
           ],
         );
@@ -513,27 +546,23 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
     );
   }
 
-  Widget _buildStatCard({
-    required double width,
+  Widget _buildSummaryStatCard({
     required String title,
-    required String value,
-    required String subtitle,
-    required String trend,
-    required bool trendIsPositive,
+    required int count,
     required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
+    required Color accentColor,
+    required Color bgColor,
+    Color? badgeDot,
   }) {
     return Container(
-      width: width,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -541,60 +570,59 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF475569),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: accentColor, size: 18),
+              ),
+              if (badgeDot != null)
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: badgeDot,
+                    shape: BoxShape.circle,
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: iconColor, size: 18),
-              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF0F172A),
-              height: 1.1,
+          FittedBox(
+            alignment: Alignment.centerLeft,
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+                height: 1.0,
+              ),
             ),
           ),
-          const SizedBox(height: 2),
           Text(
-            subtitle,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            trend,
-            style: TextStyle(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: trendIsPositive ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF64748B),
             ),
           ),
         ],
       ),
     );
   }
+
+
 
   // ───────────────────────────────────────────────────────────────────────────
   // 3. REGISTERED STUDENTS DATA TABLE (Left Column)
@@ -1102,11 +1130,12 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
     );
   }
 
-  Widget _buildCountdownTimerWidget() {
-    final days = _remainingDuration.inDays;
-    final hours = _remainingDuration.inHours % 24;
-    final mins = _remainingDuration.inMinutes % 60;
-    final secs = _remainingDuration.inSeconds % 60;
+  Widget _buildMyRegisteredHackathonsSection() {
+    final currentUser = ref.watch(authServiceProvider).currentUser;
+    final studentId = currentUser?.uid ?? 'STU-2026-042';
+    final notifier = ref.read(hackathonRegistrationProvider.notifier);
+    ref.watch(hackathonRegistrationProvider);
+    final userRegs = notifier.getStudentRegistrations(studentId);
 
     return Container(
       decoration: BoxDecoration(
@@ -1122,98 +1151,337 @@ class _HackathonsScreenState extends ConsumerState<HackathonsScreen> {
         ],
       ),
       padding: const EdgeInsets.all(20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final countdownBoxes = Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildCountdownBox(days.toString().padLeft(2, '0'), 'Days'),
-              const SizedBox(width: 6),
-              _buildCountdownBox(hours.toString().padLeft(2, '0'), 'Hours'),
-              const SizedBox(width: 6),
-              _buildCountdownBox(mins.toString().padLeft(2, '0'), 'Mins'),
-              const SizedBox(width: 6),
-              _buildCountdownBox(secs.toString().padLeft(2, '0'), 'Secs'),
-            ],
-          );
-
-          if (constraints.maxWidth < 440) {
-            return Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEF2FF),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.calendar_month_outlined, color: Color(0xFF6366F1), size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Registration closes in',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                countdownBoxes,
-              ],
-            );
-          }
-
-          return Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.calendar_month_outlined, color: Color(0xFF6366F1), size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Registration closes in',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                  ),
-                ],
+              const Text(
+                'My Registered Hackathons',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
               ),
-              countdownBoxes,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${userRegs.length} Enrolled',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4338CA)),
+                ),
+              ),
             ],
-          );
-        },
+          ),
+          const SizedBox(height: 16),
+          if (userRegs.isEmpty)
+            _buildEmptyHackathonsStateInScreen()
+          else
+            Column(
+              children: userRegs.map((reg) => _buildRegisteredHackathonCardInScreen(reg)).toList(),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildCountdownBox(String value, String label) {
+  Widget _buildRegisteredHackathonCardInScreen(HackathonRegistrationModel reg) {
+    final dateFormat = DateFormat('MMM dd');
+    final startDateStr = dateFormat.format(reg.startDate);
+    final endDateStr = dateFormat.format(reg.endDate);
+
+    Color statusBg;
+    Color statusText;
+    String statusLabel;
+    String statusDot;
+
+    if (reg.isOngoing) {
+      statusBg = const Color(0xFFDCFCE7);
+      statusText = const Color(0xFF15803D);
+      statusLabel = 'ONGOING';
+      statusDot = '🟢';
+    } else if (reg.isPending) {
+      statusBg = const Color(0xFFFEF3C7);
+      statusText = const Color(0xFFB45309);
+      statusLabel = 'PENDING';
+      statusDot = '🟡';
+    } else {
+      statusBg = const Color(0xFFDBEAFE);
+      statusText = const Color(0xFF1D4ED8);
+      statusLabel = 'COMPLETED';
+      statusDot = '🔵';
+    }
+
     return Container(
-      width: 44,
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF2FF),
-        borderRadius: BorderRadius.circular(10),
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: reg.isOngoing ? const Color(0xFF86EFAC) : const Color(0xFFE2E8F0),
+          width: reg.isOngoing ? 1.5 : 1.0,
+        ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            value,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF4F46E5)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  reg.hackathonTitle,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$statusDot $statusLabel',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: statusText,
+                  ),
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
           Text(
-            label,
-            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF6366F1)),
+            '$startDateStr – $endDateStr • ${reg.mode}${reg.location.isNotEmpty && reg.location.toLowerCase() != 'online' ? ' (${reg.location})' : ''}',
+            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Team: ${reg.teamName}',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
+              ),
+              Text(
+                reg.participationStatus,
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: reg.isCompleted ? const Color(0xFF2563EB) : const Color(0xFF059669)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => HackathonDetailsScreen(
+                          hackathon: reg.toHackathonModel(),
+                        ),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF1E40AF),
+                    side: const BorderSide(color: Color(0xFF93C5FD)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  child: Text(
+                    reg.isCompleted ? 'View Result' : 'View Details',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              if (reg.isOngoing) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showSubmitProjectModalInHackathonsScreen(reg),
+                    icon: const Icon(Icons.upload_file_rounded, size: 14),
+                    label: Text(
+                      reg.projectSubmissionUrl != null ? 'Update' : 'Submit',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _buildEmptyHackathonsStateInScreen() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      child: Column(
+        children: const [
+          Text('🏆', style: TextStyle(fontSize: 30)),
+          SizedBox(height: 10),
+          Text(
+            'No Hackathons Yet',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'You haven\'t registered for any hackathons.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSubmitProjectModalInHackathonsScreen(HackathonRegistrationModel reg) {
+    final titleController = TextEditingController(text: reg.projectSubmissionTitle ?? '');
+    final urlController = TextEditingController(text: reg.projectSubmissionUrl ?? '');
+    final notesController = TextEditingController(text: reg.projectSubmissionNotes ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFD1FAE5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.cloud_upload_rounded, color: Color(0xFF059669), size: 22),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Submit Project',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    reg.hackathonTitle,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Project Title',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Autonomous AI Drone Swarm',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  validator: (val) => (val == null || val.trim().isEmpty) ? 'Project title is required' : null,
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'GitHub / Demo URL',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: urlController,
+                  decoration: InputDecoration(
+                    hintText: 'https://github.com/team/project',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  validator: (val) => (val == null || val.trim().isEmpty) ? 'Repository or demo link is required' : null,
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Submission Notes (Optional)',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: notesController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Brief summary of features, tech stack, or live credentials...',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                ref.read(hackathonRegistrationProvider.notifier).submitProject(
+                      registrationId: reg.id,
+                      projectUrl: urlController.text.trim(),
+                      projectTitle: titleController.text.trim(),
+                      notes: notesController.text.trim(),
+                    );
+                Navigator.of(dialogCtx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('🎉 Project successfully submitted for ${reg.hackathonTitle}!'),
+                    backgroundColor: const Color(0xFF10B981),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Confirm Submission'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+
 
   // ───────────────────────────────────────────────────────────────────────────
   // 5. VIEW DETAILS MODAL SHEET
