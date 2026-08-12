@@ -24,6 +24,7 @@ import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:unisphere/widgets/common/open_menu_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -339,6 +340,26 @@ class StudentHomeScreen extends ConsumerStatefulWidget {
 
 class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   int _academicOverviewPageIndex = 0;
+  bool _isReturningUser = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstTimeLogin();
+  }
+
+  Future<void> _checkFirstTimeLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasLoggedInBefore = prefs.getBool('has_logged_in_before') ?? false;
+    if (mounted) {
+      setState(() {
+        _isReturningUser = hasLoggedInBefore;
+      });
+    }
+    if (!hasLoggedInBefore) {
+      await prefs.setBool('has_logged_in_before', true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -649,21 +670,21 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Hello, Welcome Back! 👋',
-                style: TextStyle(
+                _isReturningUser ? 'Hello, Welcome Back! 👋' : 'Hello, Welcome! 👋',
+                style: const TextStyle(
                   fontSize: 12.5,
                   color: Color(0xFF64748B),
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 1),
-              Text(
+              const SizedBox(height: 1),
+              const Text(
                 'Alex Johnson',
                 style: TextStyle(
                   fontSize: 18,
@@ -671,7 +692,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                   color: Color(0xFF0F172A),
                 ),
               ),
-              Text(
+              const Text(
                 'Computer Science • 3rd Year',
                 style: TextStyle(
                   fontSize: 12,

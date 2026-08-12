@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Custom Open Menu Button widget matching the open-menu.png design tab.
+/// Custom Open Menu Button widget matching the sidebar icon & open-menu design tab.
 class OpenMenuButton extends StatelessWidget {
   final VoidCallback onTap;
   final double height;
@@ -8,7 +8,7 @@ class OpenMenuButton extends StatelessWidget {
   const OpenMenuButton({
     super.key,
     required this.onTap,
-    this.height = 42,
+    this.height = 58,
   });
 
   @override
@@ -20,47 +20,53 @@ class OpenMenuButton extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
-              blurRadius: 12,
-              offset: const Offset(3, 3),
+              color: const Color(0xFF1D4ED8).withValues(alpha: 0.45),
+              blurRadius: 16,
+              offset: const Offset(4, 4),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: const BorderRadius.horizontal(right: Radius.circular(22)),
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(height / 2)),
           child: Image.asset(
-            'assets/open_menu.png',
+            'assets/sidebar_icon.png',
             height: height,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              // Vector fallback matching exact design
-              return Container(
+              return Image.asset(
+                'assets/open_menu.png',
                 height: height,
-                padding: const EdgeInsets.fromLTRB(10, 0, 14, 0),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1D4ED8), Color(0xFF2563EB)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.horizontal(right: Radius.circular(22)),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      color: Colors.white,
-                      size: 20,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: height,
+                    padding: const EdgeInsets.fromLTRB(12, 0, 18, 0),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF1D4ED8), Color(0xFF2563EB)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.horizontal(right: Radius.circular(height / 2)),
                     ),
-                    SizedBox(width: 4),
-                    Icon(
-                      Icons.menu_rounded,
-                      color: Colors.white,
-                      size: 18,
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: Colors.white,
+                          size: 26,
+                        ),
+                        SizedBox(width: 4),
+                        Icon(
+                          Icons.menu_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               );
             },
           ),
