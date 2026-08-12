@@ -1028,39 +1028,41 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 42,
-                                  height: 42,
+                                  width: 36,
+                                  height: 36,
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFEFF6FF),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(10),
                                     border: Border.all(color: const Color(0xFFBFDBFE)),
                                   ),
                                   child: const Icon(
                                     Icons.workspace_premium_rounded,
                                     color: Color(0xFF2563EB),
-                                    size: 22,
+                                    size: 18,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Row(
+                                      Wrap(
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        spacing: 4,
+                                        runSpacing: 2,
                                         children: [
                                           const Text(
-                                            'Total OD Days',
+                                            'Total OD',
                                             style: TextStyle(
                                               color: Color(0xFF757575),
                                               fontSize: 11,
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
-                                          const SizedBox(width: 4),
                                           Container(
                                             padding: const EdgeInsets.symmetric(
-                                              horizontal: 5,
+                                              horizontal: 4,
                                               vertical: 1.5,
                                             ),
                                             decoration: BoxDecoration(
@@ -1071,21 +1073,23 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                               overviewData.odStatus,
                                               style: const TextStyle(
                                                 color: Color(0xFF2563EB),
-                                                fontSize: 9,
+                                                fontSize: 8.5,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 2),
+                                      const SizedBox(height: 1),
                                       Text(
-                                        '${overviewData.odDays} Days Granted',
+                                        '${overviewData.odDays} Days',
                                         style: const TextStyle(
                                           color: Color(0xFF2D3142),
-                                          fontSize: 15,
+                                          fontSize: 14.5,
                                           fontWeight: FontWeight.w800,
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                   ),
@@ -1095,14 +1099,14 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                           ),
                           // Divider
                           Container(
-                            height: 40,
+                            height: 36,
                             width: 1,
-                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
                             color: Colors.black.withValues(alpha: 0.08),
                           ),
                           // Metric 2: LeetCode Solved
                           Expanded(
-                            flex: 4,
+                            flex: 5,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
@@ -1114,23 +1118,27 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 2),
-                                Row(
+                                const SizedBox(height: 1),
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 4,
+                                  runSpacing: 2,
                                   children: [
                                     Text(
                                       '${overviewData.leetcodeSolved} Solved',
                                       style: const TextStyle(
                                         color: Color(0xFF2D3142),
-                                        fontSize: 15,
+                                        fontSize: 14.5,
                                         fontWeight: FontWeight.w800,
                                         letterSpacing: -0.3,
                                       ),
                                     ),
-                                    const SizedBox(width: 4),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
+                                        horizontal: 4,
                                         vertical: 1.5,
                                       ),
                                       decoration: BoxDecoration(
@@ -1141,10 +1149,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                         ),
                                       ),
                                       child: Text(
-                                        overviewData.leetcodeStatus,
+                                        '@${overviewData.leetcodeUsername}',
                                         style: const TextStyle(
                                           color: Color(0xFFEA580C),
-                                          fontSize: 9,
+                                          fontSize: 8.5,
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
