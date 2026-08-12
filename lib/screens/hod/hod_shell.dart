@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
+import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 
 import 'hod_home_dashboard.dart';
 import 'modules/hod_staff_management.dart';
@@ -129,6 +130,11 @@ class _HodShellState extends ConsumerState<HodShell> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.school_rounded, color: AppColors.primary),
+            tooltip: 'My Dept Vision & Outcomes',
+            onPressed: () => showDepartmentVisionSheet(context),
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
             onPressed: () => showNotificationSheet(context),

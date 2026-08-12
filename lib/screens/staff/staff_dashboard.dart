@@ -9,6 +9,8 @@ import 'package:unisphere/screens/staff/modules/staff_student_directory.dart';
 
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 
+import 'package:unisphere/widgets/common/department_vision_sheet.dart';
+
 class StaffDashboard extends ConsumerStatefulWidget {
   const StaffDashboard({super.key});
 
@@ -105,6 +107,11 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.school_rounded, color: AppColors.primary),
+            tooltip: 'Department Vision & POs',
+            onPressed: () => showDepartmentVisionSheet(context),
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
             onPressed: () => showNotificationSheet(context),

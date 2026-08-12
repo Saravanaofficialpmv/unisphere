@@ -25,6 +25,7 @@ import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:unisphere/widgets/common/open_menu_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -381,7 +382,17 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     Expanded(
                       child: _buildWelcomeSection(),
                     ),
-                    const SizedBox(width: 8),
+                    // Department Vision & Outcomes Button
+                    IconButton(
+                      icon: const Icon(
+                        Icons.school_rounded,
+                        color: AppColors.primary,
+                        size: 24,
+                      ),
+                      tooltip: 'Department Vision & Outcomes',
+                      onPressed: () => showDepartmentVisionSheet(context),
+                    ),
+                    const SizedBox(width: 4),
                     // Notification Bell Action Icon
                     SizedBox(
                       width: 44,
@@ -1532,6 +1543,12 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
         'type': 'exams',
       },
       {
+        'icon': Icons.school_rounded,
+        'label': 'Dept Vision & POs',
+        'color': const Color(0xFF7C3AED),
+        'type': 'dept_vision',
+      },
+      {
         'icon': Icons.grid_view_rounded,
         'label': 'More',
         'color': const Color(0xFFFF7043),
@@ -1566,7 +1583,9 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          if (type == 'timetable') {
+          if (type == 'dept_vision') {
+            showDepartmentVisionSheet(context);
+          } else if (type == 'timetable') {
             widget.onNavigateToTab(1);
           } else if (type == 'assignments') {
             widget.onNavigateToTab(2);
