@@ -54,46 +54,46 @@ class LeetCodeUserStats {
   const LeetCodeUserStats({
     required this.username,
     required this.totalSolved,
-    this.easySolved = 120,
+    this.easySolved = 104,
     this.easyTotal = 820,
-    this.mediumSolved = 100,
+    this.mediumSolved = 24,
     this.mediumTotal = 1720,
-    this.hardSolved = 28,
+    this.hardSolved = 2,
     this.hardTotal = 750,
-    this.ranking = 142850,
-    this.status = 'Top 15%',
-    this.todaysSolved = 4,
-    this.streakDays = 14,
-    this.acceptanceRate = 64.2,
+    this.ranking = 1293478,
+    this.status = '130 Solved',
+    this.todaysSolved = 3,
+    this.streakDays = 12,
+    this.acceptanceRate = 68.4,
     this.lastSyncedAt = 'Today at 12:00 AM',
     this.nextSyncAt = 'Tomorrow at 12:00 AM',
     this.recentSubmissions = const [
       LeetCodeSubmissionItem(
         title: 'Two Sum',
         difficulty: 'Easy',
-        timeAgo: '2 hours ago',
+        timeAgo: '3 hours ago',
         language: 'C++',
       ),
       LeetCodeSubmissionItem(
-        title: 'LRU Cache',
-        difficulty: 'Hard',
-        timeAgo: '5 hours ago',
+        title: 'Add Two Numbers',
+        difficulty: 'Medium',
+        timeAgo: '6 hours ago',
+        language: 'C++',
+      ),
+      LeetCodeSubmissionItem(
+        title: 'Longest Substring Without Repeating Characters',
+        difficulty: 'Medium',
+        timeAgo: '1 day ago',
         language: 'Java',
       ),
       LeetCodeSubmissionItem(
-        title: '3Sum',
-        difficulty: 'Medium',
-        timeAgo: '1 day ago',
-        language: 'Python3',
-      ),
-      LeetCodeSubmissionItem(
-        title: 'Binary Tree Level Order Traversal',
-        difficulty: 'Medium',
+        title: 'Median of Two Sorted Arrays',
+        difficulty: 'Hard',
         timeAgo: '2 days ago',
         language: 'C++',
       ),
       LeetCodeSubmissionItem(
-        title: 'Valid Parentheses',
+        title: 'Palindrome Number',
         difficulty: 'Easy',
         timeAgo: '3 days ago',
         language: 'C++',
@@ -101,9 +101,9 @@ class LeetCodeUserStats {
     ],
     this.badges = const [
       LeetCodeBadgeItem(
-        title: '50 Days Badge 2026',
+        title: '100 Problems Solved',
         icon: '🏆',
-        category: 'Annual Streak',
+        category: 'Milestone',
       ),
       LeetCodeBadgeItem(
         title: 'August LeetCoding Challenge',
@@ -111,19 +111,19 @@ class LeetCodeUserStats {
         category: 'Monthly Challenge',
       ),
       LeetCodeBadgeItem(
-        title: '100 Problems Solved',
+        title: '50 Days Badge 2026',
         icon: '🥇',
-        category: 'Milestone',
+        category: 'Annual Streak',
       ),
     ],
     this.dailyActivity = const [
-      {'day': 'Thu', 'count': 2},
-      {'day': 'Fri', 'count': 5},
-      {'day': 'Sat', 'count': 1},
+      {'day': 'Thu', 'count': 1},
+      {'day': 'Fri', 'count': 4},
+      {'day': 'Sat', 'count': 2},
       {'day': 'Sun', 'count': 0},
       {'day': 'Mon', 'count': 3},
-      {'day': 'Tue', 'count': 6},
-      {'day': 'Wed', 'count': 4},
+      {'day': 'Tue', 'count': 5},
+      {'day': 'Wed', 'count': 3},
     ],
     this.isFetched = false,
   });
@@ -132,48 +132,91 @@ class LeetCodeUserStats {
 /// Service to automatically fetch student LeetCode statistics & manage 12 AM syncs.
 class LeetCodeService {
   /// Fetches LeetCode solved counts & progress for a given student username.
+  /// Uses official LeetCode GraphQL API as primary endpoint.
   static Future<LeetCodeUserStats> fetchUserStats(String username) async {
     final cleanUsername = username.trim().toLowerCase();
-    final String defaultUser = cleanUsername.isEmpty ? 'tharani_dev' : cleanUsername;
+    final String targetUser = cleanUsername.isEmpty ? 'saravanapmv' : cleanUsername;
 
     try {
-      final uri = Uri.parse('https://leetcode-stats-api.herokuapp.com/$defaultUser');
-      final response = await http.get(uri).timeout(const Duration(seconds: 4));
+      // Endpoint 1: Official LeetCode GraphQL API
+      final uri = Uri.parse('https://leetcode.com/graphql');
+      final body = jsonEncode({
+        'query': r'query getUserProfile($username: String!) { matchedUser(username: $username) { username submitStatsGlobal { acSubmissionNum { difficulty count } } profile { ranking reputation } } }',
+        'variables': {'username': targetUser},
+      });
+
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          final total = (data['totalSolved'] as num?)?.toInt() ?? 248;
-          final easy = (data['easySolved'] as num?)?.toInt() ?? 120;
-          final medium = (data['mediumSolved'] as num?)?.toInt() ?? 100;
-          final hard = (data['hardSolved'] as num?)?.toInt() ?? 28;
-          final rank = (data['ranking'] as num?)?.toInt() ?? 142850;
-          final acc = (data['acceptanceRate'] as num?)?.toDouble() ?? 64.2;
+        if (data['data'] != null && data['data']['matchedUser'] != null) {
+          final matchedUser = data['data']['matchedUser'];
+          final List acStats = matchedUser['submitStatsGlobal']['acSubmissionNum'] ?? [];
+          
+          int total = 130;
+          int easy = 104;
+          int medium = 24;
+          int hard = 2;
+
+          for (final stat in acStats) {
+            final diff = stat['difficulty'];
+            final count = (stat['count'] as num?)?.toInt() ?? 0;
+            if (diff == 'All') total = count;
+            if (diff == 'Easy') easy = count;
+            if (diff == 'Medium') medium = count;
+            if (diff == 'Hard') hard = count;
+          }
+
+          final rank = (matchedUser['profile']?['ranking'] as num?)?.toInt() ?? 1293478;
 
           return LeetCodeUserStats(
-            username: defaultUser,
+            username: targetUser,
             totalSolved: total,
             easySolved: easy,
             mediumSolved: medium,
             hardSolved: hard,
             ranking: rank,
-            acceptanceRate: acc,
-            status: total > 200 ? 'Top 15%' : 'Active',
+            status: '$total Solved',
             isFetched: true,
           );
         }
       }
     } catch (_) {}
 
-    // Fallback default statistics when network is restricted or username is offline
+    try {
+      // Endpoint 2: Alfa LeetCode API fallback
+      final uri = Uri.parse('https://alfa-leetcode-api.onrender.com/$targetUser/solved');
+      final response = await http.get(uri).timeout(const Duration(seconds: 4));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        final total = (data['solvedProblem'] as num?)?.toInt() ?? 130;
+
+        return LeetCodeUserStats(
+          username: targetUser,
+          totalSolved: total,
+          easySolved: (data['easySolved'] as num?)?.toInt() ?? 104,
+          mediumSolved: (data['mediumSolved'] as num?)?.toInt() ?? 24,
+          hardSolved: (data['hardSolved'] as num?)?.toInt() ?? 2,
+          status: '$total Solved',
+          isFetched: true,
+        );
+      }
+    } catch (_) {}
+
+    // Fallback data matching saravanapmv's verified profile stats
     return LeetCodeUserStats(
-      username: defaultUser,
-      totalSolved: 248,
-      easySolved: 120,
-      mediumSolved: 100,
-      hardSolved: 28,
-      ranking: 142850,
-      status: 'Top 15%',
+      username: targetUser,
+      totalSolved: 130,
+      easySolved: 104,
+      mediumSolved: 24,
+      hardSolved: 2,
+      ranking: 1293478,
+      status: '130 Solved',
       isFetched: false,
     );
   }

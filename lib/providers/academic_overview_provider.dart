@@ -24,9 +24,9 @@ class AcademicOverviewData {
     required this.cgpaLabel,
     this.odDays = 4,
     this.odStatus = 'Approved',
-    this.leetcodeSolved = 248,
-    this.leetcodeStatus = 'Top 15%',
-    this.leetcodeUsername = 'tharani_dev',
+    this.leetcodeSolved = 130,
+    this.leetcodeStatus = '130 Solved',
+    this.leetcodeUsername = 'saravanapmv',
   });
 }
 
@@ -43,9 +43,9 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
             cgpaLabel: 'Current CGPA',
             odDays: 4,
             odStatus: 'Approved',
-            leetcodeSolved: 248,
-            leetcodeStatus: 'Top 15%',
-            leetcodeUsername: 'tharani_dev',
+            leetcodeSolved: 130,
+            leetcodeStatus: '130 Solved',
+            leetcodeUsername: 'saravanapmv',
           ),
         ) {
     // Automatically fetch student LeetCode count on startup
