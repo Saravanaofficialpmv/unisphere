@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1017293831751",
+    "project_id": "unisphere-a2be4",
+    "storage_bucket": "unisphere-a2be4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017293831751:android:f66b6c9a8b851402d77b62",
+        "android_client_info": {
+          "package_name": "unisphere.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1017293831751-cm1ml55eeeiqra9qe08fpciivmduvkv8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "unisphere.com",
+            "certificate_hash": "082bc1c11e98b478af6881972f508bd7a1301022"
+          }
+        },
+        {
+          "client_id": "1017293831751-7t1q78g6hgsn6r9u65f5d9vn7v1rkapf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUUyClvyAQ6duitLERtq21w1haw-6fk1Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1017293831751-7t1q78g6hgsn6r9u65f5d9vn7v1rkapf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1017293831751-bsff5f865lco5q4b94t53933l9gmu2sh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "unisphere"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

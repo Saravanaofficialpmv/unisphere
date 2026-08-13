@@ -12,6 +12,7 @@ import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
+import 'package:unisphere/widgets/common/complete_profile_dialog.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {
   const StaffDashboard({super.key});
@@ -24,6 +25,14 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      CompleteProfileDialog.showIfRequired(context, ref);
+    });
+  }
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),

@@ -15,6 +15,18 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
   String _selectedSection = 'All';
   String _selectedType = 'All';
 
+  final List<Map<String, String>> _pendingVerifications = [
+    {
+      'name': 'Alex Johnson',
+      'regNo': 'RA2111003010001',
+      'dept': 'Computer Science and Engineering',
+      'section': 'Sec A',
+      'semester': 'Semester 6 (3rd Year)',
+      'phone': '+91 98765 43210',
+      'status': 'Pending Verification',
+    },
+  ];
+
   final List<Map<String, dynamic>> _studentList = [
     {
       'name': 'Aravind Swamy',
@@ -102,6 +114,8 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 20),
+            _buildPendingVerificationsSection(),
+            const SizedBox(height: 24),
             _buildSearchBar(),
             const SizedBox(height: 16),
             _buildFilters(),
@@ -262,5 +276,156 @@ class _HodStudentManagementState extends State<HodStudentManagement> {
 
   void _showStudentProfileModal(BuildContext context, Map<String, dynamic> item) {
     showStudentFullDetailModal(context, item);
+  }
+
+  Widget _buildPendingVerificationsSection() {
+    if (_pendingVerifications.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF59E0B),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.verified_user_rounded, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'STUDENT PROFILE VERIFICATION REQUESTS (${_pendingVerifications.length})',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFB45309), letterSpacing: 1.1),
+                    ),
+                    const Text(
+                      'Review submitted academic profiles and approve for official campus roster.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _pendingVerifications.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final req = _pendingVerifications[index];
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Color(0xFFFEF3C7),
+                          child: Icon(Icons.person, color: Color(0xFFD97706), size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(req['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              Text('ID: ${req['regNo']} • ${req['section']} • ${req['semester']}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(10)),
+                          child: const Text('Pending HOD Review', style: TextStyle(color: Color(0xFFB45309), fontWeight: FontWeight.bold, fontSize: 11)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text('Dept: ${req['dept']} • Contact: ${req['phone']}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() => _pendingVerifications.removeAt(index));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Verification rejected. Returned to student for editing.'),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.close_rounded, size: 16),
+                            label: const Text('Reject'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: const BorderSide(color: AppColors.error),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() => _pendingVerifications.removeAt(index));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('🎉 ${req['name']}\'s profile details verified & approved by HOD!'),
+                                  backgroundColor: const Color(0xFF10B981),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.check_circle_rounded, size: 16),
+                            label: const Text('Approve & Verify Student'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF10B981),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              minimumSize: const Size(0, 36),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

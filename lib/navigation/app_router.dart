@@ -87,6 +87,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             initialFirstName: queryParams['firstName'],
             initialLastName: queryParams['lastName'],
             initialRole: queryParams['role'],
+            initialId: queryParams['id'],
+            initialDepartment: queryParams['department'],
           );
         },
       ),

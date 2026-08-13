@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,8 @@ class AuthScreen extends ConsumerStatefulWidget {
   final String? initialFirstName;
   final String? initialLastName;
   final String? initialRole;
+  final String? initialId;
+  final String? initialDepartment;
   
   const AuthScreen({
     super.key, 
@@ -17,6 +20,8 @@ class AuthScreen extends ConsumerStatefulWidget {
     this.initialFirstName,
     this.initialLastName,
     this.initialRole,
+    this.initialId,
+    this.initialDepartment,
   });
 
   @override
@@ -35,6 +40,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   late final TextEditingController _lastNameController;
   late final TextEditingController _phoneController;
   
+  UserRole _selectedRole = UserRole.student;
   DateTime? _selectedDate;
   late bool _isSignUp;
   bool _isLoading = false;
@@ -50,6 +56,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _firstNameController = TextEditingController(text: widget.initialFirstName);
     _lastNameController = TextEditingController(text: widget.initialLastName);
     _phoneController = TextEditingController();
+
+    if (widget.initialRole != null) {
+      final roleLower = widget.initialRole!.toLowerCase();
+      if (roleLower.contains('staff') || roleLower.contains('faculty')) {
+        _selectedRole = UserRole.staff;
+      } else if (roleLower.contains('hod')) {
+        _selectedRole = UserRole.hod;
+      } else if (roleLower.contains('admin')) {
+        _selectedRole = UserRole.admin;
+      } else if (roleLower.contains('parent')) {
+        _selectedRole = UserRole.parent;
+      }
+    }
   }
 
   @override
@@ -65,7 +84,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime(2000),
+      initialDate: _selectedDate ?? DateTime(2002, 1, 1),
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -94,31 +113,112 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     
     try {
       if (_isSignUp) {
-        // Simulate Signup
-        setState(() => _isLoading = true);
-        await Future.delayed(const Duration(seconds: 2));
+        final name = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim();
+        await ref.read(authServiceProvider).registerWithEmail(
+          _emailController.text.trim(),
+          _passwordController.text,
+          name.isNotEmpty ? name : 'New User',
+          _selectedRole,
+          phoneNumber: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+          metadata: {
+            'registerNumber': widget.initialId ?? '',
+            'department': widget.initialDepartment ?? '',
+            'birthDate': _selectedDate?.toIso8601String(),
+            'profileCompleted': false,
+          },
+        );
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Notification sent to Admin'),
-              backgroundColor: AppColors.success,
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 2),
-            ),
-          );
-          context.push('/request-submitted');
+          _showSnackBar('✅ Account created successfully! Logging you in...', AppColors.success);
         }
       } else {
         await ref.read(authServiceProvider).signInWithEmail(
           _emailController.text.trim(),
           _passwordController.text,
         );
+        if (mounted) {
+          _showSnackBar('✅ Logged in successfully!', AppColors.success);
+        }
       }
     } catch (e) {
-      if (mounted) _showSnackBar('Failed: ${e.toString()}', AppColors.error);
+      if (mounted) _showSnackBar('Authentication Notice: ${e.toString()}', AppColors.error);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showForgotPasswordDialog() {
+    final resetEmailController = TextEditingController(text: _emailController.text);
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool isResetting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Reset Password', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Enter your registered email to receive a password reset link.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: resetEmailController,
+                    decoration: InputDecoration(
+                      hintText: 'example@unisphere.edu',
+                      prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: isResetting
+                      ? null
+                      : () async {
+                          final email = resetEmailController.text.trim();
+                          if (email.isEmpty || !email.contains('@')) {
+                            _showSnackBar('Enter a valid email address', AppColors.error);
+                            return;
+                          }
+                          setDialogState(() => isResetting = true);
+                          try {
+                            await ref.read(authServiceProvider).sendPasswordResetEmail(email);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              _showSnackBar('✅ Password reset email sent to $email', AppColors.success);
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              _showSnackBar('Notice: ${e.toString()}', AppColors.error);
+                            }
+                          } finally {
+                            if (context.mounted) setDialogState(() => isResetting = false);
+                          }
+                        },
+                  child: isResetting
+                      ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Send Reset Link'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showSnackBar(String message, Color color) {
@@ -260,7 +360,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 const Text('Remember me', style: TextStyle(fontSize: 13)),
               ],
             ),
-            TextButton(onPressed: () {}, child: const Text('Forgot password?', style: TextStyle(fontSize: 13))),
+            TextButton(
+              onPressed: _showForgotPasswordDialog,
+              child: const Text('Forgot password?', style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.bold)),
+            ),
           ],
         ),
         const SizedBox(height: 32),
@@ -389,7 +492,32 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         const SizedBox(height: 8),
         _buildTextField(controller: _emailController, hint: 'example@unisphere.edu', icon: Icons.email_outlined),
         const SizedBox(height: 20),
-        const Text('Birth of date', style: _labelStyle),
+        const Text('Select Account Role', style: _labelStyle),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<UserRole>(
+          initialValue: _selectedRole,
+          isExpanded: true,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.primary, size: 20),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.border)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+          ),
+          items: const [
+            DropdownMenuItem(value: UserRole.student, child: Text('🎓 Student', overflow: TextOverflow.ellipsis)),
+            DropdownMenuItem(value: UserRole.staff, child: Text('👨‍🏫 Staff / Faculty', overflow: TextOverflow.ellipsis)),
+            DropdownMenuItem(value: UserRole.hod, child: Text('🏛️ Head of Department (HOD)', overflow: TextOverflow.ellipsis)),
+            DropdownMenuItem(value: UserRole.admin, child: Text('👑 Administrator', overflow: TextOverflow.ellipsis)),
+            DropdownMenuItem(value: UserRole.parent, child: Text('👨‍👩‍👧 Parent / Guardian', overflow: TextOverflow.ellipsis)),
+          ],
+          onChanged: (val) {
+            if (val != null) setState(() => _selectedRole = val);
+          },
+        ),
+        const SizedBox(height: 20),
+        const Text('Birth Date', style: _labelStyle),
         const SizedBox(height: 8),
         _buildDatePicker(),
         const SizedBox(height: 20),

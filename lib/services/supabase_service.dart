@@ -7,16 +7,36 @@ import 'package:unisphere/models/attendance_model.dart';
 import 'package:unisphere/models/submission_model.dart';
 import 'dart:async';
 
-bool get shouldUseMock => true; // Set to false to use real Supabase in production
+import 'package:unisphere/services/firebase_firestore_service.dart';
+
+bool get shouldUseMock => false;
 
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {
   try {
-    final client = Supabase.instance.client;
-    if (shouldUseMock) return MockSupabaseService();
-    return RealSupabaseService(client);
+    return FirebaseFirestoreService();
   } catch (e) {
     return MockSupabaseService();
   }
+});
+
+final announcementsStreamProvider = StreamProvider<List<AnnouncementModel>>((ref) {
+  final service = ref.watch(supabaseServiceProvider);
+  return service.getAnnouncements();
+});
+
+final assignmentsStreamProvider = StreamProvider<List<AssignmentModel>>((ref) {
+  final service = ref.watch(supabaseServiceProvider);
+  return service.getAssignments();
+});
+
+final marksStreamProvider = StreamProvider.family<List<MarkModel>, String>((ref, studentUid) {
+  final service = ref.watch(supabaseServiceProvider);
+  return service.getMarks(studentUid);
+});
+
+final attendanceStreamProvider = StreamProvider.family<List<AttendanceRecord>, String>((ref, studentUid) {
+  final service = ref.watch(supabaseServiceProvider);
+  return service.getAttendance(studentUid);
 });
 
 abstract class SupabaseService {

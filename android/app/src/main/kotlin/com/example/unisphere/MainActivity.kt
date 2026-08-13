@@ -1,4 +1,4 @@
-package com.example.unisphere
+package unisphere.com
 
 import io.flutter.embedding.android.FlutterActivity
 

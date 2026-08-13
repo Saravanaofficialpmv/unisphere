@@ -85,6 +85,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           'firstName': firstName,
           'lastName': lastName,
           'role': role,
+          'id': _idController.text.trim(),
+          'department': _selectedDept ?? '',
         },
       ).toString(),
     );

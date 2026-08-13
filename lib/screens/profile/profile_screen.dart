@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
+
+import 'package:unisphere/core/constants/app_departments.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -214,6 +217,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        _buildProfileVerificationCard(),
+
         _buildSectionHeader('👤 Personal Information'),
         _buildCard([
           _buildInfoRow('Full Name', 'Saravana Kumar'),
@@ -1270,4 +1275,357 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     );
   }
 
+  Widget _buildProfileVerificationCard() {
+    final user = ref.watch(authServiceProvider).currentUser;
+    if (user == null) return const SizedBox.shrink();
+
+    final meta = user.metadata ?? {};
+    final status = meta['verificationStatus'] ?? 'incomplete';
+
+    if (status == 'verified') {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD1FAE5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF10B981)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.verified_rounded, color: Color(0xFF047857), size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('🟢 Verified Academic Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF047857))),
+                  Text('Approved by ${meta['verifiedBy'] ?? "Dr. R. Kumar (HOD, CSE)"}', style: const TextStyle(fontSize: 12, color: Color(0xFF065F46))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (status == 'pending') {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF3C7),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFF59E0B)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.hourglass_top_rounded, color: Color(0xFFB45309), size: 26),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '🟡 Verification Pending by HOD',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF92400E)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your profile details (ID: ${meta['registerNumber'] ?? "RA2111003010001"}, Dept: ${meta['department'] ?? "CSE"}, Sec: ${meta['section'] ?? "A"}) were submitted to Dr. R. Kumar (HOD) for review.',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF78350F), height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final updatedMeta = Map<String, dynamic>.from(meta);
+                updatedMeta['verificationStatus'] = 'incomplete';
+                final updated = user.copyWith(metadata: updatedMeta);
+                await ref.read(authServiceProvider).updateUserProfile(updated);
+              },
+              icon: const Icon(Icons.edit_note_rounded, size: 16),
+              label: const Text('Edit Submitted Details'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD97706),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                minimumSize: const Size(0, 36),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Status: Incomplete - Render Form
+    return _ProfileFormWidget(user: user);
+  }
+}
+
+class _ProfileFormWidget extends ConsumerStatefulWidget {
+  final UserModel user;
+
+  const _ProfileFormWidget({required this.user});
+
+  @override
+  ConsumerState<_ProfileFormWidget> createState() => _ProfileFormWidgetState();
+}
+
+class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _regNoController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _sectionController;
+  late String _selectedDept;
+  String _selectedSemester = 'Semester 6 (3rd Year)';
+  bool _isSubmitting = false;
+
+  final List<String> _semesters = [
+    'Semester 1 (1st Year)',
+    'Semester 2 (1st Year)',
+    'Semester 3 (2nd Year)',
+    'Semester 4 (2nd Year)',
+    'Semester 5 (3rd Year)',
+    'Semester 6 (3rd Year)',
+    'Semester 7 (4th Year)',
+    'Semester 8 (4th Year)',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    final meta = widget.user.metadata ?? {};
+    _regNoController = TextEditingController(text: meta['registerNumber'] ?? 'RA2111003010001');
+    _phoneController = TextEditingController(text: widget.user.phoneNumber ?? '+91 98765 43210');
+    _sectionController = TextEditingController(text: meta['section'] ?? 'Sec A');
+
+    final deptVal = meta['department']?.toString() ?? '';
+    _selectedDept = AppDepartments.list.firstWhere(
+      (d) => d.toLowerCase() == deptVal.toLowerCase() || d.toLowerCase().contains(deptVal.toLowerCase()),
+      orElse: () => AppDepartments.list.firstWhere(
+        (d) => d.contains('Computer Science'),
+        orElse: () => AppDepartments.list.first,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _regNoController.dispose();
+    _phoneController.dispose();
+    _sectionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitToHod() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final updatedMeta = Map<String, dynamic>.from(widget.user.metadata ?? {});
+      updatedMeta['registerNumber'] = _regNoController.text.trim();
+      updatedMeta['department'] = _selectedDept;
+      updatedMeta['section'] = _sectionController.text.trim();
+      updatedMeta['semester'] = _selectedSemester;
+      updatedMeta['verificationStatus'] = 'pending';
+      updatedMeta['submittedAt'] = DateTime.now().toIso8601String();
+
+      final updatedUser = widget.user.copyWith(
+        phoneNumber: _phoneController.text.trim(),
+        metadata: updatedMeta,
+      );
+
+      await ref.read(authServiceProvider).updateUserProfile(updatedUser);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 Profile submitted to Dr. R. Kumar (HOD, CSE) for verification!'),
+            backgroundColor: Color(0xFFD97706),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Submission notice: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.06),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.assignment_ind_rounded, color: AppColors.primary, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Complete Profile & Submit to HOD', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary)),
+                      Text('Fill in your academic information to submit for official HOD verification.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+
+            const Text('Register / Student ID Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+            const SizedBox(height: 6),
+            TextFormField(
+              controller: _regNoController,
+              decoration: InputDecoration(
+                hintText: 'e.g. RA2111003010001',
+                prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.primary, size: 18),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              validator: (val) => val == null || val.trim().isEmpty ? 'Register ID is required' : null,
+            ),
+            const SizedBox(height: 14),
+
+            const Text('Academic Department', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+            const SizedBox(height: 6),
+            DropdownButtonFormField<String>(
+              initialValue: _selectedDept,
+              isExpanded: true,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.account_balance_outlined, color: AppColors.primary, size: 18),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              items: AppDepartments.list.map((dept) {
+                return DropdownMenuItem<String>(
+                  value: dept,
+                  child: Text(dept, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) setState(() => _selectedDept = val);
+              },
+            ),
+            const SizedBox(height: 14),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Section / Group', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _sectionController,
+                        decoration: InputDecoration(
+                          hintText: 'Sec A',
+                          prefixIcon: const Icon(Icons.groups_outlined, color: AppColors.primary, size: 18),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Current Semester', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedSemester,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                        ),
+                        items: _semesters.map((sem) {
+                          return DropdownMenuItem<String>(
+                            value: sem,
+                            child: Text(sem, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11)),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedSemester = val);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            const Text('Contact Phone Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+            const SizedBox(height: 6),
+            TextFormField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                hintText: '+91 98765 43210',
+                prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 18),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isSubmitting ? null : _submitToHod,
+                icon: _isSubmitting
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.send_rounded, size: 18),
+                label: Text(_isSubmitting ? 'Submitting to HOD...' : 'Submit to HOD for Verification'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

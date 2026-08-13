@@ -43,6 +43,25 @@ class UserModel {
     };
   }
 
+  UserModel copyWith({
+    String? name,
+    String? email,
+    UserRole? role,
+    String? profileImageUrl,
+    String? phoneNumber,
+    Map<String, dynamic>? metadata,
+  }) {
+    return UserModel(
+      uid: uid,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      role: role ?? this.role,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      metadata: metadata ?? this.metadata,
+    );
+  }
+
   static UserRole _parseRole(String? role) {
     if (role == null) return UserRole.student; // Default
     switch (role.toLowerCase()) {

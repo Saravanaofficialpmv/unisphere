@@ -28,6 +28,7 @@ import 'package:unisphere/widgets/common/open_menu_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
+import 'package:unisphere/services/auth_service.dart';
 
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -42,6 +43,11 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   bool _openGpaPlannerInGradebook = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
@@ -422,6 +428,9 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       _buildSearchBar(context),
                       const SizedBox(height: 16),
 
+                      // Profile Verification Banner (Prompt to complete profile & submit to HOD)
+                      _buildCompleteProfileBanner(context),
+
                       // 2. Academic Overview Card with background glow
                       Stack(
                         clipBehavior: Clip.none,
@@ -510,6 +519,88 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                 },
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompleteProfileBanner(BuildContext context) {
+    final user = ref.watch(authServiceProvider).currentUser;
+    final meta = user?.metadata ?? {};
+    final status = meta['verificationStatus'] ?? 'incomplete';
+
+    if (status == 'verified') return const SizedBox.shrink();
+
+    final isPending = status == 'pending';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isPending
+              ? [const Color(0xFFD97706), const Color(0xFFB45309)]
+              : [const Color(0xFF1E3A8A), const Color(0xFF3B82F6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: (isPending ? const Color(0xFFD97706) : AppColors.primary).withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isPending ? Icons.hourglass_top_rounded : Icons.assignment_ind_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isPending ? '🟡 Profile Verification Pending' : '🎓 Complete Your Profile',
+                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  isPending
+                      ? 'Your details were submitted to Dr. R. Kumar (HOD, CSE) for verification.'
+                      : 'Fill in your register number, section & semester, then submit to HOD for verification.',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton(
+            onPressed: () => widget.onNavigateToTab(16), // My Profile
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: isPending ? const Color(0xFFB45309) : AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              minimumSize: const Size(0, 36),
+            ),
+            child: Text(
+              isPending ? 'View Status' : 'Fill Details →',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
         ],
       ),
     );

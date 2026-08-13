@@ -1,12 +1,17 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:unisphere/models/announcement_model.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
 
 class AnnouncementService extends ChangeNotifier {
   static final AnnouncementService _instance = AnnouncementService._internal();
   factory AnnouncementService() => _instance;
 
+  StreamSubscription<List<AnnouncementModel>>? _subscription;
+
   AnnouncementService._internal() {
     _initSeedAnnouncements();
+    _connectFirestoreStream();
   }
 
   final List<AnnouncementModel> _announcements = [];
@@ -15,6 +20,26 @@ class AnnouncementService extends ChangeNotifier {
   List<AnnouncementModel> get announcements => List.unmodifiable(_announcements);
 
   int get unreadCount => _announcements.where((a) => !a.isReadBy(_currentUserId)).length;
+
+  void _connectFirestoreStream() {
+    try {
+      final firestoreService = FirebaseFirestoreService();
+      _subscription = firestoreService.getAnnouncements().listen(
+        (list) {
+          if (list.isNotEmpty) {
+            _announcements.clear();
+            _announcements.addAll(list);
+            notifyListeners();
+          }
+        },
+        onError: (e) {
+          debugPrint('AnnouncementService stream error: $e');
+        },
+      );
+    } catch (e) {
+      debugPrint('AnnouncementService connect error: $e');
+    }
+  }
 
   void _initSeedAnnouncements() {
     final now = DateTime.now();
@@ -45,32 +70,10 @@ class AnnouncementService extends ChangeNotifier {
       AnnouncementModel(
         id: 'ann_103',
         title: 'UNISPHERE Annual Cultural Fest 2026 Registrations Open',
-        content: 'Registrations are now open for UNISPHERE Cultural Fest 2026! Participate in music, dance, coding battles, and dramatic events. Cash prizes worth ₹500,000.',
+        content: 'Registrations are now open for UNISPHERE Cultural Fest 2026! Participate in music, dance, coding battles, and dramatic events.',
         authorName: 'Student Activity & Cultural Council',
         createdAt: now.subtract(const Duration(days: 1)),
         category: 'Event',
-        priority: 'Normal',
-        isNew: false,
-        readByUsers: [_currentUserId],
-      ),
-      AnnouncementModel(
-        id: 'ann_104',
-        title: 'End-Semester Exam Schedule & Hall Ticket Download',
-        content: 'The final exam schedule is published. Students can download digital hall tickets from the examination portal starting 12th August.',
-        authorName: 'Office of Controller of Examinations',
-        createdAt: now.subtract(const Duration(days: 2)),
-        category: 'Examination',
-        priority: 'Urgent',
-        isNew: false,
-        readByUsers: [_currentUserId],
-      ),
-      AnnouncementModel(
-        id: 'ann_105',
-        title: 'Library 24/7 Access During Exam Preparation',
-        content: 'Central Library will remain open 24/7 starting next Monday to assist students during end-semester examination preparation.',
-        authorName: 'Central Library Administration',
-        createdAt: now.subtract(const Duration(days: 3)),
-        category: 'Academic',
         priority: 'Normal',
         isNew: false,
         readByUsers: [_currentUserId],
@@ -97,7 +100,7 @@ class AnnouncementService extends ChangeNotifier {
 
       return matchesCategory && matchesUnread && matchesImportant && matchesSearch;
     }).toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   void markAsRead(String announcementId) {
@@ -105,12 +108,14 @@ class AnnouncementService extends ChangeNotifier {
     if (index != -1 && !_announcements[index].isReadBy(_currentUserId)) {
       _announcements[index] = _announcements[index].markReadFor(_currentUserId);
       notifyListeners();
+      FirebaseFirestoreService().markAnnouncementRead(announcementId, _currentUserId);
     }
   }
 
   void addAnnouncement(AnnouncementModel announcement) {
     _announcements.insert(0, announcement);
     notifyListeners();
+    FirebaseFirestoreService().addAnnouncement(announcement);
   }
 
   List<String> get availableCategories => [
@@ -126,4 +131,10 @@ class AnnouncementService extends ChangeNotifier {
         'Emergency',
         'Fee / Administration',
       ];
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
 }

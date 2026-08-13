@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:unisphere/core/theme/app_theme.dart';
 import 'package:unisphere/navigation/app_router.dart';
+import 'package:unisphere/services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
-    await Supabase.initialize(
-      url: 'https://rntzohaebzhourhrtmrg.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJudHpvaGFlYnpob3VyaHJ0bXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0NDA4MDgsImV4cCI6MjA5MTAxNjgwOH0.F7c3eKeBtrBtsoDttdnZnukhiC2Px7RlA6ebZ1dOyrc',
-    );
+    await FirebaseService.instance.initialize();
   } catch (e) {
-    debugPrint('Supabase initialization failed: $e');
+    debugPrint('Firebase initialization notice: $e');
   }
 
   runApp(

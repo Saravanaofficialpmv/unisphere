@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:unisphere/models/hackathon_model.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
 
 abstract class HackathonService {
   Future<List<HackathonModel>> getHackathons({int page = 1, int limit = 10, String? category});
@@ -311,6 +312,14 @@ class ApiHackathonService implements HackathonService {
         registrationId: regId,
         registeredTeams: existing.registeredTeams + 1,
       );
+
+      // Persist team registration to Firebase Firestore
+      FirebaseFirestoreService().registerHackathonTeam(hackathonId, {
+        ...registrationData,
+        'registrationId': regId,
+        'registeredAt': DateTime.now().toIso8601String(),
+      });
+
       return {
         'status': 'success',
         'message': 'Successfully registered team for ${existing.title}',

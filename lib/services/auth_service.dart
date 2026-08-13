@@ -1,17 +1,28 @@
 import 'dart:async';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:unisphere/models/user_model.dart';
+import 'package:unisphere/services/firebase_auth_service.dart';
 
 abstract class AuthService {
   Stream<UserModel?> get authStateChanges;
   Future<void> signInWithEmail(String email, String password);
+  Future<void> registerWithEmail(
+    String email,
+    String password,
+    String name,
+    UserRole role, {
+    String? phoneNumber,
+    Map<String, dynamic>? metadata,
+  });
+  Future<void> updateUserProfile(UserModel updatedUser);
+  Future<void> sendPasswordResetEmail(String email);
   Future<void> signOut();
   UserModel? get currentUser;
 }
 
 final authServiceProvider = Provider<AuthService>((ref) {
-  return SupabaseAuthService(Supabase.instance.client);
+  return FirebaseAuthService();
 });
 
 class SupabaseAuthService implements AuthService {
@@ -56,7 +67,7 @@ class SupabaseAuthService implements AuthService {
   }
 
   @override
-  UserModel? get currentUser => _mockUser; 
+  UserModel? get currentUser => _mockUser ?? _currentUser; 
 
   @override
   Future<void> signInWithEmail(String email, String password) async {
@@ -118,6 +129,43 @@ class SupabaseAuthService implements AuthService {
       );
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
+    }
+  }
+
+  @override
+  Future<void> registerWithEmail(
+    String email,
+    String password,
+    String name,
+    UserRole role, {
+    String? phoneNumber,
+    Map<String, dynamic>? metadata,
+  }) async {
+    _mockUser = UserModel(
+      uid: 'DEMO-REG-${DateTime.now().millisecondsSinceEpoch}',
+      email: email,
+      name: name,
+      role: role,
+      phoneNumber: phoneNumber,
+      metadata: metadata,
+    );
+    _currentUser = _mockUser;
+    _stateController.add(_mockUser);
+  }
+
+  @override
+  Future<void> updateUserProfile(UserModel updatedUser) async {
+    _mockUser = updatedUser;
+    _currentUser = updatedUser;
+    _stateController.add(updatedUser);
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(email);
+    } catch (e) {
+      // Ignored for demo
     }
   }
 
