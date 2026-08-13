@@ -29,6 +29,13 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    if (widget.initialShowPlanner) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showCgpaCalculatorModal(context);
+        }
+      });
+    }
   }
 
   @override
@@ -546,9 +553,10 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
     }
 
     final bool hasRetest = sub[hasRetestKey] == 'true';
-    final String finalScore = sub[scoreKey]!;
+    final String finalScore = sub[scoreKey] ?? 'N/A';
     final String initialScore = sub[initialKey] ?? finalScore;
-    final String convScore = sub[convKey]!;
+    final String convScore = sub[convKey] ?? 'N/A';
+    final String retestScore = sub[retestKey] ?? finalScore;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -585,7 +593,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        sub['code']!,
+                        sub['code'] ?? 'SUB',
                         style: const TextStyle(
                           color: Color(0xFF2563EB),
                           fontWeight: FontWeight.bold,
@@ -596,7 +604,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        sub['name']!,
+                        sub['name'] ?? 'Subject Name',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -645,7 +653,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
           ),
           const SizedBox(height: 4),
           Text(
-            'Uploaded by: ${sub['faculty']!}',
+            'Uploaded by: ${sub['faculty'] ?? 'Subject Staff'}',
             style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 12),
@@ -714,7 +722,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                'Retest Attempt: ${sub[retestKey]!}',
+                                'Retest Attempt: $retestScore',
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -782,11 +790,11 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
   }
 
   Widget _buildInternalSubjectCard(Map<String, String> sub) {
-    double ia1Val = _parseVal(sub['ia1']!, 50);
-    double ia2Val = _parseVal(sub['ia2']!, 50);
-    double modelVal = _parseVal(sub['modelExam']!, 100);
-    double attVal = _parseVal(sub['attAssign']!, 10);
-    double totalVal = _parseVal(sub['totalInternal']!, 60);
+    double ia1Val = _parseVal(sub['ia1'] ?? '0', 50);
+    double ia2Val = _parseVal(sub['ia2'] ?? '0', 50);
+    double modelVal = _parseVal(sub['modelExam'] ?? '0', 100);
+    double attVal = _parseVal(sub['attAssign'] ?? '0', 10);
+    double totalVal = _parseVal(sub['totalInternal'] ?? '0', 60);
     double totalPct = (totalVal / 60.0).clamp(0.0, 1.0);
 
     return Container(
@@ -828,7 +836,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        sub['code']!,
+                        sub['code'] ?? 'SUB',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -840,7 +848,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        sub['name']!,
+                        sub['name'] ?? 'Subject Name',
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 14.5,
@@ -864,7 +872,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                           const Icon(Icons.star_rounded, size: 14, color: Color(0xFF059669)),
                           const SizedBox(width: 4),
                           Text(
-                            sub['totalInternal']!,
+                            sub['totalInternal'] ?? '0/60',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w900,
@@ -883,7 +891,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        'Faculty Lead: ${sub['faculty']!}',
+                        'Faculty Lead: ${sub['faculty'] ?? 'Subject Staff'}',
                         style: const TextStyle(
                           fontSize: 11.5,
                           color: Color(0xFF64748B),
@@ -910,8 +918,8 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                     Expanded(
                       child: _buildInternalMetricCard(
                         'IA-1 (50)',
-                        sub['ia1']!,
-                        sub['ia1Conv']!,
+                        sub['ia1'] ?? '0/50',
+                        sub['ia1Conv'] ?? '0/15',
                         ia1Val / 50.0,
                         const Color(0xFF2563EB),
                         const Color(0xFFEEF2FF),
@@ -922,8 +930,8 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                     Expanded(
                       child: _buildInternalMetricCard(
                         'IA-2 (50)',
-                        sub['ia2']!,
-                        sub['ia2Conv']!,
+                        sub['ia2'] ?? '0/50',
+                        sub['ia2Conv'] ?? '0/15',
                         ia2Val / 50.0,
                         const Color(0xFF3B82F6),
                         const Color(0xFFEFF6FF),
@@ -938,8 +946,8 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                     Expanded(
                       child: _buildInternalMetricCard(
                         'Model (100)',
-                        sub['modelExam']!,
-                        sub['modelConv']!,
+                        sub['modelExam'] ?? '0/100',
+                        sub['modelConv'] ?? '0/20',
                         modelVal / 100.0,
                         const Color(0xFF10B981),
                         const Color(0xFFECFDF5),
@@ -950,7 +958,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                     Expanded(
                       child: _buildInternalMetricCard(
                         'Attd / Assign',
-                        sub['attAssign']!,
+                        sub['attAssign'] ?? '0/10',
                         'Score 10',
                         attVal / 10.0,
                         const Color(0xFFF59E0B),
