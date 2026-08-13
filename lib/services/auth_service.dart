@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:unisphere/models/user_model.dart';
@@ -19,11 +20,18 @@ abstract class AuthService {
   Future<void> sendPasswordResetEmail(String email);
   Future<void> signOut();
   UserModel? get currentUser;
+  Future<void> reloadUser();
+  Stream<fb.User?>? get firebaseUserStream;
 }
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return FirebaseAuthService();
 });
+
+final currentUserProvider = StreamProvider<UserModel?>((ref) {
+  return ref.watch(authServiceProvider).authStateChanges;
+});
+
 
 class SupabaseAuthService implements AuthService {
   final SupabaseClient _supabase;
@@ -168,6 +176,12 @@ class SupabaseAuthService implements AuthService {
       // Ignored for demo
     }
   }
+
+  @override
+  Future<void> reloadUser() async {}
+
+  @override
+  Stream<fb.User?>? get firebaseUserStream => null;
 
   @override
   Future<void> signOut() async {

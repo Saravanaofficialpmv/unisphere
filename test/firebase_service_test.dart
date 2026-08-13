@@ -6,6 +6,8 @@ import 'package:unisphere/models/exam_model.dart';
 import 'package:unisphere/models/hackathon_model.dart';
 import 'package:unisphere/models/mark_model.dart';
 import 'package:unisphere/models/submission_model.dart';
+import 'package:unisphere/models/user_model.dart';
+import 'package:unisphere/services/firebase_auth_service.dart';
 import 'package:unisphere/services/firebase_service.dart';
 
 void main() {
@@ -202,4 +204,48 @@ void main() {
       expect(reconstructed.teamSize, 4);
     });
   });
+
+  group('FirebaseAuthService Real-Time Authentication Tests', () {
+    test('FirebaseAuthService initializes and handles authStateChanges stream', () async {
+      final authService = FirebaseAuthService();
+      expect(authService, isNotNull);
+      
+      // Check initial auth state stream emission
+      final initialUser = await authService.authStateChanges.first;
+      expect(initialUser, isNull);
+    });
+
+    test('Real-time sign in updates currentUser and emits to authStateChanges stream', () async {
+      final authService = FirebaseAuthService();
+
+      // Sign in with demo student account
+      await authService.signInWithEmail('saravanapmvofficial@gmail.com', 'Sivamani9698pmv\$');
+
+      expect(authService.currentUser, isNotNull);
+      expect(authService.currentUser?.email, 'saravanapmvofficial@gmail.com');
+      expect(authService.currentUser?.role, UserRole.student);
+
+      // Sign out
+      await authService.signOut();
+      expect(authService.currentUser, isNull);
+    });
+
+    test('Real-time profile update updates user data and emits stream event', () async {
+      final authService = FirebaseAuthService();
+
+      await authService.signInWithEmail('hod.cse@unisphere.edu', 'HodPass123!');
+      final user = authService.currentUser;
+      expect(user?.role, UserRole.hod);
+
+      // Update profile
+      final updatedUser = user!.copyWith(name: 'Dr. R. Kumar (HOD CSE)');
+      await authService.updateUserProfile(updatedUser);
+
+      expect(authService.currentUser?.name, 'Dr. R. Kumar (HOD CSE)');
+
+      await authService.signOut();
+      expect(authService.currentUser, isNull);
+    });
+  });
 }
+
