@@ -446,17 +446,7 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(4)),
-                child: Text('${(pct * 100).toInt()}%', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color)),
-              ),
-            ],
-          ),
+          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 6),
           Text('$solved / $total', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
           const SizedBox(height: 6),
