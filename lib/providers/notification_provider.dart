@@ -257,6 +257,40 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     ),
   ];
 
+  void addNotification({
+    required String title,
+    required String category,
+    required String summary,
+    required String fullDetails,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+    required String badgeText,
+    required Color badgeColor,
+    required Color badgeTextColor,
+    String? featureId,
+    Map<String, String>? metadata,
+  }) {
+    final newItem = NotificationItem(
+      id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      category: category,
+      timeAgo: 'Just now',
+      summary: summary,
+      fullDetails: fullDetails,
+      icon: icon,
+      iconColor: iconColor,
+      iconBgColor: iconBgColor,
+      badgeText: badgeText,
+      badgeColor: badgeColor,
+      badgeTextColor: badgeTextColor,
+      isUnread: true,
+      featureId: featureId,
+      metadata: metadata,
+    );
+    state = state.copyWith(items: [newItem, ...state.items]);
+  }
+
   void setCategory(String category) {
     state = state.copyWith(selectedCategory: category);
   }
