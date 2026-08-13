@@ -7,6 +7,7 @@ class AttendanceSystemState {
   final List<SemesterAttendance> studentSemesters;
   final int selectedSemesterIndex;
   final List<AttendanceRecord> attendanceLogs;
+  final List<DailyAttendanceLog> dailyLogs;
   final List<LeaveRequestModel> leaveRequests;
 
   const AttendanceSystemState({
@@ -14,6 +15,7 @@ class AttendanceSystemState {
     required this.studentSemesters,
     this.selectedSemesterIndex = 3, // Default Sem 4 (Active)
     required this.attendanceLogs,
+    required this.dailyLogs,
     required this.leaveRequests,
   });
 
@@ -36,6 +38,7 @@ class AttendanceSystemState {
     List<SemesterAttendance>? studentSemesters,
     int? selectedSemesterIndex,
     List<AttendanceRecord>? attendanceLogs,
+    List<DailyAttendanceLog>? dailyLogs,
     List<LeaveRequestModel>? leaveRequests,
   }) {
     return AttendanceSystemState(
@@ -43,6 +46,7 @@ class AttendanceSystemState {
       studentSemesters: studentSemesters ?? this.studentSemesters,
       selectedSemesterIndex: selectedSemesterIndex ?? this.selectedSemesterIndex,
       attendanceLogs: attendanceLogs ?? this.attendanceLogs,
+      dailyLogs: dailyLogs ?? this.dailyLogs,
       leaveRequests: leaveRequests ?? this.leaveRequests,
     );
   }
@@ -114,6 +118,117 @@ class AttendanceSystemNotifier extends StateNotifier<AttendanceSystemState> {
               ),
             ],
             selectedSemesterIndex: 3,
+            dailyLogs: [
+              DailyAttendanceLog(
+                id: 'd1',
+                dateStr: '13 Aug 2026',
+                date: DateTime.now(),
+                status: AttendanceStatus.present,
+                dayName: 'Thursday',
+                subjectsCovered: [
+                  'CS301 - Computer Networks (09:00 AM)',
+                  'CS302 - Database Systems (10:15 AM)',
+                  'CS303 - Web Technology (11:30 AM)',
+                  'CS304 - Software Engineering (02:00 PM)',
+                  'CS305 - AI & Machine Learning (03:15 PM)',
+                ],
+                classInCharge: 'Dr. Robert Vance',
+                remarks: 'Present for all 5 timetable sessions',
+              ),
+              DailyAttendanceLog(
+                id: 'd2',
+                dateStr: '12 Aug 2026',
+                date: DateTime.now().subtract(const Duration(days: 1)),
+                status: AttendanceStatus.onDuty,
+                dayName: 'Wednesday',
+                subjectsCovered: [
+                  'CS301 - Computer Networks',
+                  'CS302 - Database Systems',
+                  'CS303 - Web Technology',
+                  'CS304 - Software Engineering',
+                  'CS305 - AI & Machine Learning',
+                ],
+                classInCharge: 'Prof. Sarah Jenkins',
+                remarks: 'On Duty (OD): IIT Madras Inter-College Hackathon 2026',
+              ),
+              DailyAttendanceLog(
+                id: 'd3',
+                dateStr: '11 Aug 2026',
+                date: DateTime.now().subtract(const Duration(days: 2)),
+                status: AttendanceStatus.present,
+                dayName: 'Tuesday',
+                subjectsCovered: [
+                  'CS301 - Computer Networks',
+                  'CS302 - Database Systems',
+                  'CS303 - Web Technology',
+                  'CS304 - Software Engineering',
+                  'CS305 - AI & Machine Learning',
+                ],
+                classInCharge: 'Dr. Alan Turing',
+                remarks: 'Present for all 5 timetable sessions',
+              ),
+              DailyAttendanceLog(
+                id: 'd4',
+                dateStr: '10 Aug 2026',
+                date: DateTime.now().subtract(const Duration(days: 3)),
+                status: AttendanceStatus.absent,
+                dayName: 'Monday',
+                subjectsCovered: [
+                  'CS301 - Computer Networks',
+                  'CS302 - Database Systems',
+                  'CS303 - Web Technology',
+                  'CS304 - Software Engineering',
+                  'CS305 - AI & Machine Learning',
+                ],
+                classInCharge: 'Prof. Michael Scott',
+                remarks: 'Absent for full day (All 5 sessions marked Absent)',
+              ),
+              DailyAttendanceLog(
+                id: 'd5',
+                dateStr: '07 Aug 2026',
+                date: DateTime.now().subtract(const Duration(days: 6)),
+                status: AttendanceStatus.present,
+                dayName: 'Friday',
+                subjectsCovered: [
+                  'CS301 - Computer Networks',
+                  'CS302 - Database Systems',
+                  'CS303 - Web Technology',
+                  'CS304 - Software Engineering',
+                  'CS305 - AI & Machine Learning',
+                ],
+                classInCharge: 'Dr. Grace Hopper',
+                remarks: 'Present for all 5 timetable sessions',
+              ),
+              DailyAttendanceLog(
+                id: 'd6',
+                dateStr: '06 Aug 2026',
+                date: DateTime.now().subtract(const Duration(days: 7)),
+                status: AttendanceStatus.present,
+                dayName: 'Thursday',
+                subjectsCovered: [
+                  'CS301 - Computer Networks',
+                  'CS302 - Database Systems',
+                  'CS303 - Web Technology',
+                  'CS304 - Software Engineering',
+                ],
+                classInCharge: 'Dr. K. Sharma',
+                remarks: 'Present for all timetable sessions',
+              ),
+              DailyAttendanceLog(
+                id: 'd7',
+                dateStr: '05 Aug 2026',
+                date: DateTime.now().subtract(const Duration(days: 8)),
+                status: AttendanceStatus.onDuty,
+                dayName: 'Wednesday',
+                subjectsCovered: [
+                  'CS301 - Computer Networks',
+                  'CS302 - Database Systems',
+                  'CS303 - Web Technology',
+                ],
+                classInCharge: 'Prof. V. Raman',
+                remarks: 'On Duty (OD): State Level Robotics Expo',
+              ),
+            ],
             attendanceLogs: [
               AttendanceRecord(id: '1', studentUid: '917722104022', studentName: 'Alex Johnson', subjectCode: 'CS301', subjectName: 'Computer Networks', date: DateTime.now().subtract(const Duration(hours: 4)), timeSlot: '09:00 - 10:00 AM', status: AttendanceStatus.present, facultyName: 'Dr. Robert Vance'),
               AttendanceRecord(id: '2', studentUid: '917722104022', studentName: 'Alex Johnson', subjectCode: 'CS302', subjectName: 'Database Systems', date: DateTime.now().subtract(const Duration(hours: 2)), timeSlot: '10:15 - 11:15 AM', status: AttendanceStatus.present, facultyName: 'Prof. Sarah Jenkins'),

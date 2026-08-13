@@ -957,7 +957,7 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: Colors.transparent,
                     tabs: const [
-                      Tab(text: 'Breakdown'),
+                      Tab(text: 'Daily Attendance'),
                       Tab(text: 'History Log'),
                       Tab(text: 'Leave & OD'),
                     ],
@@ -970,10 +970,11 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    // Tab 0: Subject Breakdown with Semester Chips
-                    _buildSubjectBreakdownTab(
+                    // Tab 0: Daily Basis Attendance Log
+                    _buildDailyAttendanceTab(
                       semDataList: semDataList,
                       selectedSemData: activeSemData,
+                      dailyLogs: systemState.dailyLogs,
                       summaryCard: _buildSummaryCard(
                         overallPercentage: overallPercentage,
                         overallAttended: overallAttended,
@@ -1132,13 +1133,12 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
     );
   }
 
-  Widget _buildSubjectBreakdownTab({
+  Widget _buildDailyAttendanceTab({
     required List<SemesterAttendance> semDataList,
     required SemesterAttendance selectedSemData,
+    required List<DailyAttendanceLog> dailyLogs,
     required Widget summaryCard,
   }) {
-    final subjectsList = selectedSemData.subjects;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 40),
       child: Column(
@@ -1147,27 +1147,93 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
           summaryCard,
           _buildSemesterPills(semDataList),
           const SizedBox(height: 6),
+
+          // Daily Attendance Policy Banner
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.today_rounded, color: Color(0xFF2563EB), size: 22),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'DAILY BASIS ATTENDANCE POLICY',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), letterSpacing: 0.8),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Attendance is recorded per day. Being Present on a day marks you Present for all subjects scheduled on that day.',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF1E40AF), height: 1.2),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+
           _buildAttendanceSimulatorWidget(selectedSemData.attendedWorkingDays, selectedSemData.totalWorkingDays),
+          const SizedBox(height: 12),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Daily Attendance Logs',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(8)),
+                  child: Text(
+                    '${dailyLogs.where((d) => d.isPresent).length} / ${dailyLogs.length} Days Attended',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 10),
 
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            itemCount: subjectsList.length,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: dailyLogs.length,
             itemBuilder: (context, index) {
-              final item = subjectsList[index];
-              final Color color = Color(item.colorValue);
-              final double pct = item.percentage / 100.0;
-              final bool isLow = item.isLow;
-              final bool isExpanded = _expandedSubjectIndex == index;
+              final log = dailyLogs[index];
+              final isExpanded = _expandedSubjectIndex == index;
+              final isPresent = log.isPresent;
+              final isOd = log.isOnDuty;
+
+              Color badgeColor = isPresent
+                  ? const Color(0xFF059669)
+                  : (isOd ? const Color(0xFF2563EB) : const Color(0xFFDC2626));
+              Color badgeBg = isPresent
+                  ? const Color(0xFFECFDF5)
+                  : (isOd ? const Color(0xFFEFF6FF) : const Color(0xFFFEF2F2));
+              IconData badgeIcon = isPresent
+                  ? Icons.check_circle_rounded
+                  : (isOd ? Icons.workspace_premium_rounded : Icons.cancel_rounded);
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: isLow ? const Color(0xFFFCA5A5) : const Color(0xFFE2E8F0)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.03),
@@ -1189,127 +1255,70 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(color: badgeBg, borderRadius: BorderRadius.circular(12)),
+                              child: Icon(badgeIcon, color: badgeColor, size: 22),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                                  ),
-                                  const SizedBox(width: 8),
                                   Text(
-                                    item.code,
-                                    style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                                    '${log.dayName}, ${log.dateStr}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      item.name,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Class In-Charge: ${log.classInCharge} • ${log.subjectsCovered.length} Classes Conducted',
+                                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${(pct * 100).toStringAsFixed(1)}%',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 16,
-                                color: isLow ? const Color(0xFFDC2626) : const Color(0xFF059669),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Faculty: ${item.facultyName}',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                            ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(color: badgeBg, borderRadius: BorderRadius.circular(8)),
                               child: Text(
-                                '${item.credits} Credits',
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                                isPresent ? 'PRESENT (FULL DAY)' : (isOd ? 'ON DUTY (OD)' : 'ABSENT (FULL DAY)'),
+                                style: TextStyle(color: badgeColor, fontWeight: FontWeight.bold, fontSize: 10),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        LinearPercentIndicator(
-                          lineHeight: 8.0,
-                          percent: pct.clamp(0.0, 1.0),
-                          backgroundColor: const Color(0xFFF1F5F9),
-                          progressColor: isLow ? const Color(0xFFDC2626) : color,
-                          barRadius: const Radius.circular(4),
-                          padding: EdgeInsets.zero,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Attended: ${item.attendedSessions} of ${item.totalSessions} sessions',
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF475569)),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: isLow ? const Color(0xFFFEE2E2) : const Color(0xFFECFDF5),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                item.safeMarginText,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: isLow ? const Color(0xFFDC2626) : const Color(0xFF059669),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        if (log.remarks != null) ...[
+                          const SizedBox(height: 8),
+                          Text('Note: ${log.remarks}', style: const TextStyle(fontSize: 11, color: Color(0xFF475569), fontWeight: FontWeight.w500)),
+                        ],
 
-                        // Expanded Details Drawer
+                        // Expanded Subject Schedule Breakdown for the Day
                         if (isExpanded) ...[
                           const SizedBox(height: 12),
                           const Divider(height: 1),
                           const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Recent Session Logs:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                                const SizedBox(height: 6),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          const Text('Timetable Sessions Covered On This Day (All marked with Daily Status):', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                          const SizedBox(height: 8),
+                          ...log.subjectsCovered.map((sub) => Container(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: badgeBg.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: badgeColor.withValues(alpha: 0.2)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _buildSessionPill('Today', 'Present', const Color(0xFF059669)),
-                                    _buildSessionPill('Yesterday', 'Present', const Color(0xFF059669)),
-                                    _buildSessionPill('05 Aug', isLow ? 'Absent' : 'Present', isLow ? const Color(0xFFDC2626) : const Color(0xFF059669)),
-                                    _buildSessionPill('02 Aug', 'Present', const Color(0xFF059669)),
+                                    Expanded(child: Text(sub, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)))),
+                                    Text(
+                                      log.status.label,
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeColor),
+                                    ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
+                              )),
                         ],
                       ],
                     ),
@@ -1320,26 +1329,6 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSessionPill(String date, String status, Color color) {
-    return Column(
-      children: [
-        Text(date, style: const TextStyle(fontSize: 9, color: Color(0xFF64748B))),
-        const SizedBox(height: 2),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            status,
-            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color),
-          ),
-        ),
-      ],
     );
   }
 

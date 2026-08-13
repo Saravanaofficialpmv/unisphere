@@ -20,6 +20,33 @@ extension AttendanceStatusExtension on AttendanceStatus {
   }
 }
 
+/// Daily Attendance Log for a working day (All subjects share the daily status)
+class DailyAttendanceLog {
+  final String id;
+  final String dateStr;
+  final DateTime date;
+  final AttendanceStatus status;
+  final String dayName;
+  final List<String> subjectsCovered;
+  final String classInCharge;
+  final String? remarks;
+
+  DailyAttendanceLog({
+    required this.id,
+    required this.dateStr,
+    required this.date,
+    required this.status,
+    required this.dayName,
+    required this.subjectsCovered,
+    required this.classInCharge,
+    this.remarks,
+  });
+
+  bool get isPresent => status == AttendanceStatus.present;
+  bool get isAbsent => status == AttendanceStatus.absent;
+  bool get isOnDuty => status == AttendanceStatus.onDuty;
+}
+
 /// Record for a specific class session
 class AttendanceRecord {
   final String id;
