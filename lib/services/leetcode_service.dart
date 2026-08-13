@@ -339,7 +339,7 @@ class LeetCodeService {
         }
 
         String timeAgo = _formatTimeAgo(timestampStr);
-        String difficulty = _inferDifficulty(title, slug);
+        String difficulty = _extractDifficulty(sub, title, slug);
 
         recentSubmissions.add(LeetCodeSubmissionItem(
           title: title,
@@ -416,12 +416,39 @@ class LeetCodeService {
     }
   }
 
+  static String _extractDifficulty(Map sub, String title, String slug) {
+    final rawDiff = (sub['difficulty'] ?? sub['level'] ?? sub['difficultyLevel'] ?? '').toString().trim();
+    if (rawDiff.isNotEmpty) {
+      final d = rawDiff.toLowerCase();
+      if (d == '2' || d.contains('medium') || d.contains('med')) return 'Medium';
+      if (d == '3' || d.contains('hard')) return 'Hard';
+      if (d == '1' || d.contains('easy')) return 'Easy';
+    }
+    return _inferDifficulty(title, slug);
+  }
+
   static String _inferDifficulty(String title, String slug) {
     final lowerTitle = title.toLowerCase();
     final lowerSlug = slug.toLowerCase();
 
-    final hardKeywords = ['median', 'hard', 'subsets ii', 'merge k', 'n-queens', 'trapping rain'];
-    final mediumKeywords = ['subsets', 'medium', 'jump', 'gas station', 'sort colors', 'matrix', 'longest', 'add two'];
+    final hardKeywords = [
+      'median', 'hard', 'subsets ii', 'merge k', 'n-queens', 'trapping rain',
+      'edit distance', 'regular expression', 'wildcard', 'first missing positive',
+      'sudoku', 'word ladder', 'maximum gap', 'sliding window maximum'
+    ];
+
+    final mediumKeywords = [
+      'subsets', 'medium', 'jump', 'gas station', 'sort colors', 'matrix', 'longest',
+      'add two', '3sum', '4sum', 'container with most water', 'search in rotated',
+      'letter combinations', 'generate parentheses', 'combination sum', 'permutations',
+      'rotate image', 'group anagrams', 'spiral matrix', 'set matrix zeroes', 'word break',
+      'coin change', 'house robber', 'decode ways', 'unique paths', 'minimum path sum',
+      'course schedule', 'number of islands', 'rotting oranges', 'kth smallest',
+      'top k frequent', 'kth largest', 'lru cache', 'daily temperatures', 'partition',
+      'product of array', 'find peak', 'binary tree level order', 'validate binary search',
+      'lowest common ancestor', 'find all anagrams', 'construct binary tree', 'task scheduler',
+      'count and say', 'multiply strings', 'simplify path', 'pow(x', 'eval rpn', 'reorder list'
+    ];
 
     for (final kw in hardKeywords) {
       if (lowerTitle.contains(kw) || lowerSlug.contains(kw)) return 'Hard';
@@ -429,6 +456,14 @@ class LeetCodeService {
     for (final kw in mediumKeywords) {
       if (lowerTitle.contains(kw) || lowerSlug.contains(kw)) return 'Medium';
     }
+
+    // Heuristics for common Medium problem patterns
+    if (lowerTitle.contains('tree') || lowerTitle.contains('graph') || lowerTitle.contains('path') ||
+        lowerTitle.contains('search') || lowerTitle.contains('sum') || lowerTitle.contains('max') ||
+        lowerTitle.contains('array') || lowerTitle.contains('string')) {
+      return 'Medium';
+    }
+
     return 'Easy';
   }
 }

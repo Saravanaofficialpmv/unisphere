@@ -540,9 +540,17 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
       ),
       child: Column(
         children: _fullStats.recentSubmissions.map((sub) {
+          final diffLower = sub.difficulty.toLowerCase();
           Color diffColor = const Color(0xFF10B981);
-          if (sub.difficulty == 'Medium') diffColor = const Color(0xFFF59E0B);
-          if (sub.difficulty == 'Hard') diffColor = const Color(0xFFEF4444);
+          String diffLabel = 'Easy';
+
+          if (diffLower.contains('med')) {
+            diffColor = const Color(0xFFF59E0B);
+            diffLabel = 'Medium';
+          } else if (diffLower.contains('hard')) {
+            diffColor = const Color(0xFFEF4444);
+            diffLabel = 'Hard';
+          }
 
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -569,7 +577,7 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
                     color: diffColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(sub.difficulty, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: diffColor)),
+                  child: Text(diffLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: diffColor)),
                 ),
               ],
             ),
