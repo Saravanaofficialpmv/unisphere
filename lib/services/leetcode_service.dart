@@ -322,22 +322,9 @@ class LeetCodeService {
       for (final sub in rawSubs.take(8)) {
         final String title = sub['title'] ?? 'Problem';
         final String slug = sub['titleSlug'] ?? '';
-        final String timestampStr = sub['timestamp'] ?? '';
-        final String rawLang = (sub['lang'] ?? 'cpp').toString().toLowerCase();
+        final String timestampStr = (sub['timestamp'] ?? sub['time'] ?? '').toString();
 
-        String language = 'C++';
-        if (rawLang.contains('java')) {
-          language = 'Java';
-        } else if (rawLang.contains('python')) {
-          language = 'Python';
-        } else if (rawLang.contains('js') || rawLang.contains('javascript')) {
-          language = 'JavaScript';
-        } else if (rawLang.contains('ts') || rawLang.contains('typescript')) {
-          language = 'TypeScript';
-        } else if (rawLang.contains('c') && !rawLang.contains('cpp')) {
-          language = 'C';
-        }
-
+        String language = _extractLanguage(sub);
         String timeAgo = _formatTimeAgo(timestampStr);
         String difficulty = _extractDifficulty(sub, title, slug);
 
@@ -414,6 +401,48 @@ class LeetCodeService {
     } else {
       return '${diff.inDays} ${diff.inDays == 1 ? 'day' : 'days'} ago';
     }
+  }
+
+  static String _extractLanguage(Map sub) {
+    final rawLang = (sub['lang'] ??
+            sub['langName'] ??
+            sub['language'] ??
+            sub['lang_name'] ??
+            sub['programmingLanguage'] ??
+            '')
+        .toString()
+        .trim()
+        .toLowerCase();
+
+    if (rawLang.isEmpty) return 'Java';
+
+    if (rawLang.contains('java') && !rawLang.contains('javascript')) {
+      return 'Java';
+    } else if (rawLang.contains('python') || rawLang.contains('py')) {
+      return 'Python';
+    } else if (rawLang.contains('js') || rawLang.contains('javascript')) {
+      return 'JavaScript';
+    } else if (rawLang.contains('ts') || rawLang.contains('typescript')) {
+      return 'TypeScript';
+    } else if (rawLang.contains('cpp') || rawLang.contains('c++') || rawLang.contains('g++')) {
+      return 'C++';
+    } else if (rawLang.contains('cs') || rawLang.contains('c#') || rawLang.contains('csharp')) {
+      return 'C#';
+    } else if (rawLang.contains('go') || rawLang.contains('golang')) {
+      return 'Go';
+    } else if (rawLang.contains('rust')) {
+      return 'Rust';
+    } else if (rawLang.contains('swift')) {
+      return 'Swift';
+    } else if (rawLang.contains('kotlin')) {
+      return 'Kotlin';
+    } else if (rawLang == 'c' || rawLang.startsWith('c ')) {
+      return 'C';
+    }
+
+    return rawLang.length > 1
+        ? '${rawLang[0].toUpperCase()}${rawLang.substring(1)}'
+        : rawLang.toUpperCase();
   }
 
   static String _extractDifficulty(Map sub, String title, String slug) {
