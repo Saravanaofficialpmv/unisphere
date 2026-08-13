@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/providers/attendance_system_provider.dart';
+import 'package:unisphere/models/attendance_model.dart';
 
-class HodAttendanceManagement extends StatefulWidget {
+class HodAttendanceManagement extends ConsumerStatefulWidget {
   const HodAttendanceManagement({super.key});
 
   @override
-  State<HodAttendanceManagement> createState() => _HodAttendanceManagementState();
+  ConsumerState<HodAttendanceManagement> createState() => _HodAttendanceManagementState();
 }
 
-class _HodAttendanceManagementState extends State<HodAttendanceManagement> {
+class _HodAttendanceManagementState extends ConsumerState<HodAttendanceManagement> {
   String _selectedSection = 'CS-A';
 
   @override
   Widget build(BuildContext context) {
+    final systemState = ref.watch(attendanceSystemProvider);
+    final activeSemData = systemState.activeSemester;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -31,7 +37,9 @@ class _HodAttendanceManagementState extends State<HodAttendanceManagement> {
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 20),
-            _buildStatCards(),
+            _buildHodWorkingDaysCard(context, systemState),
+            const SizedBox(height: 24),
+            _buildStatCards(activeSemData),
             const SizedBox(height: 24),
             _buildSectionFilter(),
             const SizedBox(height: 20),
@@ -46,7 +54,262 @@ class _HodAttendanceManagementState extends State<HodAttendanceManagement> {
     );
   }
 
-  Widget _buildStatCards() {
+  Widget _buildHodWorkingDaysCard(BuildContext context, AttendanceSystemState systemState) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.admin_panel_settings_rounded, color: Color(0xFF38BDF8), size: 22),
+                  SizedBox(width: 8),
+                  Text(
+                    'SEMESTER WORKING DAYS (HOD CONTROL)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF38BDF8),
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
+                ),
+                child: const Text(
+                  'HOD Authority',
+                  style: TextStyle(color: Color(0xFF38BDF8), fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Configure overall semester working days for your department. Student attendance percentages recalculate live based on these numbers.',
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, height: 1.4),
+          ),
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: systemState.hodSemesterConfigs.entries.map((entry) {
+                final semNum = entry.key;
+                final config = entry.value;
+                final isCurrent = semNum == 4;
+
+                return GestureDetector(
+                  onTap: () => _showEditWorkingDaysModal(context, semNum, config.totalWorkingDays),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isCurrent ? const Color(0xFF2563EB) : const Color(0xFF334155),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isCurrent ? const Color(0xFF60A5FA) : const Color(0xFF475569),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Sem $semNum',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            if (isCurrent) ...[
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF34D399),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'ACTIVE',
+                                  style: TextStyle(color: Color(0xFF064E3B), fontSize: 8, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF94A3B8)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${config.totalWorkingDays} Days',
+                              style: const TextStyle(
+                                color: Color(0xFFE2E8F0),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.edit_outlined, size: 12, color: Color(0xFF60A5FA)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditWorkingDaysModal(BuildContext context, int semNum, int currentDays) {
+    int days = currentDays;
+    final controller = TextEditingController(text: days.toString());
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              const Icon(Icons.edit_calendar_rounded, color: AppColors.primary),
+              const SizedBox(width: 10),
+              Text('Set Sem $semNum Working Days'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Decide total semester working days for Semester $semNum. Student attendance percentages will immediately update.',
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton.filledTonal(
+                    onPressed: () {
+                      if (days > 1) {
+                        setModalState(() {
+                          days--;
+                          controller.text = days.toString();
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.remove),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 90,
+                    child: TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      ),
+                      onChanged: (val) {
+                        final parsed = int.tryParse(val);
+                        if (parsed != null && parsed > 0) {
+                          setModalState(() => days = parsed);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton.filledTonal(
+                    onPressed: () {
+                      setModalState(() {
+                        days++;
+                        controller.text = days.toString();
+                      });
+                    },
+                    icon: const Icon(Icons.add),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text('Quick Presets:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [80, 85, 90, 95, 100].map((preset) {
+                  final isSelected = days == preset;
+                  return ChoiceChip(
+                    label: Text('$preset'),
+                    selected: isSelected,
+                    onSelected: (val) {
+                      setModalState(() {
+                        days = preset;
+                        controller.text = preset.toString();
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                ref.read(attendanceSystemProvider.notifier).updateSemesterWorkingDaysByHod(semNum, days);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Semester $semNum total working days updated to $days Days by HOD.'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              child: const Text('Save & Apply'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCards(SemesterAttendance activeSemData) {
+    final activePctStr = '${activeSemData.attendancePercentage.toStringAsFixed(1)}%';
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -55,10 +318,10 @@ class _HodAttendanceManagementState extends State<HodAttendanceManagement> {
       crossAxisSpacing: 14,
       childAspectRatio: 1.5,
       children: [
-        _buildStatCard('Student Attendance', '94.2%', Icons.school_outlined, AppColors.primary),
+        _buildStatCard('Active Sem Attendance', activePctStr, Icons.school_outlined, AppColors.primary),
         _buildStatCard('Faculty Attendance', '95.2%', Icons.badge_outlined, const Color(0xFF7C3AED)),
-        _buildStatCard('Weekly Average', '93.8%', Icons.date_range_outlined, const Color(0xFF059669)),
-        _buildStatCard('Low Attendance (<75%)', '14 Students', Icons.warning_amber_rounded, AppColors.error),
+        _buildStatCard('HOD Working Days', '${activeSemData.totalWorkingDays} Days', Icons.event_available_outlined, const Color(0xFF059669)),
+        _buildStatCard('Low Attendance (<75%)', '3 Students', Icons.warning_amber_rounded, AppColors.error),
       ],
     );
   }
@@ -211,8 +474,8 @@ class _HodAttendanceManagementState extends State<HodAttendanceManagement> {
 
   Widget _buildLowAttendanceList() {
     final students = [
-      {'name': 'Karthik Raja', 'reg': '917722104022', 'att': '71.5%'},
       {'name': 'Deepak Kumar', 'reg': '917722104018', 'att': '68.0%'},
+      {'name': 'Karthik Raja', 'reg': '917722104022', 'att': '71.5%'},
       {'name': 'Sanjay V.', 'reg': '917722104052', 'att': '73.2%'},
     ];
 
@@ -285,13 +548,15 @@ class _HodAttendanceManagementState extends State<HodAttendanceManagement> {
         OutlinedButton.icon(
           onPressed: () => _notifyMsg(context, 'Formal warning letters generated.'),
           icon: const Icon(Icons.warning_amber_rounded, size: 16),
-          label: const Text('Send Warning'),
+          label: const Text('Generate Letters'),
         ),
       ],
     );
   }
 
   void _notifyMsg(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppColors.success));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: AppColors.primary),
+    );
   }
 }

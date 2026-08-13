@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/providers/attendance_system_provider.dart';
 
-class AttendanceManagementModule extends StatefulWidget {
+class AttendanceManagementModule extends ConsumerStatefulWidget {
   const AttendanceManagementModule({super.key});
 
   @override
-  State<AttendanceManagementModule> createState() => _AttendanceManagementModuleState();
+  ConsumerState<AttendanceManagementModule> createState() => _AttendanceManagementModuleState();
 }
 
-class _AttendanceManagementModuleState extends State<AttendanceManagementModule> {
+class _AttendanceManagementModuleState extends ConsumerState<AttendanceManagementModule> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width > 1100;
+    final systemState = ref.watch(attendanceSystemProvider);
+    final activeSemData = systemState.activeSemester;
+    final activePct = activeSemData.attendancePercentage.toStringAsFixed(1);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildHeader(),
         const SizedBox(height: 24),
-        _buildTopStatsGrid(isDesktop),
+        _buildTopStatsGrid(isDesktop, activePct),
         const SizedBox(height: 24),
-        if (isDesktop) 
+        if (isDesktop)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -30,7 +35,7 @@ class _AttendanceManagementModuleState extends State<AttendanceManagementModule>
               Expanded(flex: 1, child: _buildAtRiskStudents()),
             ],
           )
-        else 
+        else
           Column(
             children: [
               _buildAttendanceTrends(),
@@ -56,7 +61,7 @@ class _AttendanceManagementModuleState extends State<AttendanceManagementModule>
     );
   }
 
-  Widget _buildTopStatsGrid(bool isDesktop) {
+  Widget _buildTopStatsGrid(bool isDesktop, String activePct) {
     return GridView.count(
       crossAxisCount: isDesktop ? 4 : 2,
       shrinkWrap: true,
@@ -65,9 +70,9 @@ class _AttendanceManagementModuleState extends State<AttendanceManagementModule>
       mainAxisSpacing: 16,
       childAspectRatio: 1.5,
       children: [
-        _buildStatCard('Daily Presence Rate', '94.2%', '+1.2%', Colors.blue),
+        _buildStatCard('Daily Presence Rate', '$activePct%', '+1.2%', Colors.blue),
         _buildStatCard('Staff Attendance', '98.5%', '+0.4%', Colors.green),
-        _buildStatCard('Critical Absences', '42', 'Action Required', Colors.red, isAlert: true),
+        _buildStatCard('Critical Absences', '3', 'Action Required', Colors.red, isAlert: true),
         _buildStatCard('Recent Notifications', '156', 'Sent in 24h', Colors.orange),
       ],
     );
@@ -150,13 +155,13 @@ class _AttendanceManagementModuleState extends State<AttendanceManagementModule>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('At-Risk Students', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)), child: const Text('42 Flagged', style: TextStyle(color: Colors.red, fontSize: 8, fontWeight: FontWeight.bold))),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)), child: const Text('3 Flagged', style: TextStyle(color: Colors.red, fontSize: 8, fontWeight: FontWeight.bold))),
             ],
           ),
           const SizedBox(height: 20),
-          _atRiskCard('Liam Henderson', '68% Attendance', 'assets/dummy1.png'),
-          _atRiskCard('Sophie Chen', '72% Attendance', 'assets/dummy2.png'),
-          _atRiskCard('Amara Okafor', '64% Attendance', 'assets/dummy3.png'),
+          _atRiskCard('Deepak Kumar', '68% Attendance', 'CS303'),
+          _atRiskCard('Karthik Raja', '71.5% Attendance', 'CS301'),
+          _atRiskCard('Sanjay V.', '73.2% Attendance', 'CS302'),
           const SizedBox(height: 20),
           Center(child: TextButton(onPressed: () {}, child: const Text('View All Critical Cases', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)))),
         ],
@@ -164,7 +169,7 @@ class _AttendanceManagementModuleState extends State<AttendanceManagementModule>
     );
   }
 
-  Widget _atRiskCard(String name, String status, String img) {
+  Widget _atRiskCard(String name, String status, String code) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Row(

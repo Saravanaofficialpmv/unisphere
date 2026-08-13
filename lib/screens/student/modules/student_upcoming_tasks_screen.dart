@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
-import 'package:unisphere/widgets/common/notification_sheet.dart';
-import 'package:unisphere/screens/features/exams_detail_screen.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
-
 
 class StudentUpcomingTasksScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -17,9 +14,108 @@ class StudentUpcomingTasksScreen extends StatefulWidget {
   State<StudentUpcomingTasksScreen> createState() => _StudentUpcomingTasksScreenState();
 }
 
-class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen> {
-  bool _dbmsSubmitted = false;
-  bool _tcsApplied = false;
+class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  int _selectedTabIndex = 0;
+
+  // Mock list of posted assignment questions for students
+  final List<Map<String, dynamic>> _assignments = [
+    {
+      'id': 'asg_1',
+      'courseCode': 'CS302',
+      'subjectName': 'Database Systems',
+      'title': 'SQL Query Optimization & Indexing Assignment',
+      'facultyName': 'Prof. Sarah Jenkins',
+      'postedDate': '10 Aug 2026',
+      'dueDate': '13 Aug 2026 • 11:59 PM',
+      'isDueSoon': true,
+      'maxMarks': 100,
+      'status': 'Pending', // Pending, Submitted, Graded
+      'allowedFormats': 'PDF Document (.pdf)',
+      'questionPrompt':
+          'Write optimized SQL queries for complex multi-table JOINs, indexing strategies, and normalized schema design for a university portal database.',
+      'submittedFile': null,
+      'submittedDate': null,
+      'obtainedMarks': null,
+      'feedback': null,
+    },
+    {
+      'id': 'asg_2',
+      'courseCode': 'CS301',
+      'subjectName': 'Computer Networks',
+      'title': 'Subnetting & TCP/IP Protocol Analysis Report',
+      'facultyName': 'Dr. Robert Vance',
+      'postedDate': '08 Aug 2026',
+      'dueDate': '15 Aug 2026 • 05:00 PM',
+      'isDueSoon': false,
+      'maxMarks': 50,
+      'status': 'Pending',
+      'allowedFormats': 'PDF Document (.pdf)',
+      'questionPrompt':
+          'Analyze Wireshark packet capture logs for TCP 3-way handshake and compute CIDR subnet masks for a class B network distribution.',
+      'submittedFile': null,
+      'submittedDate': null,
+      'obtainedMarks': null,
+      'feedback': null,
+    },
+    {
+      'id': 'asg_3',
+      'courseCode': 'CS304',
+      'subjectName': 'Software Engineering',
+      'title': 'UML Class & Sequence Diagram Modeling',
+      'facultyName': 'Prof. Michael Scott',
+      'postedDate': '04 Aug 2026',
+      'dueDate': '11 Aug 2026 • 11:59 PM',
+      'isDueSoon': false,
+      'maxMarks': 100,
+      'status': 'Submitted',
+      'allowedFormats': 'PDF Document (.pdf)',
+      'questionPrompt':
+          'Design comprehensive UML Structural and Behavioral diagrams for an e-commerce order management subsystem.',
+      'submittedFile': 'Alex_Johnson_SoftwareEng_UML_Assignment.pdf',
+      'submittedDate': '10 Aug 2026 • 09:30 PM',
+      'obtainedMarks': null,
+      'feedback': null,
+    },
+    {
+      'id': 'asg_4',
+      'courseCode': 'CS305',
+      'subjectName': 'AI & Machine Learning',
+      'title': 'Supervised Linear Regression Lab Notebook',
+      'facultyName': 'Dr. Grace Hopper',
+      'postedDate': '01 Aug 2026',
+      'dueDate': '07 Aug 2026 • 11:59 PM',
+      'isDueSoon': false,
+      'maxMarks': 100,
+      'status': 'Graded',
+      'allowedFormats': 'PDF Document (.pdf)',
+      'questionPrompt':
+          'Implement Linear & Polynomial Regression using NumPy & Scikit-Learn to predict house prices based on multi-variate features.',
+      'submittedFile': 'Alex_Johnson_ML_LinearRegression.pdf',
+      'submittedDate': '06 Aug 2026 • 04:15 PM',
+      'obtainedMarks': 94,
+      'feedback': 'Excellent implementation! Clean code structure and detailed plot visualizations.',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {
+          _selectedTabIndex = _tabController.index;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   void _handleBack() {
     if (!mounted) return;
@@ -30,316 +126,398 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
     }
   }
 
-  void _showSubmitDialog(String title) {
+  void _showSubmissionPortalModal(Map<String, dynamic> assignment) {
+    final noteController = TextEditingController();
+    String? selectedFileName = assignment['submittedFile'];
+    bool isUploading = false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Submit Assignment',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: const Column(
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: EdgeInsets.only(
+            top: 24,
+            left: 24,
+            right: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.cloud_upload_outlined, size: 42, color: AppColors.primary),
-                  SizedBox(height: 10),
-                  Text(
-                    'Drag & Drop your file here, or browse',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF334155)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          assignment['title'],
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${assignment['courseCode']} - ${assignment['subjectName']} • Max Marks: ${assignment['maxMarks']}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    'PDF, DOCX, or ZIP up to 25MB',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() => _dbmsSubmitted = true);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('🎉 DBMS Assignment submitted successfully!'),
-                      backgroundColor: Color(0xFF10B981),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
+              const SizedBox(height: 14),
+              const Divider(height: 1),
+              const SizedBox(height: 14),
+
+              // Question Prompt Container
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: const Text(
-                  'Confirm Submission',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.help_outline_rounded, size: 16, color: Color(0xFF2563EB)),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Posted Question (${assignment['facultyName']}):',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      assignment['questionPrompt'],
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B), height: 1.4),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
-  }
+              const SizedBox(height: 16),
 
-  void _showApplyDialog(String companyTitle) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.work_rounded, color: Color(0xFF10B981), size: 24),
-            SizedBox(width: 8),
-            Text('Campus Placement', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Text('Are you sure you want to submit your application for $companyTitle? Your resume will be shared with the recruiter.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() => _tcsApplied = true);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('✅ Application for $companyTitle submitted!'),
-                  backgroundColor: const Color(0xFF10B981),
+              // Upload File Section
+              const Text(
+                'Upload Assignment Solution File',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+              ),
+              const SizedBox(height: 6),
+
+              InkWell(
+                onTap: () async {
+                  setModalState(() {
+                    isUploading = true;
+                  });
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  setModalState(() {
+                    isUploading = false;
+                    selectedFileName = 'Alex_Johnson_${assignment['courseCode']}_Solution.pdf';
+                  });
+                },
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: selectedFileName != null ? const Color(0xFFECFDF5) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: selectedFileName != null ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
+                      style: selectedFileName != null ? BorderStyle.solid : BorderStyle.solid,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      if (isUploading)
+                        const CircularProgressIndicator()
+                      else if (selectedFileName != null) ...[
+                        const Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 32),
+                        const SizedBox(height: 6),
+                        Text(
+                          selectedFileName!,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                        ),
+                        const Text('Click to replace file', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                      ] else ...[
+                        const Icon(Icons.cloud_upload_outlined, color: Color(0xFF2563EB), size: 32),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Tap to select & upload PDF document',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Only PDF format (.pdf) supported • Max 25MB',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626)),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Confirm Apply', style: TextStyle(color: Colors.white)),
+              ),
+              const SizedBox(height: 14),
+
+              // Submission Notes
+              const Text(
+                'Submission Notes / Comments (Optional)',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: noteController,
+                maxLines: 2,
+                decoration: InputDecoration(
+                  hintText: 'Add remarks for instructor...',
+                  hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                  contentPadding: const EdgeInsets.all(12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: selectedFileName == null
+                      ? null
+                      : () {
+                          setState(() {
+                            assignment['status'] = 'Submitted';
+                            assignment['submittedFile'] = selectedFileName;
+                            assignment['submittedDate'] = 'Today • Just Now';
+                            assignment['isDueSoon'] = false;
+                          });
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('🎉 ${assignment['title']} submitted successfully!'),
+                              backgroundColor: const Color(0xFF059669),
+                            ),
+                          );
+                        },
+                  icon: const Icon(Icons.send_rounded, size: 18),
+                  label: const Text('Submit Assignment Solution', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool canPopRoute = ModalRoute.of(context)?.canPop ?? false;
+    final pendingAssignments = _assignments.where((a) => a['status'] == 'Pending').toList();
+    final submittedAssignments = _assignments.where((a) => a['status'] == 'Submitted').toList();
+    final gradedAssignments = _assignments.where((a) => a['status'] == 'Graded').toList();
+
+    List<Map<String, dynamic>> activeList = _assignments;
+    if (_selectedTabIndex == 1) activeList = pendingAssignments;
+    if (_selectedTabIndex == 2) activeList = submittedAssignments;
+    if (_selectedTabIndex == 3) activeList = gradedAssignments;
+
     return PopScope(
-      canPop: canPopRoute,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop || !mounted) return;
-        if (widget.onBack != null) {
-          widget.onBack!();
-        }
+        if (didPop) return;
+        _handleBack();
       },
       child: Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 960),
-            child: Column(
-              children: [
-                UnisphereHeaderCard(
-                  title: 'Upcoming Tasks & Portal',
-                  subtitle: 'Assignments, Exams & Deadlines Overview',
-                  onBack: _handleBack,
-                  margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ── 1. Top Header Card (Greeting + Notification & Profile) ──
-                        _buildHeaderCard(context),
-                        const SizedBox(height: 10),
-
-                        // ── 2. Stat Summary Metrics Bar ──
-                        _buildMetricsBar(),
-                        const SizedBox(height: 12),
-
-                        // ── 3. 🔥 UPCOMING TASKS Section ──
-                        _buildUpcomingTasksSection(context),
-                        const SizedBox(height: 12),
-
-                        // ── 4. Side-by-Side: Today's Classes & Notifications ──
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            if (constraints.maxWidth > 550) {
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(child: _buildTodaysClassesCard()),
-                                  const SizedBox(width: 10),
-                                  Expanded(child: _buildNotificationsCard()),
-                                ],
-                              );
-                            }
-                            return Column(
-                              children: [
-                                _buildTodaysClassesCard(),
-                                const SizedBox(height: 10),
-                                _buildNotificationsCard(),
-                              ],
-                            );
-                          },
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Column(
+            children: [
+              UnisphereHeaderCard(
+                title: 'Student Assignment Portal',
+                subtitle: 'View posted assignment questions & submit coursework online',
+                onBack: _handleBack,
+                bottomWidget: Container(
+                  height: 44,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    onTap: (index) {
+                      setState(() {
+                        _selectedTabIndex = index;
+                      });
+                    },
+                    indicator: BoxDecoration(
+                      color: const Color(0xFF1E3A8A),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                        const SizedBox(height: 12),
-
-                        // ── 5. ⚠️ Attendance Alert Banner ──
-                        _buildAttendanceAlertCard(),
-                        const SizedBox(height: 16),
                       ],
                     ),
+                    labelColor: Colors.white,
+                    unselectedLabelColor: const Color(0xFFBFDBFE),
+                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    tabs: [
+                      Tab(text: 'All (${_assignments.length})'),
+                      Tab(text: 'Pending (${pendingAssignments.length})'),
+                      Tab(text: 'Submitted (${submittedAssignments.length})'),
+                      Tab(text: 'Graded (${gradedAssignments.length})'),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 🔔 Pending Assignment Deadline Notification Banner
+                      _buildDeadlineNotificationBanner(pendingAssignments.length),
+
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'Faculty Posted Assignments & Question Papers',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                      ),
+                      const SizedBox(height: 10),
+
+                      if (activeList.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(36),
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: const Column(
+                            children: [
+                              Icon(Icons.assignment_turned_in_rounded, size: 48, color: Color(0xFF94A3B8)),
+                              SizedBox(height: 10),
+                              Text(
+                                'No assignments under this tab',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF64748B)),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: activeList.length,
+                          itemBuilder: (context, index) {
+                            final assignment = activeList[index];
+                            return _buildAssignmentQuestionCard(assignment);
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  // ── Header Card ──
-  Widget _buildHeaderCard(BuildContext context) {
+  // 🔔 Deadline Notification Alert Banner
+  Widget _buildDeadlineNotificationBanner(int pendingCount) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFFDBA74)),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
+            color: const Color(0xFFEA580C).withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
+              color: const Color(0xFFF97316).withValues(alpha: 0.15),
               shape: BoxShape.circle,
-              color: AppColors.primary.withValues(alpha: 0.1),
-              border: Border.all(color: AppColors.primary, width: 2),
             ),
-            child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 24),
+            child: const Icon(Icons.notifications_active_rounded, color: Color(0xFFEA580C), size: 24),
           ),
-          const SizedBox(width: 10),
-          const Expanded(
+          const SizedBox(width: 14),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Good Morning, Tharani 👋',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Computer Science • Section A',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            constraints: const BoxConstraints(),
-            padding: const EdgeInsets.all(6),
-            onPressed: () {
-              showNotificationSheet(context);
-            },
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(Icons.notifications_outlined, color: Color(0xFF475569), size: 24),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFEF4444),
-                      shape: BoxShape.circle,
+                Row(
+                  children: [
+                    const Text(
+                      'DEADLINE ALERT NOTIFICATION',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFFC2410C), letterSpacing: 0.8),
                     ),
-                  ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEA580C),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '$pendingCount Pending',
+                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEEF2FF),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.account_circle_outlined, color: Color(0xFF4F46E5), size: 15),
-                SizedBox(width: 4),
-                Text(
-                  'Profile',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
+                const SizedBox(height: 4),
+                const Text(
+                  'You have pending assignment submissions due soon! DBMS Assignment is due tomorrow. Please upload your work on time to avoid marks deduction.',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF7C2D12), height: 1.3),
                 ),
               ],
             ),
@@ -349,418 +527,230 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
     );
   }
 
-  // ── Metrics Bar Card ──
-  Widget _buildMetricsBar() {
-    final metrics = [
-      {'label': 'Attendance', 'value': '86%', 'color': const Color(0xFF10B981), 'icon': Icons.pie_chart_outline_rounded},
-      {'label': 'CGPA', 'value': '8.42', 'color': const Color(0xFF6366F1), 'icon': Icons.workspace_premium_outlined},
-      {'label': 'Credits', 'value': '92', 'color': const Color(0xFF8B5CF6), 'icon': Icons.school_outlined},
-      {'label': 'Pending Tasks', 'value': '4', 'color': const Color(0xFFF59E0B), 'icon': Icons.pending_actions_rounded},
-    ];
+  // 📝 Posted Assignment Question Card
+  Widget _buildAssignmentQuestionCard(Map<String, dynamic> assignment) {
+    final status = assignment['status'] as String;
+    final isPending = status == 'Pending';
+    final isSubmitted = status == 'Submitted';
+    final isGraded = status == 'Graded';
+    final isDueSoon = assignment['isDueSoon'] as bool;
 
-    return Row(
-      children: metrics.map((metric) {
-        final color = metric['color'] as Color;
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 2.5),
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x04000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 1.5),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Icon(metric['icon'] as IconData, color: color, size: 16),
-                const SizedBox(height: 2),
-                Text(
-                  metric['value'] as String,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                Text(
-                  metric['label'] as String,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
+    Color statusColor = const Color(0xFF2563EB);
+    Color statusBg = const Color(0xFFEFF6FF);
+    if (isPending) {
+      statusColor = isDueSoon ? const Color(0xFFDC2626) : const Color(0xFFD97706);
+      statusBg = isDueSoon ? const Color(0xFFFEE2E2) : const Color(0xFFFEF3C7);
+    } else if (isSubmitted) {
+      statusColor = const Color(0xFF2563EB);
+      statusBg = const Color(0xFFEFF6FF);
+    } else if (isGraded) {
+      statusColor = const Color(0xFF059669);
+      statusBg = const Color(0xFFECFDF5);
+    }
 
-  // ── UPCOMING TASKS Section ──
-  Widget _buildUpcomingTasksSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDueSoon ? const Color(0xFFFCA5A5) : const Color(0xFFE2E8F0)),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('🔥', style: TextStyle(fontSize: 15)),
-              SizedBox(width: 6),
-              Text(
-                'UPCOMING TASKS',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.4,
-                  color: Color(0xFF0F172A),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      assignment['courseCode'],
+                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    assignment['subjectName'],
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isDueSoon) ...[
+                      const Icon(Icons.timer_outlined, size: 12, color: Color(0xFFDC2626)),
+                      const SizedBox(width: 4),
+                    ],
+                    Text(
+                      isDueSoon ? 'DUE SOON' : status.toUpperCase(),
+                      style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 10),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
 
-          // Task 1: 📚 DBMS Assignment [Submit]
-          _buildTaskItem(
-            icon: '📚',
-            title: 'DBMS Assignment',
-            subtitle: 'Due Tomorrow • Module 4 SQL Queries',
-            buttonLabel: _dbmsSubmitted ? 'Submitted ✓' : 'Submit',
-            buttonColor: _dbmsSubmitted ? const Color(0xFF10B981) : const Color(0xFF4F46E5),
-            isDone: _dbmsSubmitted,
-            onPressed: () {
-              if (!_dbmsSubmitted) {
-                _showSubmitDialog('DBMS Assignment');
-              }
-            },
-          ),
-          const Divider(height: 16, color: Color(0xFFF1F5F9)),
-
-          // Task 2: 📝 AI Internal Exam [View]
-          _buildTaskItem(
-            icon: '📝',
-            title: 'AI Internal Exam',
-            subtitle: 'Aug 18 • 10:00 AM • Hall 2B',
-            buttonLabel: 'View',
-            buttonColor: const Color(0xFF0284C7),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const ExamsDetailScreen(),
-                ),
-              );
-            },
-          ),
-          const Divider(height: 16, color: Color(0xFFF1F5F9)),
-
-          // Task 3: 💼 TCS Placement Drive [Apply]
-          _buildTaskItem(
-            icon: '💼',
-            title: 'TCS Placement Drive',
-            subtitle: 'Apply before Aug 20 • Software Engineer',
-            buttonLabel: _tcsApplied ? 'Applied ✓' : 'Apply',
-            buttonColor: _tcsApplied ? const Color(0xFF10B981) : const Color(0xFFEA580C),
-            isDone: _tcsApplied,
-            onPressed: () {
-              if (!_tcsApplied) {
-                _showApplyDialog('TCS Placement Drive');
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTaskItem({
-    required String icon,
-    required String title,
-    required String subtitle,
-    required String buttonLabel,
-    required Color buttonColor,
-    required VoidCallback onPressed,
-    bool isDone = false,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          alignment: Alignment.center,
-          child: Text(icon, style: const TextStyle(fontSize: 16)),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 10.5,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isDone ? const Color(0xFFECFDF5) : buttonColor,
-            foregroundColor: isDone ? const Color(0xFF059669) : Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            minimumSize: const Size(0, 30),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: isDone ? const BorderSide(color: Color(0xFFA7F3D0)) : BorderSide.none,
-            ),
-          ),
-          child: Text(
-            buttonLabel,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: isDone ? const Color(0xFF059669) : Colors.white,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ── Today's Classes Card ──
-  Widget _buildTodaysClassesCard() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x04000000),
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Text('📅', style: TextStyle(fontSize: 14)),
-              SizedBox(width: 6),
-              Text(
-                'Today\'s Classes',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildClassRow('ML', '10:00 AM', const Color(0xFF6366F1)),
-          const SizedBox(height: 6),
-          _buildClassRow('DBMS', '11:00 AM', const Color(0xFF10B981)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClassRow(String subject, String time, Color accent) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                subject,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF334155)),
-              ),
-            ],
-          ),
           Text(
-            time,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+            assignment['title'],
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
           ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 4),
+          Text(
+            'Posted by ${assignment['facultyName']} on ${assignment['postedDate']}',
+            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+          ),
+          const SizedBox(height: 12),
 
-  // ── Notifications Card ──
-  Widget _buildNotificationsCard() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x04000000),
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Text('📢', style: TextStyle(fontSize: 14)),
-              SizedBox(width: 6),
-              Text(
-                'Notifications',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildNotificationRow('Exam timetable released'),
-          const SizedBox(height: 6),
-          _buildNotificationRow('Placement drive registration open'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationRow(String title) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEB),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFFDE68A)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.circle, size: 5, color: Color(0xFFD97706)),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF92400E)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Attendance Alert Card ──
-  Widget _buildAttendanceAlertCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFCA5A5)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x04000000),
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
+          // Question Prompt Container
           Container(
-            padding: const EdgeInsets.all(6),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFEE2E2),
-              shape: BoxShape.circle,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: const Text('⚠️', style: TextStyle(fontSize: 14)),
-          ),
-          const SizedBox(width: 10),
-          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Attendance Alert',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF991B1B),
-                  ),
+                const Row(
+                  children: [
+                    Icon(Icons.quiz_outlined, size: 15, color: Color(0xFF2563EB)),
+                    SizedBox(width: 6),
+                    Text(
+                      'Posted Question Prompt:',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 1),
+                const SizedBox(height: 4),
                 Text(
-                  'Data Mining: 72% — Attendance is low',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFFB91C1C),
-                  ),
+                  assignment['questionPrompt'],
+                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155), height: 1.4),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Due date and format info
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.event_outlined, size: 14, color: Color(0xFF64748B)),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Deadline: ${assignment['dueDate']}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isDueSoon ? FontWeight.bold : FontWeight.w500,
+                      color: isDueSoon ? const Color(0xFFDC2626) : const Color(0xFF475569),
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'Max Marks: ${assignment['maxMarks']}',
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              ),
+            ],
+          ),
+
+          if (isSubmitted || isGraded) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isGraded ? const Color(0xFFECFDF5) : const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isGraded ? Icons.workspace_premium_rounded : Icons.check_circle_rounded,
+                    color: isGraded ? const Color(0xFF059669) : const Color(0xFF2563EB),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isGraded
+                              ? 'Graded: ${assignment['obtainedMarks']} / ${assignment['maxMarks']} Marks'
+                              : 'Submitted file: ${assignment['submittedFile']}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isGraded ? const Color(0xFF059669) : const Color(0xFF2563EB),
+                          ),
+                        ),
+                        if (isGraded && assignment['feedback'] != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Feedback: ${assignment['feedback']}',
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF047857)),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 14),
+
+          // Submit / View Action Button
+          SizedBox(
+            width: double.infinity,
+            height: 42,
+            child: ElevatedButton.icon(
+              onPressed: () => _showSubmissionPortalModal(assignment),
+              icon: Icon(
+                isPending
+                    ? Icons.upload_file_rounded
+                    : isSubmitted
+                        ? Icons.edit_document
+                        : Icons.rate_review_rounded,
+                size: 16,
+              ),
+              label: Text(
+                isPending
+                    ? 'Submit Assignment Solution'
+                    : isSubmitted
+                        ? 'Update / View Submission'
+                        : 'View Submission & Grade',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isPending ? const Color(0xFF2563EB) : const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
           ),
         ],

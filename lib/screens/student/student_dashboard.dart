@@ -20,6 +20,7 @@ import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/providers/notification_provider.dart';
 import 'package:unisphere/screens/features/exams_detail_screen.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
+import 'package:unisphere/providers/semester_attendance_provider.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
@@ -417,82 +418,86 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned.fill(
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Positioned(
-                              top: -20,
-                              left: 20,
-                              child: Container(
-                                width: 160,
-                                height: 160,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: RadialGradient(
-                                    colors: [
-                                      const Color(
-                                        0xFF3F51B5,
-                                      ).withValues(alpha: 0.45),
-                                      const Color(
-                                        0xFF3F51B5,
-                                      ).withValues(alpha: 0.0),
-                                    ],
+                      // 1. Universal Search Bar (Pill Gradient Design)
+                      _buildSearchBar(context),
+                      const SizedBox(height: 16),
+
+                      // 2. Academic Overview Card with background glow
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned.fill(
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Positioned(
+                                  top: -20,
+                                  left: 20,
+                                  child: Container(
+                                    width: 160,
+                                    height: 160,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: RadialGradient(
+                                        colors: [
+                                          const Color(
+                                            0xFF3F51B5,
+                                          ).withValues(alpha: 0.45),
+                                          const Color(
+                                            0xFF3F51B5,
+                                          ).withValues(alpha: 0.0),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: -20,
-                              right: 40,
-                              child: Container(
-                                width: 150,
-                                height: 150,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: RadialGradient(
-                                    colors: [
-                                      const Color(
-                                        0xFF69F0AE,
-                                      ).withValues(alpha: 0.35),
-                                      const Color(
-                                        0xFF69F0AE,
-                                      ).withValues(alpha: 0.0),
-                                    ],
+                                Positioned(
+                                  bottom: -20,
+                                  right: 40,
+                                  child: Container(
+                                    width: 150,
+                                    height: 150,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: RadialGradient(
+                                        colors: [
+                                          const Color(
+                                            0xFF69F0AE,
+                                          ).withValues(alpha: 0.35),
+                                          const Color(
+                                            0xFF69F0AE,
+                                          ).withValues(alpha: 0.0),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          _buildAcademicOverviewCard(context),
+                        ],
                       ),
-                      _buildAcademicOverviewCard(context),
                       const SizedBox(height: 16),
                       _buildProfileConnectionBanner(context),
+                      const SizedBox(height: 20),
+                      _buildQuickActions(),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        'Today\'s Classes',
+                        () => widget.onNavigateToTab(1),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTodaysClasses(),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  _buildQuickActions(),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader(
-                    'Today\'s Classes',
-                    () => widget.onNavigateToTab(1),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTodaysClasses(),
-
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
-    ],
-  ),
-  // Floating Detached Menubar Opener Handle (Left Edge - Mobile Only)
+      // Floating Detached Menubar Opener Handle (Left Edge - Mobile Only)
           if (MediaQuery.of(context).size.width < 800)
             Positioned(
               left: 0,
@@ -623,6 +628,205 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             child: Icon(icon, color: accentColor, size: 22),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Universal Quick Search Bar (Pill Gradient Design) ──────────────
+  Widget _buildSearchBar(BuildContext context) {
+    return InkWell(
+      onTap: () => _showSearchModal(context),
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        height: 54,
+        padding: const EdgeInsets.all(2), // Gradient border width
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF34D399), // Mint Green
+              Color(0xFFF472B6), // Soft Pink
+              Color(0xFF3B82F6), // Royal Blue
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: Row(
+            children: [
+              // Left Magnifying Search Icon
+              const Icon(
+                Icons.search_rounded,
+                color: Color(0xFF1E3A8A),
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              // Placeholder Text
+              const Expanded(
+                child: Text(
+                  'Search subjects, assignments, timetable, marks...',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Right Filled Royal Blue Circle with White Lightning Bolt
+              Container(
+                width: 38,
+                height: 38,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1D4ED8),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x331D4ED8),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.bolt_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSearchModal(BuildContext context) {
+    String query = '';
+    final List<Map<String, dynamic>> allSearchItems = [
+      {'title': 'Timetable & Class Schedule', 'subtitle': 'Daily periods & lab rooms', 'icon': Icons.calendar_today_rounded, 'color': const Color(0xFF5C6BC0), 'tabIndex': 1},
+      {'title': 'Assignments Portal', 'subtitle': 'Posted questions & PDF uploads', 'icon': Icons.assignment_turned_in_rounded, 'color': const Color(0xFF26A69A), 'tabIndex': 2},
+      {'title': 'Attendance Tracker', 'subtitle': '86% attendance & working days', 'icon': Icons.pie_chart_rounded, 'color': const Color(0xFF3F51B5), 'tabIndex': 3},
+      {'title': 'Internal & University Marks', 'subtitle': 'Faculty internal & COE university results', 'icon': Icons.grade_rounded, 'color': const Color(0xFFEF5350), 'tabIndex': 4},
+      {'title': 'Fees & Dues Payment', 'subtitle': 'Tuition & hostel fee receipts', 'icon': Icons.school_rounded, 'color': const Color(0xFFFFA726), 'tabIndex': 5},
+      {'title': 'Hackathons & Coding', 'subtitle': 'Inter-college hackathons & wins', 'icon': Icons.code_rounded, 'color': const Color(0xFF8B5CF6), 'tabIndex': 7},
+      {'title': 'Certifications & Badges', 'subtitle': 'NPTEL, Coursera & AWS certificates', 'icon': Icons.workspace_premium_rounded, 'color': const Color(0xFF10B981), 'tabIndex': 8},
+      {'title': 'Achievements & Honors', 'subtitle': 'Academic & sports trophies', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 9},
+      {'title': 'Campus Events & Symposia', 'subtitle': 'Department fests & cultural events', 'icon': Icons.event_rounded, 'color': const Color(0xFFEC4899), 'tabIndex': 10},
+      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 13},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final filteredItems = allSearchItems.where((item) {
+            final title = item['title'].toString().toLowerCase();
+            final subtitle = item['subtitle'].toString().toLowerCase();
+            final q = query.toLowerCase();
+            return q.isEmpty || title.contains(q) || subtitle.contains(q);
+          }).toList();
+
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                ),
+                const SizedBox(height: 14),
+
+                TextField(
+                  autofocus: true,
+                  onChanged: (val) => setModalState(() => query = val),
+                  decoration: InputDecoration(
+                    hintText: 'Search features, tools, assignments, marks...',
+                    hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF2563EB)),
+                    suffixIcon: query.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded, size: 18),
+                            onPressed: () => setModalState(() => query = ''),
+                          )
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                Text(
+                  query.isEmpty ? 'Quick Portal Shortcuts' : 'Search Results (${filteredItems.length})',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 10),
+
+                Expanded(
+                  child: filteredItems.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No matching features found.',
+                            style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: filteredItems.length,
+                          itemBuilder: (context, index) {
+                            final item = filteredItems[index];
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                tileColor: const Color(0xFFF8FAFC),
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: (item['color'] as Color).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 20),
+                                ),
+                                title: Text(item['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                subtitle: Text(item['subtitle'] as String, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF94A3B8)),
+                                onTap: () {
+                                  Navigator.pop(ctx);
+                                  widget.onNavigateToTab(item['tabIndex'] as int);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -976,111 +1180,132 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                   },
                   children: [
                     // ── Slide 1: Attendance & Current CGPA ──
-                    InkWell(
-                      onTap: () => widget.onNavigateToTab(4),
-                      child: Row(
-                        children: [
-                          // Metric 1: Attendance
-                          Expanded(
-                            flex: 5,
-                            child: Row(
-                              children: [
-                                CircularPercentIndicator(
-                                  radius: 26.0,
-                                  lineWidth: 5.0,
-                                  percent:
-                                      (overviewData.attendancePercentage / 100.0)
-                                          .clamp(0.0, 1.0),
-                                  center: Text(
-                                    '${overviewData.attendancePercentage.toInt()}%',
-                                    style: const TextStyle(
-                                      color: Color(0xFF2D3142),
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 11.5,
+                    Row(
+                      children: [
+                        // Metric 1: Attendance (Semester-Wise & HOD Working Days) -> Opens Attendance screen (Tab 3)
+                        Expanded(
+                          flex: 5,
+                          child: InkWell(
+                            onTap: () => widget.onNavigateToTab(3),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Consumer(
+                              builder: (context, ref, _) {
+                                final semState = ref.watch(semesterAttendanceProvider);
+                                final semData = semState.selectedSemesterData;
+                                final double semPercentage = semData.attendancePercentage;
+
+                                Color statusBgColor = const Color(0xFFE8F5E9);
+                                Color statusTextColor = const Color(0xFF2E7D32);
+                                if (semData.statusLabel == 'Safe Margin') {
+                                  statusBgColor = const Color(0xFFFEF3C7);
+                                  statusTextColor = const Color(0xFFB45309);
+                                } else if (semData.statusLabel == 'Critical') {
+                                  statusBgColor = const Color(0xFFFEE2E2);
+                                  statusTextColor = const Color(0xFFDC2626);
+                                }
+
+                                return Row(
+                                  children: [
+                                    CircularPercentIndicator(
+                                      radius: 26.0,
+                                      lineWidth: 5.0,
+                                      percent: (semPercentage / 100.0).clamp(0.0, 1.0),
+                                      center: Text(
+                                        '${semPercentage.round()}%',
+                                        style: const TextStyle(
+                                          color: Color(0xFF2D3142),
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 11.5,
+                                        ),
+                                      ),
+                                      progressColor: const Color(0xFF3F51B5),
+                                      backgroundColor: const Color(
+                                        0xFF3F51B5,
+                                      ).withValues(alpha: 0.12),
+                                      circularStrokeCap: CircularStrokeCap.round,
                                     ),
-                                  ),
-                                  progressColor: const Color(0xFF3F51B5),
-                                  backgroundColor: const Color(
-                                    0xFF3F51B5,
-                                  ).withValues(alpha: 0.12),
-                                  circularStrokeCap: CircularStrokeCap.round,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Row(
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Text(
-                                            'Attendance',
-                                            style: TextStyle(
-                                              color: Color(0xFF757575),
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 5,
-                                              vertical: 1.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFE8F5E9),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              overviewData.attendanceStatus,
-                                              style: const TextStyle(
-                                                color: Color(0xFF2E7D32),
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.w700,
+                                          Row(
+                                            children: [
+                                              const Text(
+                                                'Attendance',
+                                                style: TextStyle(
+                                                  color: Color(0xFF757575),
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                               ),
-                                            ),
+                                              const SizedBox(width: 4),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 5,
+                                                  vertical: 1.5,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: statusBgColor,
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  semData.statusLabel,
+                                                  style: TextStyle(
+                                                    color: statusTextColor,
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.arrow_upward_rounded,
+                                                color: Color(0xFF2E7D32),
+                                                size: 12,
+                                              ),
+                                              const SizedBox(width: 1),
+                                              Expanded(
+                                                child: Text(
+                                                  '${semData.monthlyTrendPercentage.toInt()}% this month',
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF2E7D32),
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 3),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.arrow_upward_rounded,
-                                            color: Color(0xFF2E7D32),
-                                            size: 12,
-                                          ),
-                                          const SizedBox(width: 1),
-                                          Expanded(
-                                            child: Text(
-                                              '${overviewData.attendanceTrend.toInt()}% this month',
-                                              style: const TextStyle(
-                                                color: Color(0xFF2E7D32),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
-                          // Divider
-                          Container(
-                            height: 40,
-                            width: 1,
-                            margin: const EdgeInsets.symmetric(horizontal: 10),
-                            color: Colors.black.withValues(alpha: 0.08),
-                          ),
-                          // Metric 2: CGPA
-                          Expanded(
-                            flex: 4,
+                        ),
+                        // Divider
+                        Container(
+                          height: 40,
+                          width: 1,
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          color: Colors.black.withValues(alpha: 0.08),
+                        ),
+                        // Metric 2: CGPA -> Opens Gradebook (Tab 4)
+                        Expanded(
+                          flex: 4,
+                          child: InkWell(
+                            onTap: () => widget.onNavigateToTab(4),
+                            borderRadius: BorderRadius.circular(12),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
@@ -1140,8 +1365,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
 
                     // ── Slide 2: Total OD Days & LeetCode Solved ──
@@ -1519,12 +1744,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
         'type': 'exams',
       },
       {
-        'icon': Icons.school_rounded,
-        'label': 'Dept Vision & POs',
-        'color': const Color(0xFF7C3AED),
-        'type': 'dept_vision',
-      },
-      {
         'icon': Icons.grid_view_rounded,
         'label': 'More',
         'color': const Color(0xFFFF7043),
@@ -1566,7 +1785,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
           } else if (type == 'assignments') {
             widget.onNavigateToTab(2);
           } else if (type == 'grades') {
-            widget.onNavigateToTab(4, openCalculator: true);
+            widget.onNavigateToTab(4);
           } else if (type == 'fees') {
             widget.onNavigateToTab(5);
           } else if (type == 'tasks') {

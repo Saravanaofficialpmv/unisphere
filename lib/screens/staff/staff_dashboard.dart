@@ -6,6 +6,8 @@ import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/screens/staff/modules/staff_assignment_creation.dart';
 import 'package:unisphere/screens/staff/modules/staff_submission_review.dart';
 import 'package:unisphere/screens/staff/modules/staff_student_directory.dart';
+import 'package:unisphere/screens/staff/modules/staff_attendance_marking.dart';
+import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
 
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
@@ -42,9 +44,9 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     const StaffSubmissionReview(),
     const StaffStudentDirectory(),
 
-    const Center(child: Text('Institutional Marks Upload')),
+    const StaffMarksUploadModule(),
     const Center(child: Text('Faculty Profile Details')),
-    const Center(child: Text('Electronic Attendance Record')),
+    const StaffAttendanceMarkingModule(),
     const Center(child: Text('Faculty Library Access')),
   ];
 

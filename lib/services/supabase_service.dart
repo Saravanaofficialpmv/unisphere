@@ -25,7 +25,7 @@ abstract class SupabaseService {
   Future<void> submitAssignment(SubmissionModel submission);
   Stream<List<SubmissionModel>> getSubmissions(String assignmentId);
   Stream<List<MarkModel>> getMarks(String studentUid);
-  Stream<List<AttendanceModel>> getAttendance(String studentUid);
+  Stream<List<AttendanceRecord>> getAttendance(String studentUid);
   Future<void> addMarks(MarkModel mark);
 }
 
@@ -76,13 +76,13 @@ class RealSupabaseService implements SupabaseService {
   }
 
   @override
-  Stream<List<AttendanceModel>> getAttendance(String studentUid) {
+  Stream<List<AttendanceRecord>> getAttendance(String studentUid) {
     return _supabase
         .from('attendance')
         .stream(primaryKey: ['id'])
         .eq('student_uid', studentUid)
         .order('date', ascending: false)
-        .map((data) => data.map((json) => AttendanceModel.fromMap(json)).toList());
+        .map((data) => data.map((json) => AttendanceRecord.fromMap(json)).toList());
   }
 
   @override
@@ -159,13 +159,18 @@ class MockSupabaseService implements SupabaseService {
   }
 
   @override
-  Stream<List<AttendanceModel>> getAttendance(String studentUid) {
+  Stream<List<AttendanceRecord>> getAttendance(String studentUid) {
     return Stream.value([
-      AttendanceModel(
+      AttendanceRecord(
         id: 'at1',
         studentUid: studentUid,
+        studentName: 'Student',
+        subjectCode: 'CS401',
+        subjectName: 'Advanced Data Structures',
         date: DateTime.now().subtract(const Duration(days: 1)),
-        isPresent: true,
+        timeSlot: '09:00 AM',
+        status: AttendanceStatus.present,
+        facultyName: 'Dr. Vance',
       ),
     ]);
   }
