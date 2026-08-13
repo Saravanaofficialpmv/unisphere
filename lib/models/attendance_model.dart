@@ -225,6 +225,8 @@ class LeaveRequestModel {
   final String status;
   final String appliedDate;
   final bool hasAttachment;
+  final String? requestLetterUrl;
+  final String? registrationScreenshotUrl;
 
   LeaveRequestModel({
     required this.id,
@@ -235,5 +237,7 @@ class LeaveRequestModel {
     required this.status,
     required this.appliedDate,
     this.hasAttachment = false,
+    this.requestLetterUrl,
+    this.registrationScreenshotUrl,
   });
 }

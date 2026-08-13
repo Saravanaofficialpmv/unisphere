@@ -21,7 +21,6 @@ class StudentAttendanceScreen extends ConsumerStatefulWidget {
 
 class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  int _selectedTabIndex = 0;
   String _historyFilter = 'All';
   String _searchQuery = '';
 
@@ -37,13 +36,6 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) {
-        setState(() {
-          _selectedTabIndex = _tabController.index;
-        });
-      }
-    });
   }
 
   @override
@@ -63,10 +55,16 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
 
   void _showLeaveApplicationModal() {
     final reasonController = TextEditingController();
-    String leaveType = 'Medical Leave';
-    String startDate = '12 Aug 2026';
-    String endDate = '13 Aug 2026';
-    bool attachedFile = false;
+    final eventNameController = TextEditingController(text: 'Inter-College AI Hackathon 2026');
+    String leaveType = 'On Duty (OD)';
+    String startDate = '14 Aug 2026';
+    String endDate = '16 Aug 2026';
+
+    String letterFileName = 'Official_HOD_OD_Permission_Letter.pdf';
+    bool hasLetter = true;
+
+    String screenshotFileName = 'Event_Registration_Confirmation_Screenshot.png';
+    bool hasScreenshot = true;
 
     showModalBottomSheet(
       context: context,
@@ -74,6 +72,7 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => Container(
+          height: MediaQuery.of(context).size.height * 0.90,
           padding: EdgeInsets.only(
             top: 24,
             left: 24,
@@ -85,23 +84,27 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const Row(
                     children: [
-                      Text(
-                        'Apply for Leave / OD',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Submit request for HOD & Counselor approval',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      Icon(Icons.assignment_turned_in_rounded, color: Color(0xFF2563EB), size: 24),
+                      SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Submit OD / Leave Request Panel',
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                          Text(
+                            'Attach HOD Request Letter & Registration Proof',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -111,131 +114,238 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               const Divider(height: 1),
-              const SizedBox(height: 16),
-              const Text('Leave Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<String>(
-                initialValue: leaveType,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
-                ),
-                items: ['Medical Leave', 'On Duty (OD)', 'Casual Leave', 'Event / Sports OD']
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13))))
-                    .toList(),
-                onChanged: (val) {
-                  if (val != null) setModalState(() => leaveType = val);
-                },
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Start Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFCBD5E1)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.calendar_today_rounded, size: 16, color: Color(0xFF2563EB)),
-                              const SizedBox(width: 8),
-                              Text(startDate, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('End Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFCBD5E1)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.event_rounded, size: 16, color: Color(0xFF2563EB)),
-                              const SizedBox(width: 8),
-                              Text(endDate, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              const Text('Reason & Explanation', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
-              const SizedBox(height: 6),
-              TextField(
-                controller: reasonController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'Describe reason for leave / event details...',
-                  hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                  contentPadding: const EdgeInsets.all(12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
-                ),
-              ),
-              const SizedBox(height: 14),
-              InkWell(
-                onTap: () {
-                  setModalState(() => attachedFile = !attachedFile);
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: attachedFile ? const Color(0xFFECFDF5) : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: attachedFile ? const Color(0xFF10B981) : const Color(0xFFCBD5E1)),
-                  ),
-                  child: Row(
+              const SizedBox(height: 12),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        attachedFile ? Icons.check_circle_rounded : Icons.attach_file_rounded,
-                        color: attachedFile ? const Color(0xFF059669) : const Color(0xFF2563EB),
-                        size: 20,
+                      const Text('Application Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<String>(
+                        initialValue: leaveType,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                        ),
+                        items: ['On Duty (OD)', 'Event / Sports OD', 'Medical Leave', 'Casual Leave']
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))))
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) setModalState(() => leaveType = val);
+                        },
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          attachedFile ? 'Medical_Certificate_Aug2026.pdf attached' : 'Attach Medical / OD Proof (PDF / Image)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: attachedFile ? const Color(0xFF059669) : const Color(0xFF334155),
+                      const SizedBox(height: 14),
+
+                      const Text('Event / Institution Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: eventNameController,
+                        decoration: InputDecoration(
+                          hintText: 'e.g. IIT Madras Tech Fest, National Hackathon...',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Start Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.calendar_today_rounded, size: 16, color: Color(0xFF2563EB)),
+                                      const SizedBox(width: 8),
+                                      Text(startDate, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('End Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.event_rounded, size: 16, color: Color(0xFF2563EB)),
+                                      const SizedBox(width: 8),
+                                      Text(endDate, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      const Text('Reason & Activity Details', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: reasonController,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Describe event participation details, track name, role...',
+                          hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                          contentPadding: const EdgeInsets.all(12),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text('REQUIRED MANDATORY DOCUMENTS FOR HOD', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF), letterSpacing: 0.8)),
+                      const SizedBox(height: 10),
+
+                      // 📄 DOCUMENT 1: OFFICIAL OD REQUEST LETTER TO HOD
+                      const Text('1. Official OD Permission Letter (PDF / DOC)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                      const SizedBox(height: 6),
+                      InkWell(
+                        onTap: () {
+                          setModalState(() {
+                            hasLetter = !hasLetter;
+                            letterFileName = 'HOD_OD_Permission_Request_Letter.pdf';
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: hasLetter ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: hasLetter ? const Color(0xFF3B82F6) : const Color(0xFFCBD5E1), width: hasLetter ? 1.5 : 1),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                hasLetter ? Icons.picture_as_pdf_rounded : Icons.note_add_rounded,
+                                color: hasLetter ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                                size: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      hasLetter ? letterFileName : 'Attach Signed OD Request Letter for HOD',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: hasLetter ? const Color(0xFF1E3A8A) : const Color(0xFF475569),
+                                      ),
+                                    ),
+                                    Text(
+                                      hasLetter ? 'Letter attached (PDF • 240 KB)' : 'Tap to select PDF letter addressed to HOD',
+                                      style: TextStyle(fontSize: 10.5, color: hasLetter ? const Color(0xFF2563EB) : const Color(0xFF94A3B8)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                hasLetter ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+                                color: hasLetter ? const Color(0xFF059669) : const Color(0xFF94A3B8),
+                                size: 20,
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                      const SizedBox(height: 12),
+
+                      // 📸 DOCUMENT 2: EVENT REGISTRATION SCREENSHOT PROOF
+                      const Text('2. Event Registration Screenshot (Image Proof)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                      const SizedBox(height: 6),
+                      InkWell(
+                        onTap: () {
+                          setModalState(() {
+                            hasScreenshot = !hasScreenshot;
+                            screenshotFileName = 'Event_Registration_Pass_Screenshot.png';
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: hasScreenshot ? const Color(0xFFECFDF5) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: hasScreenshot ? const Color(0xFF10B981) : const Color(0xFFCBD5E1), width: hasScreenshot ? 1.5 : 1),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                hasScreenshot ? Icons.image_rounded : Icons.add_a_photo_rounded,
+                                color: hasScreenshot ? const Color(0xFF059669) : const Color(0xFF64748B),
+                                size: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      hasScreenshot ? screenshotFileName : 'Attach Registration Pass Screenshot',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: hasScreenshot ? const Color(0xFF065F46) : const Color(0xFF475569),
+                                      ),
+                                    ),
+                                    Text(
+                                      hasScreenshot ? 'Registration proof attached (PNG • 1.2 MB)' : 'Tap to upload ticket or email registration proof',
+                                      style: TextStyle(fontSize: 10.5, color: hasScreenshot ? const Color(0xFF059669) : const Color(0xFF94A3B8)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                hasScreenshot ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+                                color: hasScreenshot ? const Color(0xFF059669) : const Color(0xFF94A3B8),
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -245,25 +355,45 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
                       studentName: 'Alex Johnson',
                       type: leaveType,
-                      duration: '$startDate - $endDate (2 Days)',
-                      reason: reasonController.text.trim().isEmpty ? 'Leave application' : reasonController.text.trim(),
+                      duration: '$startDate - $endDate (3 Days)',
+                      reason: reasonController.text.trim().isEmpty
+                          ? '${eventNameController.text} - Event OD Request'
+                          : '${eventNameController.text}: ${reasonController.text.trim()}',
                       status: 'Pending Approval',
                       appliedDate: 'Today',
-                      hasAttachment: attachedFile,
+                      hasAttachment: true,
+                      requestLetterUrl: hasLetter ? letterFileName : null,
+                      registrationScreenshotUrl: hasScreenshot ? screenshotFileName : null,
                     );
+
                     ref.read(attendanceSystemProvider.notifier).addLeaveRequest(req);
+
+                    ref.read(notificationProvider.notifier).addNotification(
+                          title: '📄 OD Leave Request Submitted to HOD',
+                          category: 'Academic',
+                          summary: 'OD Request submitted for ${eventNameController.text} with HOD Request Letter & Registration Screenshot attached.',
+                          fullDetails: 'OD Request sent for HOD verification with official request letter and event registration proof.',
+                          icon: Icons.assignment_turned_in_rounded,
+                          iconColor: const Color(0xFF2563EB),
+                          iconBgColor: const Color(0xFFEFF6FF),
+                          badgeText: 'OD PENDING',
+                          badgeColor: const Color(0xFFD97706),
+                          badgeTextColor: Colors.white,
+                        );
+
                     Navigator.pop(ctx);
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Leave application submitted for HOD approval!'),
+                        content: Text('OD Request submitted to HOD with Request Letter & Registration Screenshot!'),
                         backgroundColor: Color(0xFF059669),
                       ),
                     );
                   },
                   icon: const Icon(Icons.send_rounded, size: 18),
-                  label: const Text('Submit Application', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  label: const Text('Submit OD Request to HOD', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: const Color(0xFF1D4ED8),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
@@ -810,11 +940,6 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                   ),
                   child: TabBar(
                     controller: _tabController,
-                    onTap: (index) {
-                      setState(() {
-                        _selectedTabIndex = index;
-                      });
-                    },
                     indicator: BoxDecoration(
                       color: const Color(0xFF1E3A8A),
                       borderRadius: BorderRadius.circular(10),
@@ -842,8 +967,8 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
 
               // Tab Content Body
               Expanded(
-                child: IndexedStack(
-                  index: _selectedTabIndex,
+                child: TabBarView(
+                  controller: _tabController,
                   children: [
                     // Tab 0: Subject Breakdown with Semester Chips
                     _buildSubjectBreakdownTab(
@@ -1903,41 +2028,59 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
             const SizedBox(height: 16),
           ],
 
-          // Apply button banner
+          // ── DEDICATED OD LEAVE REQUEST HERO PANEL ──
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.3), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.note_add_rounded, color: Color(0xFF2563EB), size: 22),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.assignment_turned_in_rounded, color: Color(0xFF2563EB), size: 26),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Need Medical or Event Leave?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
-                      SizedBox(height: 2),
-                      Text('Submit your request & attach docs for approval.', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    children: const [
+                      Text(
+                        'Apply for On-Duty (OD) Leave',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)),
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        'Submit signed Request Letter & Event Registration Screenshot to HOD.',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B), height: 1.2),
+                      ),
                     ],
                   ),
                 ),
-                ElevatedButton(
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
                   onPressed: _showLeaveApplicationModal,
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text('Apply OD', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   ),
-                  child: const Text('Apply Now', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -1981,13 +2124,38 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                   Text(req.duration, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF2563EB))),
                   const SizedBox(height: 4),
                   Text('Reason: ${req.reason}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                  if (req.hasAttachment) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: const [
-                        Icon(Icons.attach_file_rounded, size: 14, color: Color(0xFF059669)),
-                        SizedBox(width: 4),
-                        Text('Proof document attached', style: TextStyle(fontSize: 10, color: Color(0xFF059669), fontWeight: FontWeight.bold)),
+                  if (req.requestLetterUrl != null || req.registrationScreenshotUrl != null || req.hasAttachment) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        if (req.requestLetterUrl != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xFFBFDBFE))),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.picture_as_pdf_rounded, size: 12, color: Color(0xFF2563EB)),
+                                const SizedBox(width: 4),
+                                Text('Letter: ${req.requestLetterUrl}', style: const TextStyle(fontSize: 10, color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        if (req.registrationScreenshotUrl != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xFFA7F3D0))),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.image_rounded, size: 12, color: Color(0xFF059669)),
+                                const SizedBox(width: 4),
+                                Text('Proof: ${req.registrationScreenshotUrl}', style: const TextStyle(fontSize: 10, color: Color(0xFF065F46), fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ],
