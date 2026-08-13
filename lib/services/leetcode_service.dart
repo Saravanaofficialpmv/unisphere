@@ -461,9 +461,15 @@ class LeetCodeService {
     final lowerSlug = slug.toLowerCase();
 
     final hardKeywords = [
-      'median', 'hard', 'subsets ii', 'merge k', 'n-queens', 'trapping rain',
+      'valid number', 'valid-number', 'median', 'hard', 'subsets ii', 'merge k', 'n-queens', 'trapping rain',
       'edit distance', 'regular expression', 'wildcard', 'first missing positive',
-      'sudoku', 'word ladder', 'maximum gap', 'sliding window maximum'
+      'sudoku', 'word ladder', 'maximum gap', 'sliding window maximum',
+      'longest valid parentheses', 'substring with concatenation', 'reverse nodes in k-group',
+      'distinct subsequences', 'binary tree maximum path sum', 'longest consecutive sequence',
+      'max points on a line', 'dungeon game', 'word search ii', 'lfu cache', 'alien dictionary',
+      'remove invalid parentheses', 'burst balloons', 'palindrome pairs', 'race car',
+      'shortest path visiting', 'stamping the sequence', 'tallest billboard', 'scramble string',
+      'interleaving string', 'maximal rectangle'
     ];
 
     final mediumKeywords = [
