@@ -1370,19 +1370,22 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     ),
 
                     // ── Slide 2: Total OD Days & LeetCode Solved ──
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const LeetCodeDetailScreen(),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          // Metric 1: Total OD Days
-                          Expanded(
-                            flex: 5,
+                    Row(
+                      children: [
+                        // Metric 1: Total OD Days (Navigates to Attendance & OD Panel)
+                        Expanded(
+                          flex: 5,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => StudentAttendanceScreen(
+                                    onBack: () => Navigator.of(context).pop(),
+                                  ),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(10),
                             child: Row(
                               children: [
                                 Container(
@@ -1455,16 +1458,26 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                               ],
                             ),
                           ),
-                          // Divider
-                          Container(
-                            height: 36,
-                            width: 1,
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            color: Colors.black.withValues(alpha: 0.08),
-                          ),
-                          // Metric 2: LeetCode Solved
-                          Expanded(
-                            flex: 5,
+                        ),
+                        // Divider
+                        Container(
+                          height: 36,
+                          width: 1,
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          color: Colors.black.withValues(alpha: 0.08),
+                        ),
+                        // Metric 2: LeetCode Solved
+                        Expanded(
+                          flex: 5,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const LeetCodeDetailScreen(),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(10),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
@@ -1522,8 +1535,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
 
                     // ── Slide 3: GitHub Repos & Stars ──
