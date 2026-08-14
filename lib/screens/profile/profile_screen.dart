@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,6 +11,7 @@ import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:unisphere/core/constants/app_departments.dart';
+import 'package:unisphere/widgets/student/student_profile_edit_request_modal.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -58,6 +60,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
         ? currentUser!.metadata!['year'].toString() 
         : (isDemo ? '3rd Year' : '1st Year');
     final roleName = currentUser?.roleName ?? 'Student';
+    final photoUrl = (currentUser?.profileImageUrl ?? currentUser?.metadata?['passportPhotoUrl'] ?? currentUser?.metadata?['photoUrl'] ?? '').toString().trim();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -95,33 +98,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                       ],
                     ),
                   ),
-                  Stack(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
-                        ),
-                        child: const CircleAvatar(
-                          radius: 36,
-                          backgroundColor: Colors.white24,
-                          child: Icon(Icons.person, size: 44, color: Colors.white),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 2,
-                        right: 2,
-                        child: Container(
+                  GestureDetector(
+                    onTap: () => _showUploadPassportPhotoModal(context, currentUser),
+                    child: Stack(
+                      children: [
+                        Container(
                           padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
                           ),
-                          child: const Icon(Icons.check, size: 10, color: Colors.white),
+                          child: _buildProfileHeaderAvatar(photoUrl),
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          bottom: 2,
+                          right: 2,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF2563EB),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.camera_alt_rounded, size: 12, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -159,6 +161,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                               Icon(Icons.badge_outlined, size: 13, color: Colors.white),
                               SizedBox(width: 4),
                               Text('Digital ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => const StudentProfileEditRequestModal(),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF59E0B),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.edit_note_rounded, size: 13, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('Request Edit', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -208,6 +236,104 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 _buildSettingsAndSecurityTab(),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileHeaderAvatar(String photoUrl) {
+    if (photoUrl.isNotEmpty) {
+      if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+        return CircleAvatar(
+          radius: 36,
+          backgroundImage: NetworkImage(photoUrl),
+          backgroundColor: Colors.white24,
+        );
+      }
+      final file = File(photoUrl);
+      if (file.existsSync()) {
+        return CircleAvatar(
+          radius: 36,
+          backgroundImage: FileImage(file),
+          backgroundColor: Colors.white24,
+        );
+      }
+    }
+    return const CircleAvatar(
+      radius: 36,
+      backgroundColor: Colors.white24,
+      child: Icon(Icons.person, size: 44, color: Colors.white),
+    );
+  }
+
+  void _showUploadPassportPhotoModal(BuildContext context, UserModel? currentUser) {
+    final photoController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.add_a_photo_rounded, color: Color(0xFF2563EB)),
+            SizedBox(width: 10),
+            Text('Passport Photo Upload', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter photo URL or local file path for your official student passport-size photo. It will appear on your Student ID Card & Profile.',
+              style: TextStyle(fontSize: 12.5, color: Color(0xFF475569)),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: photoController,
+              decoration: InputDecoration(
+                labelText: 'Passport Photo URL / File Path',
+                hintText: 'https://... or /path/to/passport_photo.jpg',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.link_rounded),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newUrl = photoController.text.trim();
+              if (newUrl.isNotEmpty && currentUser != null) {
+                final updatedMeta = Map<String, dynamic>.from(currentUser.metadata ?? {});
+                updatedMeta['passportPhotoUrl'] = newUrl;
+                updatedMeta['photoUrl'] = newUrl;
+                final updatedUser = currentUser.copyWith(
+                  profileImageUrl: newUrl,
+                  metadata: updatedMeta,
+                );
+                await ref.read(authServiceProvider).updateUserProfile(updatedUser);
+              }
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Passport-size photo updated! Reflected on Digital Student ID Card.'),
+                    backgroundColor: Color(0xFF10B981),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Save Photo'),
           ),
         ],
       ),

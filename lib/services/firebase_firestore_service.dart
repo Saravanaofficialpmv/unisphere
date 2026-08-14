@@ -414,6 +414,156 @@ class FirebaseFirestoreService implements SupabaseService {
   }
 
   // ==========================================
+  // STUDENT 360° PROFILE MANAGEMENT
+  // ==========================================
+  Future<void> saveStudentProfileDraft(String uid, Map<String, dynamic> draftData) async {
+    try {
+      await _firestore.collection('student_profile_drafts').doc(uid).set({
+        ...draftData,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveStudentProfileDraft error: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>?> getStudentProfileDraft(String uid) async {
+    try {
+      final doc = await _firestore.collection('student_profile_drafts').doc(uid).get();
+      return doc.data();
+    } catch (e) {
+      debugPrint('Firestore getStudentProfileDraft error: $e');
+      return null;
+    }
+  }
+
+  Future<void> submitFullStudentProfile(Map<String, dynamic> profileMap) async {
+    try {
+      final uid = profileMap['studentUid']?.toString() ?? '';
+      if (uid.isEmpty) return;
+
+      final nowStr = DateTime.now().toIso8601String();
+      profileMap['completionStatus'] = 'submitted';
+      profileMap['completionPercentage'] = 100;
+      profileMap['submittedAt'] = nowStr;
+
+      // Save complete profile doc under student_profiles collection
+      await _firestore.collection('student_profiles').doc(uid).set(profileMap, SetOptions(merge: true));
+
+      // Update user document profile completion status
+      await _firestore.collection('users').doc(uid).set({
+        'profileCompletionStatus': 'submitted',
+        'metadata': {
+          'profileCompletionPercentage': 100,
+          'submittedAt': nowStr,
+        }
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore submitFullStudentProfile error: $e');
+    }
+  }
+
+  Stream<Map<String, dynamic>?> getFullStudentProfileStream(String uid) {
+    try {
+      return _firestore.collection('student_profiles').doc(uid).snapshots().map((doc) => doc.data());
+    } catch (e) {
+      debugPrint('Firestore getFullStudentProfileStream error: $e');
+      return Stream.value(null);
+    }
+  }
+
+  // ==========================================
+  // PROFILE EDIT REQUESTS & CLASS ADVISOR ROUTING
+  // ==========================================
+  Future<void> createProfileEditRequest(Map<String, dynamic> requestMap) async {
+    try {
+      final reqId = requestMap['requestId']?.toString() ?? _firestore.collection('profile_edit_requests').doc().id;
+      requestMap['requestId'] = reqId;
+      requestMap['createdAt'] = DateTime.now().toIso8601String();
+      requestMap['status'] = 'pending_advisor';
+
+      await _firestore.collection('profile_edit_requests').doc(reqId).set(requestMap);
+    } catch (e) {
+      debugPrint('Firestore createProfileEditRequest error: $e');
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> getProfileEditRequestsStream() {
+    try {
+      return _firestore.collection('profile_edit_requests').snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          data['requestId'] = doc.id;
+          return data;
+        }).toList();
+      });
+    } catch (e) {
+      debugPrint('Firestore getProfileEditRequestsStream error: $e');
+      return Stream.value([]);
+    }
+  }
+
+  Future<void> processProfileEditRequest({
+    required String requestId,
+    required String studentUid,
+    required List<Map<String, dynamic>> updatedItems,
+    required String overallStatus, // approved, partially_approved, rejected
+    required String advisorComments,
+    required String advisorUid,
+  }) async {
+    try {
+      final nowStr = DateTime.now().toIso8601String();
+
+      // 1. Update request status & item approval states
+      await _firestore.collection('profile_edit_requests').doc(requestId).set({
+        'status': overallStatus,
+        'items': updatedItems,
+        'advisorComments': advisorComments,
+        'assignedAdvisorId': advisorUid,
+        'processedAt': nowStr,
+      }, SetOptions(merge: true));
+
+      // 2. Apply approved fields to student_profiles doc
+      final approvedItems = updatedItems.where((i) => i['status'] == 'approved').toList();
+      if (approvedItems.isNotEmpty) {
+        final profileDocRef = _firestore.collection('student_profiles').doc(studentUid);
+        final profileSnap = await profileDocRef.get();
+        final profileData = profileSnap.data() ?? {};
+
+        for (var item in approvedItems) {
+          final cat = item['category']?.toString() ?? 'personal';
+          final field = item['fieldName']?.toString() ?? '';
+          final val = item['requestedValue']?.toString() ?? '';
+
+          if (field.isNotEmpty) {
+            if (profileData[cat] is Map) {
+              (profileData[cat] as Map)[field] = val;
+            } else {
+              profileData[field] = val;
+            }
+
+            // Also record audit history entry
+            await _firestore.collection('audit_logs').add({
+              'studentUid': studentUid,
+              'requestId': requestId,
+              'fieldName': '$cat.$field',
+              'previousValue': item['currentValue'],
+              'newValue': val,
+              'approvedBy': advisorUid,
+              'approvedAt': nowStr,
+              'changeReason': item['label'] ?? 'Class Advisor Approved Edit Request',
+            });
+          }
+        }
+
+        await profileDocRef.set(profileData, SetOptions(merge: true));
+      }
+    } catch (e) {
+      debugPrint('Firestore processProfileEditRequest error: $e');
+    }
+  }
+
+  // ==========================================
   // INITIAL DATABASE SEEDING
   // ==========================================
   Future<void> seedInitialDataIfEmpty() async {

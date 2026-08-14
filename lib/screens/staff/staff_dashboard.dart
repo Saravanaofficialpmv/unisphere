@@ -10,6 +10,7 @@ import 'package:unisphere/screens/staff/modules/staff_student_directory.dart';
 import 'package:unisphere/screens/staff/modules/staff_attendance_marking.dart';
 import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
 import 'package:unisphere/screens/staff/modules/staff_nptel_verification_screen.dart';
+import 'package:unisphere/screens/staff/modules/class_advisor_edit_requests_screen.dart';
 
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
@@ -272,6 +273,21 @@ class StaffHomeScreen extends StatelessWidget {
             const Color(0xFFFEF3C7),
             const Color(0xFF92400E),
             onTap: () => onNavigate?.call(4),
+          ),
+          _buildActionCard(
+            'Profile Edit Requests',
+            'Review and approve student profile edit requests.',
+            Icons.edit_note_rounded,
+            const Color(0xFFEFF6FF),
+            const Color(0xFF2563EB),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ClassAdvisorEditRequestsScreen(),
+                ),
+              );
+            },
           ),
           _buildActionCard(
             'Review Submissions',

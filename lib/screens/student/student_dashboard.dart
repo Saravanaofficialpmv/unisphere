@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ import 'package:unisphere/screens/features/certifications_screen.dart';
 import 'package:unisphere/screens/features/achievements_screen.dart';
 import 'package:unisphere/screens/features/events_screen.dart';
 import 'package:unisphere/screens/profile/profile_screen.dart';
+import 'package:unisphere/widgets/student/student_profile_completion_sheet.dart';
 import 'package:unisphere/screens/student/modules/student_attendance_screen.dart';
 import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
 import 'package:unisphere/screens/student/modules/student_library_screen.dart';
@@ -598,7 +600,14 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
           ),
           const SizedBox(width: 10),
           ElevatedButton(
-            onPressed: () => widget.onNavigateToTab(16), // My Profile
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const StudentProfileCompletionSheet(),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: isPending ? const Color(0xFFB45309) : AppColors.primary,
@@ -607,7 +616,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
               minimumSize: const Size(0, 36),
             ),
             child: Text(
-              isPending ? 'View Status' : 'Fill Details →',
+              isPending ? 'View Status' : 'Complete Now →',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),
@@ -2179,14 +2188,14 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   }
 }
 
-class StudentIDCardFlipModal extends StatefulWidget {
+class StudentIDCardFlipModal extends ConsumerStatefulWidget {
   const StudentIDCardFlipModal({super.key});
 
   @override
-  State<StudentIDCardFlipModal> createState() => _StudentIDCardFlipModalState();
+  ConsumerState<StudentIDCardFlipModal> createState() => _StudentIDCardFlipModalState();
 }
 
-class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
+class _StudentIDCardFlipModalState extends ConsumerState<StudentIDCardFlipModal>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -2225,6 +2234,17 @@ class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final user = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final meta = user?.metadata ?? {};
+
+    final String studentName = (meta['fullName'] ?? meta['name'] ?? user?.name ?? 'SARAVANA PERUMAL S').toString().toUpperCase().trim();
+    final String branch = (meta['branch'] ?? meta['department'] ?? meta['course'] ?? 'B.Tech - AI&DS').toString().toUpperCase().trim();
+    final String regNo = (meta['registerNumber'] ?? meta['regNo'] ?? '922523243100').toString().trim();
+    final String dob = (meta['dob'] ?? meta['dateOfBirth'] ?? '12.11.2005').toString().trim();
+    final String bloodGroup = (meta['bloodGroup'] ?? 'O+').toString().trim();
+    final String course = (meta['course'] ?? meta['degree'] ?? 'B.Tech - AI&DS').toString().trim();
+    final String validity = (meta['validity'] ?? '2023 - 2027').toString().trim();
+    final String photoUrl = (user?.profileImageUrl ?? meta['photoUrl'] ?? meta['avatarUrl'] ?? '').toString().trim();
 
     return Container(
       constraints: BoxConstraints(maxHeight: screenHeight * 0.92),
@@ -2350,7 +2370,16 @@ class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
                                   alignment: Alignment.center,
                                   child: _buildBackCard(),
                                 )
-                              : _buildFrontCard(),
+                              : _buildFrontCard(
+                                  studentName: studentName,
+                                  branch: branch,
+                                  regNo: regNo,
+                                  dob: dob,
+                                  bloodGroup: bloodGroup,
+                                  course: course,
+                                  validity: validity,
+                                  photoUrl: photoUrl,
+                                ),
                         );
                       },
                     ),
@@ -2454,8 +2483,58 @@ class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
     );
   }
 
+  Widget _buildPassportPhotoAvatar(String photoUrl) {
+    if (photoUrl.isEmpty) {
+      return Container(
+        color: Colors.white,
+        child: const Icon(
+          Icons.person_rounded,
+          size: 50,
+          color: Color(0xFF024CAA),
+        ),
+      );
+    }
+
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return Image.network(
+        photoUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.white,
+          child: const Icon(
+            Icons.person_rounded,
+            size: 50,
+            color: Color(0xFF024CAA),
+          ),
+        ),
+      );
+    }
+
+    return Image.file(
+      File(photoUrl),
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: Colors.white,
+        child: const Icon(
+          Icons.person_rounded,
+          size: 50,
+          color: Color(0xFF024CAA),
+        ),
+      ),
+    );
+  }
+
   // ── FRONT SIDE CARD (CR80 Aspect Ratio 1:1.587) ──
-  Widget _buildFrontCard() {
+  Widget _buildFrontCard({
+    required String studentName,
+    required String branch,
+    required String regNo,
+    required String dob,
+    required String bloodGroup,
+    required String course,
+    required String validity,
+    required String photoUrl,
+  }) {
     return Container(
       width: 310,
       height: 492,
@@ -2542,7 +2621,7 @@ class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 4),
-                          // Student Photo Avatar
+                          // Student Passport Photo Avatar
                           Container(
                             width: 86,
                             height: 86,
@@ -2558,24 +2637,13 @@ class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
                               ],
                             ),
                             child: ClipOval(
-                              child: Image.network(
-                                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  color: Colors.white,
-                                  child: const Icon(
-                                    Icons.person_rounded,
-                                    size: 50,
-                                    color: Color(0xFF024CAA),
-                                  ),
-                                ),
-                              ),
+                              child: _buildPassportPhotoAvatar(photoUrl),
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'SARAVANA PERUMAL S',
-                            style: TextStyle(
+                          Text(
+                            studentName,
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
@@ -2583,18 +2651,18 @@ class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'B.TECH - AI&DS',
-                            style: TextStyle(
+                          Text(
+                            branch,
+                            style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFFE0F2FE),
                             ),
                           ),
                           const SizedBox(height: 1),
-                          const Text(
-                            'REG. NO: 922523243100',
-                            style: TextStyle(
+                          Text(
+                            'REG. NO: $regNo',
+                            style: const TextStyle(
                               fontSize: 10.5,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -2624,25 +2692,25 @@ class _StudentIDCardFlipModalState extends State<StudentIDCardFlipModal>
                                 _buildFrontSpecRow(
                                   Icons.calendar_today_rounded,
                                   'DATE OF BIRTH',
-                                  '12.11.2005',
+                                  dob,
                                 ),
                                 const SizedBox(height: 6),
                                 _buildFrontSpecRow(
                                   Icons.bloodtype_rounded,
                                   'BLOOD GROUP',
-                                  'O+',
+                                  bloodGroup,
                                 ),
                                 const SizedBox(height: 6),
                                 _buildFrontSpecRow(
                                   Icons.school_rounded,
                                   'COURSE',
-                                  'B.Tech - AI&DS',
+                                  course,
                                 ),
                                 const SizedBox(height: 6),
                                 _buildFrontSpecRow(
                                   Icons.event_available_rounded,
                                   'VALIDITY',
-                                  '2023 - 2027',
+                                  validity,
                                 ),
                               ],
                             ),

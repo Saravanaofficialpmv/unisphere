@@ -4,7 +4,6 @@ import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   final bool isInitialSignUp;
@@ -36,15 +35,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   late final TextEditingController _passwordController;
   
   // Signup Specific Controllers
-  late final TextEditingController _firstNameController;
-  late final TextEditingController _lastNameController;
+  late final TextEditingController _nameController;
+  late final TextEditingController _regNoController;
+  late final TextEditingController _deptController;
+  late final TextEditingController _confirmPasswordController;
   late final TextEditingController _phoneController;
   
   UserRole _selectedRole = UserRole.student;
-  DateTime? _selectedDate;
   late bool _isSignUp;
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _rememberMe = false;
 
   @override
@@ -53,82 +54,59 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _isSignUp = widget.isInitialSignUp;
     _emailController = TextEditingController(text: _isSignUp ? '' : 'saravanapmvofficial@gmail.com');
     _passwordController = TextEditingController(text: _isSignUp ? '' : 'Sivamani9698pmv\$');
-    _firstNameController = TextEditingController(text: widget.initialFirstName);
-    _lastNameController = TextEditingController(text: widget.initialLastName);
+    _nameController = TextEditingController(
+      text: widget.initialFirstName != null ? '${widget.initialFirstName} ${widget.initialLastName ?? ''}'.trim() : '',
+    );
+    _regNoController = TextEditingController(text: widget.initialId);
+    _deptController = TextEditingController(text: widget.initialDepartment ?? 'Computer Science');
+    _confirmPasswordController = TextEditingController();
     _phoneController = TextEditingController();
-
-    if (widget.initialRole != null) {
-      final roleLower = widget.initialRole!.toLowerCase();
-      if (roleLower.contains('staff') || roleLower.contains('faculty')) {
-        _selectedRole = UserRole.staff;
-      } else if (roleLower.contains('hod')) {
-        _selectedRole = UserRole.hod;
-      } else if (roleLower.contains('admin')) {
-        _selectedRole = UserRole.admin;
-      } else if (roleLower.contains('parent')) {
-        _selectedRole = UserRole.parent;
-      }
-    }
   }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _nameController.dispose();
+    _regNoController.dispose();
+    _deptController.dispose();
+    _confirmPasswordController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime(2002, 1, 1),
-      firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.primary),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() => _selectedDate = picked);
-    }
-  }
-
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
-    
-    if (_isSignUp && _selectedDate == null) {
-      _showSnackBar('Please select your birth date', AppColors.error);
-      return;
+
+    if (_isSignUp) {
+      if (_passwordController.text != _confirmPasswordController.text) {
+        _showSnackBar('Password and Confirm Password do not match', AppColors.error);
+        return;
+      }
     }
 
     setState(() => _isLoading = true);
     
     try {
       if (_isSignUp) {
-        final name = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim();
+        final name = _nameController.text.trim();
         await ref.read(authServiceProvider).registerWithEmail(
           _emailController.text.trim(),
           _passwordController.text,
-          name.isNotEmpty ? name : 'New User',
+          name.isNotEmpty ? name : 'New Student',
           _selectedRole,
           phoneNumber: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
           metadata: {
-            'registerNumber': widget.initialId ?? '',
-            'department': widget.initialDepartment ?? '',
-            'birthDate': _selectedDate?.toIso8601String(),
-            'profileCompleted': false,
+            'fullName': name,
+            'registerNumber': _regNoController.text.trim(),
+            'department': _deptController.text.trim(),
+            'collegeEmail': _emailController.text.trim(),
+            'profileCompletionStatus': 'incomplete',
+            'profileCompletionPercentage': 10,
           },
         );
         if (mounted) {
-          _showSnackBar('✅ Account created successfully! Logging you in...', AppColors.success);
+          _showSnackBar('✅ Account created successfully! Please complete your profile.', AppColors.success);
         }
       } else {
         await ref.read(authServiceProvider).signInWithEmail(
@@ -459,81 +437,103 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       key: const ValueKey('signup_form'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Text('Student Full Name', style: _labelStyle),
+        const SizedBox(height: 8),
+        _buildTextField(
+          controller: _nameController,
+          hint: 'e.g. Saravana Perumal S',
+          icon: Icons.person_outline,
+          validator: (val) => val == null || val.trim().isEmpty ? 'Please enter student full name' : null,
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('First Name', style: _labelStyle),
+                  const Text('Register Number', style: _labelStyle),
                   const SizedBox(height: 8),
-                  _buildTextField(controller: _firstNameController, hint: 'Raj'),
+                  _buildTextField(
+                    controller: _regNoController,
+                    hint: 'e.g. 922523243100',
+                    icon: Icons.badge_outlined,
+                    validator: (val) => val == null || val.trim().isEmpty ? 'Enter Reg No' : null,
+                  ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Last Name', style: _labelStyle),
+                  const Text('Department', style: _labelStyle),
                   const SizedBox(height: 8),
-                  _buildTextField(controller: _lastNameController, hint: 'Sarkar'),
+                  _buildTextField(
+                    controller: _deptController,
+                    hint: 'e.g. Computer Science',
+                    icon: Icons.school_outlined,
+                    validator: (val) => val == null || val.trim().isEmpty ? 'Enter Department' : null,
+                  ),
                 ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        const Text('Email Address', style: _labelStyle),
-        const SizedBox(height: 8),
-        _buildTextField(controller: _emailController, hint: 'example@unisphere.edu', icon: Icons.email_outlined),
-        const SizedBox(height: 20),
-        const Text('Select Account Role', style: _labelStyle),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<UserRole>(
-          initialValue: _selectedRole,
-          isExpanded: true,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.primary, size: 20),
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.border)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.border)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-          ),
-          items: const [
-            DropdownMenuItem(value: UserRole.student, child: Text('🎓 Student', overflow: TextOverflow.ellipsis)),
-            DropdownMenuItem(value: UserRole.staff, child: Text('👨‍🏫 Staff / Faculty', overflow: TextOverflow.ellipsis)),
-            DropdownMenuItem(value: UserRole.hod, child: Text('🏛️ Head of Department (HOD)', overflow: TextOverflow.ellipsis)),
-            DropdownMenuItem(value: UserRole.admin, child: Text('👑 Administrator', overflow: TextOverflow.ellipsis)),
-            DropdownMenuItem(value: UserRole.parent, child: Text('👨‍👩‍👧 Parent / Guardian', overflow: TextOverflow.ellipsis)),
-          ],
-          onChanged: (val) {
-            if (val != null) setState(() => _selectedRole = val);
-          },
-        ),
-        const SizedBox(height: 20),
-        const Text('Birth Date', style: _labelStyle),
-        const SizedBox(height: 8),
-        _buildDatePicker(),
-        const SizedBox(height: 20),
-        const Text('Phone Number', style: _labelStyle),
-        const SizedBox(height: 8),
-        _buildTextField(controller: _phoneController, hint: '+91 98765 43210', icon: Icons.phone_outlined),
-        const SizedBox(height: 20),
-        const Text('Set Password', style: _labelStyle),
+        const SizedBox(height: 16),
+        const Text('College Email Address', style: _labelStyle),
         const SizedBox(height: 8),
         _buildTextField(
-          controller: _passwordController,
-          hint: '*******',
-          icon: Icons.lock_outline,
-          isPassword: true,
-          obscureText: _obscurePassword,
-          onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
+          controller: _emailController,
+          hint: 'student@vsbec.ac.in',
+          icon: Icons.email_outlined,
+          validator: (val) => val == null || !val.contains('@') ? 'Valid college email required' : null,
         ),
-        const SizedBox(height: 32),
-        _buildSubmitButton('Sign Up'),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Password', style: _labelStyle),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _passwordController,
+                    hint: '••••••••',
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                    obscureText: _obscurePassword,
+                    onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
+                    validator: (val) => val == null || val.length < 6 ? 'Min 6 characters' : null,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Confirm Password', style: _labelStyle),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _confirmPasswordController,
+                    hint: '••••••••',
+                    icon: Icons.lock_clock_outlined,
+                    isPassword: true,
+                    obscureText: _obscureConfirmPassword,
+                    onToggleVisibility: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    validator: (val) => val == null || val.isEmpty ? 'Confirm password' : null,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        _buildSubmitButton('Create Account & Continue →'),
         const SizedBox(height: 32),
       ],
     );
@@ -557,29 +557,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 
-  Widget _buildDatePicker() {
-    return GestureDetector(
-      onTap: () => _selectDate(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              _selectedDate == null ? 'Select Date' : DateFormat('dd/MM/yyyy').format(_selectedDate!),
-              style: TextStyle(color: _selectedDate == null ? AppColors.textTertiary : AppColors.textPrimary, fontSize: 16),
-            ),
-            const Icon(Icons.calendar_today_outlined, color: AppColors.primary, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildSocialLogins() {
     return Column(
