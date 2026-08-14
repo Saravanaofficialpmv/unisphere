@@ -192,15 +192,20 @@ class _StudentProfileEditRequestModalState
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.edit_note_rounded, color: Color(0xFF2563EB), size: 24),
-                        SizedBox(width: 8),
-                        Text(
-                          'Request Profile Edit',
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0F172A)),
-                        ),
-                      ],
+                    const Expanded(
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_note_rounded, color: Color(0xFF2563EB), size: 24),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Request Profile Edit',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0F172A)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
