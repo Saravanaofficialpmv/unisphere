@@ -11,6 +11,7 @@ import 'package:unisphere/screens/staff/modules/staff_attendance_marking.dart';
 import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
 import 'package:unisphere/screens/staff/modules/staff_nptel_verification_screen.dart';
 import 'package:unisphere/screens/staff/modules/class_advisor_edit_requests_screen.dart';
+import 'package:unisphere/screens/staff/modules/hod_student_verifications_screen.dart';
 
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
@@ -273,6 +274,21 @@ class StaffHomeScreen extends StatelessWidget {
             const Color(0xFFFEF3C7),
             const Color(0xFF92400E),
             onTap: () => onNavigate?.call(4),
+          ),
+          _buildActionCard(
+            'HOD Profile Verifications',
+            'Verify and approve newly submitted 360° student profiles.',
+            Icons.verified_user_rounded,
+            const Color(0xFFF0FDF4),
+            const Color(0xFF16A34A),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const HodStudentVerificationsScreen(),
+                ),
+              );
+            },
           ),
           _buildActionCard(
             'Profile Edit Requests',

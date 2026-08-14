@@ -583,4 +583,98 @@ class FirebaseFirestoreService implements SupabaseService {
       }
     }
   }
+
+  // ==========================================
+  // HOD STUDENT PROFILE VERIFICATIONS
+  // ==========================================
+  Stream<List<Map<String, dynamic>>> getPendingHodVerificationsStream() {
+    try {
+      return _firestore.collection('student_profiles').snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          data['studentUid'] = doc.id;
+          return data;
+        }).toList();
+      });
+    } catch (e) {
+      debugPrint('Firestore getPendingHodVerificationsStream error: $e');
+      return Stream.value([]);
+    }
+  }
+
+  Future<void> approveStudentProfileByHod({
+    required String studentUid,
+    required String hodUid,
+    required String hodName,
+  }) async {
+    try {
+      final nowStr = DateTime.now().toIso8601String();
+      await _firestore.collection('student_profiles').doc(studentUid).set({
+        'verificationStatus': 'approved',
+        'completionStatus': 'completed',
+        'verifiedAt': nowStr,
+        'verifiedByHodUid': hodUid,
+        'verifiedByHodName': hodName,
+      }, SetOptions(merge: true));
+
+      await _firestore.collection('users').doc(studentUid).set({
+        'verificationStatus': 'approved',
+        'profileCompletionStatus': 'completed',
+        'metadata': {
+          'verifiedAt': nowStr,
+          'verifiedByHodName': hodName,
+        }
+      }, SetOptions(merge: true));
+
+      await _firestore.collection('audit_logs').add({
+        'actionType': 'hod_profile_verification_approval',
+        'studentUid': studentUid,
+        'hodUid': hodUid,
+        'hodName': hodName,
+        'timestamp': nowStr,
+      });
+    } catch (e) {
+      debugPrint('Firestore approveStudentProfileByHod error: $e');
+    }
+  }
+
+  Future<void> rejectStudentProfileByHod({
+    required String studentUid,
+    required String hodUid,
+    required String hodName,
+    required String reason,
+  }) async {
+    try {
+      final nowStr = DateTime.now().toIso8601String();
+      await _firestore.collection('student_profiles').doc(studentUid).set({
+        'verificationStatus': 'rejected',
+        'completionStatus': 'rejected',
+        'rejectionReason': reason,
+        'rejectedAt': nowStr,
+        'rejectedByHodUid': hodUid,
+        'rejectedByHodName': hodName,
+      }, SetOptions(merge: true));
+
+      await _firestore.collection('users').doc(studentUid).set({
+        'verificationStatus': 'rejected',
+        'profileCompletionStatus': 'rejected',
+        'rejectionReason': reason,
+        'metadata': {
+          'rejectedAt': nowStr,
+          'rejectionReason': reason,
+        }
+      }, SetOptions(merge: true));
+
+      await _firestore.collection('audit_logs').add({
+        'actionType': 'hod_profile_verification_rejection',
+        'studentUid': studentUid,
+        'hodUid': hodUid,
+        'hodName': hodName,
+        'reason': reason,
+        'timestamp': nowStr,
+      });
+    } catch (e) {
+      debugPrint('Firestore rejectStudentProfileByHod error: $e');
+    }
+  }
 }

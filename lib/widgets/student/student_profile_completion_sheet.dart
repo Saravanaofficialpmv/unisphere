@@ -561,7 +561,10 @@ class _StudentProfileCompletionSheetState
       documents: _uploadedDocuments,
     );
 
-    await ref.read(firebaseFirestoreServiceProvider).submitFullStudentProfile(profile.toMap());
+    final profileMap = profile.toMap();
+    profileMap['verificationStatus'] = 'pending_hod';
+
+    await ref.read(firebaseFirestoreServiceProvider).submitFullStudentProfile(profileMap);
 
     if (mounted) {
       setState(() => _isSubmitting = false);

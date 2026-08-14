@@ -440,7 +440,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       const SizedBox(height: 16),
 
                       // Profile Verification Banner (Prompt to complete profile & submit to HOD)
-                      _buildCompleteProfileBanner(context),
+                      _buildProfileCompletionBanner(),
 
                       // 2. Academic Overview Card with background glow
                       Stack(
@@ -536,30 +536,71 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     );
   }
 
-  Widget _buildCompleteProfileBanner(BuildContext context) {
+  Widget _buildProfileCompletionBanner() {
     final user = ref.watch(authServiceProvider).currentUser;
     final meta = user?.metadata ?? {};
-    final status = meta['verificationStatus'] ?? 'incomplete';
+    final status = meta['verificationStatus'] ?? meta['profileCompletionStatus'] ?? 'incomplete';
 
-    if (status == 'verified') return const SizedBox.shrink();
+    if (status == 'approved' || status == 'verified') {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0FDF4),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFBBF7D0)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.verified_user_rounded, color: Color(0xFF16A34A), size: 26),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('🟢 360° Profile Verified', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFF15803D))),
+                  SizedBox(height: 2),
+                  Text('Your profile details have been verified and approved by HOD.', style: TextStyle(fontSize: 11.5, color: Color(0xFF166534))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
-    final isPending = status == 'pending';
+    final isPending = status == 'pending_hod' || status == 'submitted' || status == 'pending';
+    final isRejected = status == 'rejected';
+
+    final bgColor1 = isRejected
+        ? const Color(0xFFDC2626)
+        : (isPending ? const Color(0xFFD97706) : const Color(0xFF1E3A8A));
+    final bgColor2 = isRejected
+        ? const Color(0xFF991B1B)
+        : (isPending ? const Color(0xFFB45309) : const Color(0xFF3B82F6));
+
+    final titleText = isRejected
+        ? '🔴 Profile Revision Required'
+        : (isPending ? '🟡 Profile Submitted to HOD' : '🎓 Complete Your Profile');
+    final descText = isRejected
+        ? 'HOD requested revision: ${meta['rejectionReason'] ?? "Please re-check your uploaded documents."}'
+        : (isPending
+            ? 'Your 360° profile has been submitted and is currently pending verification by your HOD.'
+            : 'Fill in your personal, academic, accommodation & transport details for HOD verification.');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isPending
-              ? [const Color(0xFFD97706), const Color(0xFFB45309)]
-              : [const Color(0xFF1E3A8A), const Color(0xFF3B82F6)],
+          colors: [bgColor1, bgColor2],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (isPending ? const Color(0xFFD97706) : AppColors.primary).withValues(alpha: 0.3),
+            color: bgColor1.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -574,7 +615,9 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isPending ? Icons.hourglass_top_rounded : Icons.assignment_ind_rounded,
+              isRejected
+                  ? Icons.error_outline_rounded
+                  : (isPending ? Icons.hourglass_top_rounded : Icons.assignment_ind_rounded),
               color: Colors.white,
               size: 26,
             ),
@@ -585,14 +628,12 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isPending ? '🟡 Profile Verification Pending' : '🎓 Complete Your Profile',
+                  titleText,
                   style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  isPending
-                      ? 'Your details were submitted to Dr. R. Kumar (HOD, CSE) for verification.'
-                      : 'Fill in your register number, section & semester, then submit to HOD for verification.',
+                  descText,
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
@@ -610,13 +651,13 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: isPending ? const Color(0xFFB45309) : AppColors.primary,
+              foregroundColor: isRejected ? const Color(0xFFDC2626) : (isPending ? const Color(0xFFB45309) : AppColors.primary),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               minimumSize: const Size(0, 36),
             ),
             child: Text(
-              isPending ? 'View Status' : 'Complete Now →',
+              isRejected ? 'Edit & Resubmit' : (isPending ? 'View Profile' : 'Complete Now →'),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),
