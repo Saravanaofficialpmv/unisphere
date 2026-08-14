@@ -1438,8 +1438,10 @@ class _StudentProfileCompletionSheetState
     final validValue = (value != null && items.contains(value)) ? value : null;
     return DropdownButtonFormField<String>(
       initialValue: validValue,
+      isExpanded: true,
       hint: Text(
         'Select $label',
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: hasError ? Colors.red : Colors.grey,
           fontSize: 13,
@@ -1470,7 +1472,7 @@ class _StudentProfileCompletionSheetState
       items: items
           .map((it) => DropdownMenuItem(
                 value: it,
-                child: Text(it, style: const TextStyle(fontSize: 13)),
+                child: Text(it, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
               ))
           .toList(),
       onChanged: onChanged,
