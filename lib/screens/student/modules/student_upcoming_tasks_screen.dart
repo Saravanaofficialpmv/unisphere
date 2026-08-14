@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
-class StudentUpcomingTasksScreen extends StatefulWidget {
+class StudentUpcomingTasksScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
 
   const StudentUpcomingTasksScreen({
@@ -11,10 +15,10 @@ class StudentUpcomingTasksScreen extends StatefulWidget {
   });
 
   @override
-  State<StudentUpcomingTasksScreen> createState() => _StudentUpcomingTasksScreenState();
+  ConsumerState<StudentUpcomingTasksScreen> createState() => _StudentUpcomingTasksScreenState();
 }
 
-class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen> with SingleTickerProviderStateMixin {
+class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTasksScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTabIndex = 0;
 
@@ -246,7 +250,7 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
                   child: Column(
                     children: [
                       if (isUploading)
-                        const CircularProgressIndicator()
+                        const CustomLoader(size: 32, label: 'Uploading file...')
                       else if (selectedFileName != null) ...[
                         const Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 32),
                         const SizedBox(height: 6),
@@ -334,11 +338,45 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
 
   @override
   Widget build(BuildContext context) {
-    final pendingAssignments = _assignments.where((a) => a['status'] == 'Pending').toList();
-    final submittedAssignments = _assignments.where((a) => a['status'] == 'Submitted').toList();
-    final gradedAssignments = _assignments.where((a) => a['status'] == 'Graded').toList();
+    final user = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final email = user?.email.toLowerCase().trim() ?? '';
+    final isDemo = email == 'saravanapmvofficial@gmail.com' || (user != null && user.uid == 'DEMO-STU');
 
-    List<Map<String, dynamic>> activeList = _assignments;
+    final dbAssignments = ref.watch(allAssignmentsStreamProvider).value ?? [];
+
+    List<Map<String, dynamic>> sourceAssignments = [];
+    if (dbAssignments.isNotEmpty) {
+      sourceAssignments = dbAssignments.map((doc) {
+        return {
+          'id': doc['id'],
+          'courseCode': doc['subject']?.toString().split(' - ')[0] ?? 'CS301',
+          'subjectName': doc['subject']?.toString() ?? 'Course Subject',
+          'title': doc['title']?.toString() ?? 'Posted Assignment',
+          'facultyName': doc['uploadedBy']?.toString() ?? 'Course Faculty',
+          'postedDate': 'Official Release',
+          'dueDate': 'Check Marksheet',
+          'isDueSoon': false,
+          'maxMarks': 100,
+          'status': 'Graded',
+          'allowedFormats': 'PDF Document (.pdf)',
+          'questionPrompt': 'Official staff assignment marks published in Cloud Firestore.',
+          'submittedFile': doc['fileName']?.toString(),
+          'submittedDate': null,
+          'obtainedMarks': null,
+          'feedback': null,
+        };
+      }).toList();
+    } else if (isDemo) {
+      sourceAssignments = _assignments;
+    } else {
+      sourceAssignments = [];
+    }
+
+    final pendingAssignments = sourceAssignments.where((a) => a['status'] == 'Pending').toList();
+    final submittedAssignments = sourceAssignments.where((a) => a['status'] == 'Submitted').toList();
+    final gradedAssignments = sourceAssignments.where((a) => a['status'] == 'Graded').toList();
+
+    List<Map<String, dynamic>> activeList = sourceAssignments;
     if (_selectedTabIndex == 1) activeList = pendingAssignments;
     if (_selectedTabIndex == 2) activeList = submittedAssignments;
     if (_selectedTabIndex == 3) activeList = gradedAssignments;
@@ -390,7 +428,7 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: Colors.transparent,
                     tabs: [
-                      Tab(text: 'All (${_assignments.length})'),
+                      Tab(text: 'All (${sourceAssignments.length})'),
                       Tab(text: 'Pending (${pendingAssignments.length})'),
                       Tab(text: 'Submitted (${submittedAssignments.length})'),
                       Tab(text: 'Graded (${gradedAssignments.length})'),
@@ -406,9 +444,10 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 🔔 Pending Assignment Deadline Notification Banner
-                      _buildDeadlineNotificationBanner(pendingAssignments.length),
-
-                      const SizedBox(height: 16),
+                      if (pendingAssignments.isNotEmpty) ...[
+                        _buildDeadlineNotificationBanner(pendingAssignments.length),
+                        const SizedBox(height: 16),
+                      ],
 
                       const Text(
                         'Faculty Posted Assignments & Question Papers',

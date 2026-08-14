@@ -7,6 +7,7 @@ import 'package:unisphere/services/firebase_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize Firebase Core & Auth services
   try {
     await FirebaseService.instance.initialize();
   } catch (e) {

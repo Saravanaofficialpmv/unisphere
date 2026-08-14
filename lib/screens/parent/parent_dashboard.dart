@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
@@ -190,12 +191,20 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
   }
 
   Widget _buildSidebar() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final userName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name
+        : 'Parent User';
+    final userEmail = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty)
+        ? currentUser.email
+        : 'parent@unisphere.edu';
+
     return MainSidebar(
       selectedIndex: _currentIndex,
       onDestinationSelected: _handleNavigation,
       items: _sidebarItems,
-      userName: 'Rajesh Kumar',
-      userEmail: 'rajesh.kumar@parent.unisphere.edu',
+      userName: userName,
+      userEmail: userEmail,
     );
   }
 }

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
 import 'package:unisphere/widgets/student_full_detail_modal.dart';
 
-class StaffStudentDirectory extends StatefulWidget {
+class StaffStudentDirectory extends ConsumerStatefulWidget {
   const StaffStudentDirectory({super.key});
 
   @override
-  State<StaffStudentDirectory> createState() => _StaffStudentDirectoryState();
+  ConsumerState<StaffStudentDirectory> createState() => _StaffStudentDirectoryState();
 }
 
-class _StaffStudentDirectoryState extends State<StaffStudentDirectory> {
+class _StaffStudentDirectoryState extends ConsumerState<StaffStudentDirectory> {
   String _searchQuery = '';
   String _selectedYear = 'All';
   String _selectedSection = 'All';
@@ -29,13 +31,13 @@ class _StaffStudentDirectoryState extends State<StaffStudentDirectory> {
       'email': 'aravind.s@unisphere.edu',
       'phone': '+91 98765 43210',
       'photo': 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
-      'leetcodeUsername': 'saravanapmv',
+      'leetcodeUsername': 'aravind_s',
       'leetcodeSolved': 130,
       'leetcodeEasy': 104,
       'leetcodeMedium': 24,
       'leetcodeHard': 2,
       'leetcodeStreak': 12,
-      'githubUsername': 'Saravanaofficialpmv',
+      'githubUsername': 'aravind-dev',
       'githubRepos': 14,
       'githubCommits': 87,
       'githubStars': 0,
@@ -110,23 +112,23 @@ class _StaffStudentDirectoryState extends State<StaffStudentDirectory> {
     },
     {
       'name': 'Sneha Murali',
-      'regNo': '917723104089',
-      'year': '1st Year',
-      'semester': 'Semester 2',
-      'section': 'CS-C',
-      'cgpa': '9.50',
+      'regNo': '917721104088',
+      'year': '3rd Year',
+      'semester': 'Semester 6',
+      'section': 'CS-B',
+      'cgpa': '9.45',
       'attendance': '98.0%',
-      'advisor': 'Dr. Anita Roy',
+      'advisor': 'Dr. R. Kumar',
       'gender': 'Female',
-      'type': 'Hosteller',
+      'type': 'Day Scholar',
       'email': 'sneha.m@unisphere.edu',
-      'phone': '+91 98765 43213',
-      'photo': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-      'leetcodeUsername': 'sneha_m',
-      'leetcodeSolved': 210,
-      'leetcodeEasy': 130,
-      'leetcodeMedium': 65,
-      'leetcodeHard': 15,
+      'phone': '+91 98765 43212',
+      'photo': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      'leetcodeUsername': 'snehamurali',
+      'leetcodeSolved': 310,
+      'leetcodeEasy': 150,
+      'leetcodeMedium': 130,
+      'leetcodeHard': 30,
       'leetcodeStreak': 40,
       'githubUsername': 'snehamurali',
       'githubRepos': 30,
@@ -143,7 +145,37 @@ class _StaffStudentDirectoryState extends State<StaffStudentDirectory> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _studentList.where((s) {
+    final dbStudents = ref.watch(allStudentsStreamProvider).value ?? [];
+    final List<Map<String, dynamic>> combinedList = [..._studentList];
+    for (var u in dbStudents) {
+      final meta = u.metadata ?? {};
+      if (!combinedList.any((s) => s['email'] == u.email)) {
+        combinedList.insert(0, {
+          'name': u.name.isNotEmpty ? u.name : (u.email.contains('@') ? u.email.split('@').first : 'Registered Student'),
+          'regNo': meta['registerNumber'] ?? u.uid,
+          'year': meta['year'] ?? (meta['semester'] ?? '3rd Year'),
+          'semester': meta['semester'] ?? 'Semester 6',
+          'section': meta['section'] ?? 'Sec A',
+          'cgpa': meta['cgpa']?.toString() ?? '0.0',
+          'attendance': meta['attendance'] != null ? '${meta['attendance']}%' : 'N/A',
+          'advisor': 'Dr. R. Kumar (HOD)',
+          'gender': meta['gender'] ?? 'Not specified',
+          'type': meta['residenceType'] ?? 'Day Scholar',
+          'email': u.email,
+          'phone': u.phoneNumber ?? meta['phoneNumber'] ?? 'Not set',
+          'photo': 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
+          'leetcodeUsername': meta['leetcodeUsername'] ?? '',
+          'leetcodeSolved': meta['leetcodeSolved'] ?? 0,
+          'githubUsername': meta['githubUsername'] ?? '',
+          'githubRepos': meta['githubRepos'] ?? 0,
+          'githubCommits': meta['githubCommits'] ?? 0,
+          'linkedinUrl': meta['linkedinUrl'] ?? '',
+          'skills': meta['skills'] ?? ['Academic Student'],
+        });
+      }
+    }
+
+    final filtered = combinedList.where((s) {
       final matchesSearch = s['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           s['regNo'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           s['leetcodeUsername'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
@@ -251,9 +283,9 @@ class _StaffStudentDirectoryState extends State<StaffStudentDirectory> {
   }
 
   Widget _buildStudentCard(BuildContext context, Map<String, dynamic> item) {
-    final String leetcodeHandle = item['leetcodeUsername'] ?? 'saravanapmv';
-    final int solved = item['leetcodeSolved'] ?? 130;
-    final int streak = item['leetcodeStreak'] ?? 12;
+    final String leetcodeHandle = item['leetcodeUsername'] ?? '';
+    final int solved = leetcodeHandle.isEmpty ? 0 : (item['leetcodeSolved'] ?? 0);
+    final int streak = leetcodeHandle.isEmpty ? 0 : (item['leetcodeStreak'] ?? 0);
 
     return Container(
       padding: const EdgeInsets.all(18),

@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unisphere/models/user_model.dart';
+import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/leetcode_service.dart';
 import 'package:unisphere/services/github_service.dart';
 import 'package:unisphere/services/linkedin_service.dart';
@@ -46,68 +48,117 @@ class AcademicOverviewData {
     required this.cgpa,
     required this.cgpaTrend,
     required this.cgpaLabel,
-    this.odDays = 4,
-    this.odStatus = 'Approved',
-    this.leetcodeSolved = 130,
-    this.leetcodeStatus = '130 Solved',
-    this.leetcodeUsername = 'saravanapmv',
-    this.githubUsername = 'Saravanaofficialpmv',
-    this.githubRepos = 14,
+    this.odDays = 0,
+    this.odStatus = 'None',
+    this.leetcodeSolved = 0,
+    this.leetcodeStatus = 'Not linked',
+    this.leetcodeUsername = '',
+    this.githubUsername = '',
+    this.githubRepos = 0,
     this.githubStars = 0,
-    this.githubCommits = 87,
-    this.linkedinUrl = 'https://www.linkedin.com/in/saravana-selvaraju/',
-    this.linkedinConnections = '500+',
-    this.linkedinHeadline = 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
-    this.customLinks = const [
-      CustomUserLink(
-        id: 'cl_1',
-        title: 'Codeforces Handle',
-        url: 'https://codeforces.com/profile/saravanapmv',
-        category: 'Coding',
-      ),
-      CustomUserLink(
-        id: 'cl_2',
-        title: 'Kaggle AI Ranks',
-        url: 'https://kaggle.com/saravanaofficialpmv',
-        category: 'AI',
-      ),
-    ],
+    this.githubCommits = 0,
+    this.linkedinUrl = '',
+    this.linkedinConnections = '0',
+    this.linkedinHeadline = '',
+    this.customLinks = const [],
   });
 }
 
 /// Notifier to manage state updates for the student's academic overview.
 class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
-  AcademicOverviewNotifier()
-      : super(
-          const AcademicOverviewData(
-            attendancePercentage: 85.0,
-            attendanceTrend: 5.0,
-            attendanceStatus: 'Good',
-            cgpa: 8.72,
-            cgpaTrend: 0.24,
-            cgpaLabel: 'Current CGPA',
-            odDays: 4,
-            odStatus: 'Approved',
-            leetcodeSolved: 130,
-            leetcodeStatus: '130 Solved',
-            leetcodeUsername: 'saravanapmv',
-            githubUsername: 'Saravanaofficialpmv',
-            githubRepos: 14,
-            githubStars: 0,
-            githubCommits: 87,
-            linkedinUrl: 'https://www.linkedin.com/in/saravana-selvaraju/',
-            linkedinConnections: '500+',
-            linkedinHeadline: 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
+  AcademicOverviewNotifier({UserModel? user})
+      : super(_buildInitialState(user)) {
+    if (state.leetcodeUsername.isNotEmpty) {
+      fetchLeetCodeStats(state.leetcodeUsername);
+    }
+    if (state.githubUsername.isNotEmpty) {
+      fetchGitHubStats(state.githubUsername);
+    }
+    if (state.linkedinUrl.isNotEmpty) {
+      fetchLinkedInStats(state.linkedinUrl);
+    }
+  }
+
+  static AcademicOverviewData _buildInitialState(UserModel? user) {
+    final email = user?.email.toLowerCase().trim() ?? '';
+    final meta = user?.metadata ?? {};
+
+    final double? savedCgpa = double.tryParse(meta['cgpa']?.toString() ?? '');
+    final double? savedAtt = double.tryParse(meta['attendance']?.toString() ?? '');
+
+    // Demo student account gets demo metrics unless custom database values exist
+    if ((email == 'saravanapmvofficial@gmail.com' || (user != null && user.uid == 'DEMO-STU')) && savedCgpa == null && savedAtt == null) {
+      return const AcademicOverviewData(
+        attendancePercentage: 85.0,
+        attendanceTrend: 5.0,
+        attendanceStatus: 'Good',
+        cgpa: 8.72,
+        cgpaTrend: 0.24,
+        cgpaLabel: 'Current CGPA',
+        odDays: 4,
+        odStatus: 'Approved',
+        leetcodeSolved: 130,
+        leetcodeStatus: '130 Solved',
+        leetcodeUsername: 'saravanapmv',
+        githubUsername: 'Saravanaofficialpmv',
+        githubRepos: 14,
+        githubStars: 0,
+        githubCommits: 87,
+        linkedinUrl: 'https://www.linkedin.com/in/saravana-selvaraju/',
+        linkedinConnections: '500+',
+        linkedinHeadline: 'Flutter & Mobile Developer | AI Systems Innovator @ UNISPHERE',
+        customLinks: [
+          CustomUserLink(
+            id: 'cl_1',
+            title: 'Codeforces Handle',
+            url: 'https://codeforces.com/profile/saravanapmv',
+            category: 'Coding',
           ),
-        ) {
-    fetchLeetCodeStats(state.leetcodeUsername);
-    fetchGitHubStats(state.githubUsername);
-    fetchLinkedInStats(state.linkedinUrl);
+          CustomUserLink(
+            id: 'cl_2',
+            title: 'Kaggle AI Ranks',
+            url: 'https://kaggle.com/saravanaofficialpmv',
+            category: 'AI',
+          ),
+        ],
+      );
+    }
+
+    // Real / fresh signups read live values from user metadata in database
+    final leetcodeUser = meta['leetcodeUsername']?.toString() ?? '';
+    final githubUser = meta['githubUsername']?.toString() ?? '';
+    final linkedinUrl = meta['linkedinUrl']?.toString() ?? '';
+    final double cgpa = savedCgpa ?? 0.0;
+    final double attendance = savedAtt ?? 0.0;
+
+    return AcademicOverviewData(
+      attendancePercentage: attendance,
+      attendanceTrend: 0.0,
+      attendanceStatus: attendance >= 75.0 ? 'Good' : (attendance > 0 ? 'Critical' : 'N/A'),
+      cgpa: cgpa,
+      cgpaTrend: 0.0,
+      cgpaLabel: cgpa > 0 ? 'Current CGPA' : 'Not set',
+      odDays: 0,
+      odStatus: 'None',
+      leetcodeSolved: 0,
+      leetcodeStatus: leetcodeUser.isNotEmpty ? 'Syncing...' : 'Not linked',
+      leetcodeUsername: leetcodeUser,
+      githubUsername: githubUser,
+      githubRepos: 0,
+      githubStars: 0,
+      githubCommits: 0,
+      linkedinUrl: linkedinUrl,
+      linkedinConnections: '0',
+      linkedinHeadline: '',
+      customLinks: const [],
+    );
   }
 
   /// Automatically updates LeetCode solved count from public LeetCode API
   Future<void> fetchLeetCodeStats(String username) async {
+    if (username.isEmpty) return;
     final stats = await LeetCodeService.fetchUserStats(username);
+    if (!mounted) return;
     state = AcademicOverviewData(
       attendancePercentage: state.attendancePercentage,
       attendanceTrend: state.attendanceTrend,
@@ -133,7 +184,9 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
 
   /// Automatically updates GitHub stats from GitHub REST API
   Future<void> fetchGitHubStats(String username) async {
+    if (username.isEmpty) return;
     final stats = await GitHubService.fetchUserStats(username);
+    if (!mounted) return;
     state = AcademicOverviewData(
       attendancePercentage: state.attendancePercentage,
       attendanceTrend: state.attendanceTrend,
@@ -159,7 +212,9 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
 
   /// Automatically updates LinkedIn professional profile stats
   Future<void> fetchLinkedInStats(String urlOrHandle) async {
+    if (urlOrHandle.isEmpty) return;
     final stats = await LinkedInService.fetchProfileStats(urlOrHandle);
+    if (!mounted) return;
     state = AcademicOverviewData(
       attendancePercentage: state.attendancePercentage,
       attendanceTrend: state.attendanceTrend,
@@ -287,5 +342,8 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
 /// Riverpod provider for student academic overview metrics.
 final academicOverviewProvider =
     StateNotifierProvider<AcademicOverviewNotifier, AcademicOverviewData>(
-  (ref) => AcademicOverviewNotifier(),
+  (ref) {
+    final user = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    return AcademicOverviewNotifier(user: user);
+  },
 );

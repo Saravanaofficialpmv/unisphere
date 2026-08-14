@@ -20,17 +20,18 @@ class GitHubDetailScreen extends ConsumerStatefulWidget {
 class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
   bool _isRefreshing = false;
   late TextEditingController _handleController;
-  GitHubUserStats _fullStats = const GitHubUserStats(
-    username: 'Saravanaofficialpmv',
-    isFetched: true,
-  );
+  GitHubUserStats _fullStats = GitHubUserStats.empty();
 
   @override
   void initState() {
     super.initState();
     final overviewData = ref.read(academicOverviewProvider);
     _handleController = TextEditingController(text: overviewData.githubUsername);
-    _loadFullStats(overviewData.githubUsername);
+    if (overviewData.githubUsername.isNotEmpty) {
+      _loadFullStats(overviewData.githubUsername);
+    } else {
+      _fullStats = GitHubUserStats.empty();
+    }
   }
 
   @override
@@ -40,10 +41,21 @@ class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
   }
 
   Future<void> _loadFullStats(String username) async {
+    final cleanUser = username.trim().replaceAll('@', '');
+    if (cleanUser.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _fullStats = GitHubUserStats.empty();
+          _isRefreshing = false;
+        });
+      }
+      return;
+    }
+
     setState(() {
       _isRefreshing = true;
     });
-    final stats = await GitHubService.fetchUserStats(username);
+    final stats = await GitHubService.fetchUserStats(cleanUser);
     if (mounted) {
       setState(() {
         _fullStats = stats;

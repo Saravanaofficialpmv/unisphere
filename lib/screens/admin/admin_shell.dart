@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
@@ -12,14 +14,14 @@ import 'package:unisphere/screens/admin/modules/attendance_management.dart';
 import 'package:unisphere/screens/admin/modules/report_management.dart';
 import 'package:unisphere/screens/admin/modules/role_management.dart';
 
-class AdminShell extends StatefulWidget {
+class AdminShell extends ConsumerStatefulWidget {
   const AdminShell({super.key});
 
   @override
-  State<AdminShell> createState() => _AdminShellState();
+  ConsumerState<AdminShell> createState() => _AdminShellState();
 }
 
-class _AdminShellState extends State<AdminShell> {
+class _AdminShellState extends ConsumerState<AdminShell> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
@@ -113,21 +115,34 @@ class _AdminShellState extends State<AdminShell> {
 }
 
   Widget _buildSidebar() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final userName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name
+        : 'Admin User';
+    final userEmail = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty)
+        ? currentUser.email
+        : 'admin@unisphere.edu';
+
     return MainSidebar(
       selectedIndex: _selectedIndex,
       onDestinationSelected: _handleNavigation,
       items: _sidebarItems,
-      userName: 'Bardia Adibi',
-      userEmail: 'Bardiaadb@gmail.com',
+      userName: userName,
+      userEmail: userEmail,
     );
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDesktop) {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final firstName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name.split(' ').first
+        : 'Admin';
+
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
       centerTitle: false,
-      title: const Text('Hello, Bardia 👋', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
+      title: Text('Hello, $firstName 👋', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
       leading: isDesktop 
         ? const Padding(padding: EdgeInsets.all(12), child: Icon(Icons.hub_rounded, color: AppColors.primary)) 
         : Builder(

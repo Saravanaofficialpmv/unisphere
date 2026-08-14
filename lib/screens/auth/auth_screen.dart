@@ -135,9 +135,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           _emailController.text.trim(),
           _passwordController.text,
         );
-        if (mounted) {
-          _showSnackBar('✅ Logged in successfully!', AppColors.success);
-        }
       }
     } catch (e) {
       if (mounted) _showSnackBar('Authentication Notice: ${e.toString()}', AppColors.error);
@@ -642,7 +639,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final isSelected = _isSignUp == isSignUpTab;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _isSignUp = isSignUpTab),
+        onTap: () {
+          setState(() {
+            _isSignUp = isSignUpTab;
+            if (_isSignUp) {
+              _emailController.clear();
+              _passwordController.clear();
+            }
+          });
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),

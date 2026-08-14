@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';
 
 class MainSidebar extends ConsumerWidget {
   final int selectedIndex;
@@ -168,7 +168,7 @@ class MainSidebar extends ConsumerWidget {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () => ref.read(authServiceProvider).signOut(),
+          onPressed: () => showSignOutConfirmationSheet(context, ref),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.background,
             foregroundColor: AppColors.error,

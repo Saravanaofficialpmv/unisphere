@@ -9,8 +9,7 @@ final hackathonServiceProvider = Provider<HackathonService>((ref) {
 });
 
 final hackathonRepositoryProvider = Provider<HackathonRepository>((ref) {
-  final service = ref.watch(hackathonServiceProvider);
-  return HackathonRepository(service);
+  return HackathonRepository();
 });
 
 final hackathonControllerProvider = StateNotifierProvider<HackathonController, HackathonState>((ref) {

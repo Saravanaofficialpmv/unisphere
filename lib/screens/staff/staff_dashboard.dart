@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 
 import 'package:unisphere/screens/staff/modules/staff_assignment_creation.dart';
@@ -154,12 +155,20 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
 }
 
   Widget _buildSidebar() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final userName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name
+        : 'Prof. Staff Member';
+    final userEmail = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty)
+        ? currentUser.email
+        : 'staff@unisphere.edu';
+
     return MainSidebar(
       selectedIndex: _currentIndex,
       onDestinationSelected: _handleNavigation,
       items: _sidebarItems,
-      userName: 'Prof. Emily Carter',
-      userEmail: 'e.carter@unisphere.edu',
+      userName: userName,
+      userEmail: userEmail,
     );
   }
 }

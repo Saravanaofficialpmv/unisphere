@@ -28,6 +28,7 @@ import 'package:unisphere/widgets/common/open_menu_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
 import 'package:unisphere/services/auth_service.dart';
 
 
@@ -53,7 +54,6 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
     SidebarItem(label: 'Timetable', icon: Icons.calendar_month_outlined),
-    SidebarItem(label: 'My Tasks', icon: Icons.assignment_outlined, badge: '3'),
     SidebarItem(label: 'Attendance', icon: Icons.calendar_today_outlined),
     SidebarItem(label: 'Academic Marks', icon: Icons.bar_chart_outlined),
     SidebarItem(label: 'Fees & Payments', icon: Icons.payments_outlined),
@@ -172,12 +172,20 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   }
 
   Widget _buildSidebar() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final userName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name
+        : 'Student User';
+    final userEmail = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty)
+        ? currentUser.email
+        : 'student@unisphere.edu';
+
     return MainSidebar(
       selectedIndex: _currentIndex,
       onDestinationSelected: _handleNavigation,
       items: _sidebarItems,
-      userName: 'Alex Johnson',
-      userEmail: 'alex.j@unisphere.edu',
+      userName: userName,
+      userEmail: userEmail,
     );
   }
 }
@@ -608,31 +616,137 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     );
   }
 
-  // ── Today's Classes ───────────────────────
+  // ── Today's Classes (Live Cloud Firestore Sync) ───────────────────────
   Widget _buildTodaysClasses() {
-    return Column(
-      children: [
-        _buildClassCard(
-          time: '09:00',
-          period: 'AM',
-          title: 'Advanced Mathematics',
-          timeRange: '09:00 AM – 10:30 AM',
-          room: 'Room 302',
-          accentColor: const Color(0xFF5C6BC0),
-          icon: Icons.calculate_rounded,
-          iconBg: const Color(0xFFEDE7F6),
-        ),
-        _buildClassCard(
-          time: '11:00',
-          period: 'AM',
-          title: 'Computer Science',
-          timeRange: '11:00 AM – 12:30 PM',
-          room: 'Lab 1',
-          accentColor: const Color(0xFF26A69A),
-          icon: Icons.computer_rounded,
-          iconBg: const Color(0xFFE0F2F1),
-        ),
-      ],
+    final user = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final email = user?.email.toLowerCase().trim() ?? '';
+    final isDemo = email == 'saravanapmvofficial@gmail.com' || (user != null && user.uid == 'DEMO-STU');
+
+    final meta = user?.metadata ?? {};
+    final String userYear = meta['academicYear']?.toString().trim() ?? '3rd Year';
+    final String userSection = meta['section']?.toString().trim() ?? 'CS-A';
+
+    final allTimetables = ref.watch(allTimetablesStreamProvider).value ?? [];
+
+    // Find timetable matching user's Year & Section
+    Map<String, dynamic>? matchedTimetable;
+    for (var tt in allTimetables) {
+      final ttYear = tt['year']?.toString().trim() ?? '';
+      final ttSec = tt['section']?.toString().trim() ?? '';
+      if (ttYear.toLowerCase() == userYear.toLowerCase() && ttSec.toLowerCase() == userSection.toLowerCase()) {
+        matchedTimetable = tt;
+        break;
+      }
+    }
+
+    if (matchedTimetable != null) {
+      final List rawPeriods = matchedTimetable['periods'] as List? ?? [];
+
+      if (rawPeriods.isNotEmpty) {
+        final List<Widget> periodCards = [];
+        for (int i = 0; i < rawPeriods.length; i++) {
+          final p = rawPeriods[i];
+          final time = p['time']?.toString() ?? '09:00';
+          final period = p['period']?.toString() ?? 'AM';
+          final title = p['title']?.toString() ?? p['subject']?.toString() ?? 'Lecture Period ${i + 1}';
+          final timeRange = p['timeRange']?.toString() ?? '09:00 AM - 10:00 AM';
+          final room = p['room']?.toString() ?? 'Classroom';
+
+          periodCards.add(
+            _buildClassCard(
+              time: time,
+              period: period,
+              title: title,
+              timeRange: timeRange,
+              room: room,
+              accentColor: i % 2 == 0 ? const Color(0xFF2563EB) : const Color(0xFF10B981),
+              icon: i % 2 == 0 ? Icons.menu_book_rounded : Icons.computer_rounded,
+              iconBg: i % 2 == 0 ? const Color(0xFFEFF6FF) : const Color(0xFFECFDF5),
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cloud_done_rounded, color: Color(0xFF2563EB), size: 16),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'HOD OFFICIAL CLASS TIMETABLE ($userYear • $userSection)',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...periodCards,
+          ],
+        );
+      }
+    }
+
+    if (isDemo) {
+      return Column(
+        children: [
+          _buildClassCard(
+            time: '09:00',
+            period: 'AM',
+            title: 'Advanced Mathematics',
+            timeRange: '09:00 AM – 10:30 AM',
+            room: 'Room 302',
+            accentColor: const Color(0xFF5C6BC0),
+            icon: Icons.calculate_rounded,
+            iconBg: const Color(0xFFEDE7F6),
+          ),
+          _buildClassCard(
+            time: '11:00',
+            period: 'AM',
+            title: 'Computer Science',
+            timeRange: '11:00 AM – 12:30 PM',
+            room: 'Lab 1',
+            accentColor: const Color(0xFF26A69A),
+            icon: Icons.computer_rounded,
+            iconBg: const Color(0xFFE0F2F1),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      width: double.infinity,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.event_seat_rounded, size: 40, color: Color(0xFF94A3B8)),
+          const SizedBox(height: 8),
+          Text(
+            'No Today\'s Schedule Uploaded for $userYear ($userSection)',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF475569)),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Your HOD will publish official class timetables here.',
+            style: TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -926,6 +1040,18 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
   // ── Welcome Header ──────────────────────
   Widget _buildWelcomeSection() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final displayName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name
+        : 'Student User';
+    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true
+        ? currentUser!.metadata!['department'].toString()
+        : 'Computer Science';
+    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true
+        ? currentUser!.metadata!['year'].toString()
+        : '3rd Year';
+    final userSubtitle = '$dept • $year';
+
     return Row(
       children: [
         Container(
@@ -968,17 +1094,17 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                 ),
               ),
               const SizedBox(height: 1),
-              const Text(
-                'Alex Johnson',
-                style: TextStyle(
+              Text(
+                displayName,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF0F172A),
                 ),
               ),
-              const Text(
-                'Computer Science • 3rd Year',
-                style: TextStyle(
+              Text(
+                userSubtitle,
+                style: const TextStyle(
                   fontSize: 12,
                   color: Color(0xFF94A3B8),
                   fontWeight: FontWeight.w500,
@@ -1109,25 +1235,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         elevation: 0,
-                      ),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const ProfileScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.person_rounded, size: 14),
-                      label: const Text('Go to Student Profile'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF9A3412),
-                        side: const BorderSide(color: Color(0xFFFDBA74)),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
                       ),
                     ),
                   ],
@@ -1300,15 +1407,15 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                 return Row(
                                   children: [
                                     CircularPercentIndicator(
-                                      radius: 26.0,
-                                      lineWidth: 5.0,
+                                      radius: 22.0,
+                                      lineWidth: 4.5,
                                       percent: (semPercentage / 100.0).clamp(0.0, 1.0),
                                       center: Text(
                                         '${semPercentage.round()}%',
                                         style: const TextStyle(
                                           color: Color(0xFF2D3142),
                                           fontWeight: FontWeight.w800,
-                                          fontSize: 11.5,
+                                          fontSize: 10.5,
                                         ),
                                       ),
                                       progressColor: const Color(0xFF3F51B5),
@@ -1317,13 +1424,16 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                       ).withValues(alpha: 0.12),
                                       circularStrokeCap: CircularStrokeCap.round,
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: 6),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Row(
+                                          Wrap(
+                                            crossAxisAlignment: WrapCrossAlignment.center,
+                                            spacing: 4,
+                                            runSpacing: 2,
                                             children: [
                                               const Text(
                                                 'Attendance',
@@ -1333,7 +1443,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),
-                                              const SizedBox(width: 4),
                                               Container(
                                                 padding: const EdgeInsets.symmetric(
                                                   horizontal: 5,
@@ -1832,10 +1941,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
     final row2Actions = [
       {
-        'label': 'Tasks',
+        'label': 'Certifications',
         'iconBg': const Color(0xFFEEF2FF),
         'iconColor': const Color(0xFF4F46E5),
-        'type': 'tasks',
+        'type': 'certifications',
       },
       {
         'label': 'Announcement',
@@ -1894,8 +2003,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             widget.onNavigateToTab(4);
           } else if (type == 'fees') {
             widget.onNavigateToTab(5);
-          } else if (type == 'tasks') {
-            widget.onNavigateToTab(2);
+          } else if (type == 'certifications') {
+            widget.onNavigateToTab(8);
           } else if (type == 'announcement') {
             widget.onNavigateToTab(13);
           } else if (type == 'exams') {
@@ -1995,29 +2104,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   }
 
   Widget _renderSuggestedIcon(String type, Color mainColor) {
-    if (type == 'tasks') {
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(Icons.calendar_month_rounded, size: 28, color: mainColor),
-          Positioned(
-            bottom: -1,
-            right: -1,
-            child: Container(
-              padding: const EdgeInsets.all(1.5),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.schedule_rounded,
-                size: 13,
-                color: Color(0xFFF59E0B),
-              ),
-            ),
-          ),
-        ],
-      );
+    if (type == 'certifications') {
+      return Icon(Icons.workspace_premium_rounded, size: 30, color: mainColor);
     } else if (type == 'announcement') {
       return Icon(Icons.campaign_rounded, size: 30, color: mainColor);
     } else {
@@ -3055,14 +3143,14 @@ class VsbBackWaveClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
-class InteractiveTimetable extends StatefulWidget {
+class InteractiveTimetable extends ConsumerStatefulWidget {
   const InteractiveTimetable({super.key});
 
   @override
-  State<InteractiveTimetable> createState() => _InteractiveTimetableState();
+  ConsumerState<InteractiveTimetable> createState() => _InteractiveTimetableState();
 }
 
-class _InteractiveTimetableState extends State<InteractiveTimetable> {
+class _InteractiveTimetableState extends ConsumerState<InteractiveTimetable> {
   int _selectedDayIndex =
       0; // 0 = Mon, 1 = Tue, 2 = Wed, 3 = Thu, 4 = Fri, 5 = Sat
   int? _selectedClassIndex =
@@ -3290,19 +3378,176 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
 
   @override
   Widget build(BuildContext context) {
-    final classes = _timetableData[_selectedDayIndex];
+    final user = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final email = user?.email.toLowerCase().trim() ?? '';
+    final isDemo = email == 'saravanapmvofficial@gmail.com' || (user != null && user.uid == 'DEMO-STU');
+
+    final meta = user?.metadata ?? {};
+    final userYear = meta['year']?.toString() ?? '3rd Year';
+    final userSec = meta['section']?.toString() ?? 'CS-A';
+
+    final timetables = ref.watch(allTimetablesStreamProvider).value ?? [];
+    final docId = '${userYear.replaceAll(' ', '_')}_${userSec.replaceAll(' ', '_')}'.toLowerCase();
+    final uploadedDoc = timetables.firstWhere((t) => t['id'] == docId, orElse: () => {});
+    final hasUploadedFile = uploadedDoc.isNotEmpty && uploadedDoc['fileName'] != null;
+
+    List<Map<String, dynamic>> classes = [];
+    if (uploadedDoc.isNotEmpty && uploadedDoc['periods'] != null && (uploadedDoc['periods'] as List).isNotEmpty) {
+      final rawPeriods = uploadedDoc['periods'] as List;
+      classes = rawPeriods.map((p) {
+        return {
+          'time': '09:00',
+          'period': 'AM',
+          'title': p['subject']?.toString() ?? 'Class Period',
+          'timeRange': p['period']?.toString() ?? '09:00 AM – 10:00 AM',
+          'room': p['room']?.toString() ?? 'Classroom',
+          'lecturer': p['staff']?.toString() ?? 'Faculty Member',
+          'accentColor': const Color(0xFF2563EB),
+          'icon': Icons.class_rounded,
+          'iconBg': const Color(0xFFEFF6FF),
+          'isLive': false,
+        };
+      }).toList();
+    } else if (isDemo) {
+      classes = _timetableData[_selectedDayIndex % _timetableData.length];
+    } else {
+      classes = [];
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // HOD Uploaded Timetable File Banner (Excel, PDF, CSV, Image)
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.workspace_premium_rounded, color: Color(0xFF38BDF8), size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'OFFICIAL HOD CLASS TIMETABLE',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF38BDF8),
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      '$userYear ($userSec)',
+                      style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (hasUploadedFile) ...[
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2563EB),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.table_chart_rounded, color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            uploadedDoc['fileName'] ?? 'Timetable Document',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Format: ${uploadedDoc['fileType'] ?? 'Excel Sheet (.xlsx)'} • Verified by HOD',
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('📥 Downloading ${uploadedDoc['fileName']} for $userYear ($userSec)...'),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.download_rounded, size: 16),
+                        label: const Text('Download Timetable File (Excel/PDF)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                const Text(
+                  'Default Class Timetable displayed below. HOD will upload official Excel/PDF timetable document for your Year & Section.',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8), height: 1.4),
+                ),
+              ],
+            ],
+          ),
+        ),
+
         // Header with live updates simulator toggle
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Interactive Timetable',
+              'Interactive Class Periods',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF2D3142),
               ),
@@ -3394,13 +3639,29 @@ class _InteractiveTimetableState extends State<InteractiveTimetable> {
 
         // Classes Grid/List
         if (classes.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Text(
-                'No classes scheduled for this day.',
-                style: TextStyle(color: Color(0xFF9E9E9E)),
-              ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.calendar_month_outlined, size: 44, color: AppColors.primary.withValues(alpha: 0.4)),
+                const SizedBox(height: 12),
+                const Text(
+                  'No Class Schedule Uploaded Yet',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your HOD will upload the official timetable document and period schedule for $userYear ($userSec).',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.4),
+                ),
+              ],
             ),
           )
         else
