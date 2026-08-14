@@ -609,6 +609,73 @@ class _StudentProfileCompletionSheetState
     );
   }
 
+  Widget _buildSegmentedStepBar() {
+    final stepTitles = [
+      'Personal Details',
+      'Contact Details',
+      'Parent Details',
+      'Education',
+      'Living Details',
+      if (_isDayScholar) 'Transport Mode',
+      'Documents',
+      'Review & Submit',
+    ];
+
+    return Container(
+      height: 48,
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: stepTitles.length,
+        itemBuilder: (context, idx) {
+          final stepNum = idx + 1;
+          final isCurrent = stepNum == _displayStepNumber;
+          final isPassed = stepNum < _displayStepNumber;
+
+          return GestureDetector(
+            onTap: () {
+              if (isPassed) {
+                setState(() => _currentStep = stepNum);
+              }
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 18),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    stepTitles[idx],
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w600,
+                      color: isCurrent
+                          ? const Color(0xFF2563EB)
+                          : (isPassed ? const Color(0xFF475569) : const Color(0xFF94A3B8)),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 3.5,
+                    width: 75,
+                    decoration: BoxDecoration(
+                      color: isCurrent
+                          ? const Color(0xFF2563EB)
+                          : (isPassed ? const Color(0xFF93C5FD) : const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -623,7 +690,7 @@ class _StudentProfileCompletionSheetState
         children: [
           // Top Header Drag Bar
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -640,28 +707,22 @@ class _StudentProfileCompletionSheetState
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Complete Student Profile',
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Color(0xFF0F172A)),
-                          ),
-                          Text(
-                            'Step $_displayStepNumber of $_totalSteps • $_progressPercentage% Completed',
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.w700),
-                          ),
-                        ],
+                    IconButton(
+                      onPressed: _currentStep > 1 ? _previousStep : () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0F172A), size: 22),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Complete Student Profile',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFF0F172A)),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -672,27 +733,21 @@ class _StudentProfileCompletionSheetState
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          icon: const Icon(Icons.save_as_rounded, size: 15),
-                          label: Text(_isSavingDraft ? 'Saving...' : 'Save Draft', style: const TextStyle(fontSize: 11.5)),
+                          icon: const Icon(Icons.save_as_rounded, size: 16, color: Color(0xFF2563EB)),
+                          label: Text(_isSavingDraft ? 'Saving...' : 'Save Draft', style: const TextStyle(fontSize: 11.5, color: Color(0xFF2563EB), fontWeight: FontWeight.bold)),
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(context),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.close_rounded, size: 20),
+                          icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B), size: 22),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: _progressPercentage / 100,
-                  backgroundColor: const Color(0xFFE2E8F0),
-                  color: const Color(0xFF2563EB),
-                  minHeight: 6,
-                  borderRadius: BorderRadius.circular(3),
-                ),
+                const SizedBox(height: 6),
+                _buildSegmentedStepBar(),
               ],
             ),
           ),
@@ -706,48 +761,33 @@ class _StudentProfileCompletionSheetState
             ),
           ),
 
-          // Fixed Bottom Control Buttons
+          // Fixed Bottom Dark Full-Width Action Button (Matching Reference Image)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
               color: Colors.white,
               border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
             ),
-            child: Row(
-              children: [
-                if (_currentStep > 1)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _previousStep,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      child: const Text('Back', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                if (_currentStep > 1) const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: _currentStep == 8
-                        ? (_isSubmitting ? null : _submitFinalProfile)
-                        : _nextStep,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: _isSubmitting
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text(
-                            _currentStep == 8 ? 'SUBMIT PROFILE 🚀' : 'Continue →',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                  ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _currentStep == 8
+                    ? (_isSubmitting ? null : _submitFinalProfile)
+                    : _nextStep,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-              ],
+                child: _isSubmitting
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text(
+                        _currentStep == 8 ? 'Submit' : 'Next',
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                      ),
+              ),
             ),
           ),
         ],
@@ -1523,33 +1563,50 @@ class _StudentProfileCompletionSheetState
     String? errorText,
     ValueChanged<String>? onChanged,
   }) {
-    return TextFormField(
-      controller: ctrl,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: icon != null ? Icon(icon, color: hasError ? Colors.red : const Color(0xFF2563EB), size: 18) : null,
-        filled: true,
-        fillColor: hasError ? const Color(0xFFFEF2F2) : const Color(0xFFF8FAFC),
-        errorText: hasError ? (errorText ?? 'Required field') : null,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: hasError ? Colors.red : const Color(0xFFCBD5E1),
-            width: hasError ? 1.5 : 1.0,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: hasError ? Colors.red : const Color(0xFF64748B),
+            ),
           ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: hasError ? Colors.red : const Color(0xFF2563EB),
-            width: hasError ? 2.0 : 1.5,
+        TextFormField(
+          controller: ctrl,
+          onChanged: onChanged,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5, fontWeight: FontWeight.w400),
+            prefixIcon: icon != null ? Icon(icon, color: hasError ? Colors.red : const Color(0xFF2563EB), size: 18) : null,
+            filled: true,
+            fillColor: hasError ? const Color(0xFFFEF2F2) : const Color(0xFFF1F5F9),
+            errorText: hasError ? (errorText ?? 'Required field') : null,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: hasError ? Colors.red : const Color(0xFFE2E8F0),
+                width: hasError ? 1.5 : 1.0,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: hasError ? Colors.red : const Color(0xFF2563EB),
+                width: hasError ? 2.0 : 1.5,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      ),
+      ],
     );
   }
 
@@ -1561,46 +1618,62 @@ class _StudentProfileCompletionSheetState
     bool hasError = false,
   }) {
     final validValue = (value != null && items.contains(value)) ? value : null;
-    return DropdownButtonFormField<String>(
-      initialValue: validValue,
-      isExpanded: true,
-      hint: Text(
-        'Select $label',
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: hasError ? Colors.red : Colors.grey,
-          fontSize: 13,
-          fontWeight: hasError ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: hasError ? const Color(0xFFFEF2F2) : const Color(0xFFF8FAFC),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: hasError ? Colors.red : const Color(0xFFCBD5E1),
-            width: hasError ? 1.5 : 1.0,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: hasError ? Colors.red : const Color(0xFF64748B),
+            ),
           ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: hasError ? Colors.red : const Color(0xFF2563EB),
-            width: hasError ? 2.0 : 1.5,
+        DropdownButtonFormField<String>(
+          initialValue: validValue,
+          isExpanded: true,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+          hint: Text(
+            'Select $label',
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: hasError ? Colors.red : const Color(0xFF94A3B8),
+              fontSize: 13.5,
+              fontWeight: hasError ? FontWeight.bold : FontWeight.w400,
+            ),
           ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: hasError ? const Color(0xFFFEF2F2) : const Color(0xFFF1F5F9),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: hasError ? Colors.red : const Color(0xFFE2E8F0),
+                width: hasError ? 1.5 : 1.0,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: hasError ? Colors.red : const Color(0xFF2563EB),
+                width: hasError ? 2.0 : 1.5,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          items: items
+              .map((it) => DropdownMenuItem(
+                    value: it,
+                    child: Text(it, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
+                  ))
+              .toList(),
+          onChanged: onChanged,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      ),
-      items: items
-          .map((it) => DropdownMenuItem(
-                value: it,
-                child: Text(it, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
-              ))
-          .toList(),
-      onChanged: onChanged,
+      ],
     );
   }
 }
