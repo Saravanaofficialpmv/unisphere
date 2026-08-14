@@ -238,6 +238,91 @@ class _StudentProfileCompletionSheetState
   int get _totalSteps => _isDayScholar ? 8 : 7;
   int get _displayStepNumber => (_currentStep == 6 && !_isDayScholar) ? 6 : _currentStep;
 
+  void _fillMockData() {
+    setState(() {
+      // Step 1: Personal
+      _dob = '15/05/2005';
+      _gender = 'Male';
+      _bloodGroup = 'O+';
+      _religion = 'Hindu';
+      _community = 'BC';
+      _casteController.text = 'Kongu Vellalar';
+      _motherTongue = 'Tamil';
+      _isFirstGraduate = true;
+      _isDifferentlyAbled = false;
+      _dobError = false;
+      _genderError = false;
+      _bloodGroupError = false;
+      _religionError = false;
+      _communityError = false;
+
+      // Step 2: Contact & Address
+      _primaryMobileController.text = '+91 98765 43210';
+      _alternateMobileController.text = '+91 98765 00000';
+      _personalEmailController.text = 'student.test@gmail.com';
+      _emergencyNameController.text = 'Senthil Kumar M';
+      _emergencyRelation = 'Father';
+      _emergencyPhoneController.text = '+91 99944 12345';
+      _permLine1Controller.text = '123, Anna Nagar 2nd Street';
+      _permCityController.text = 'Karur';
+      _permPincodeController.text = '639002';
+      _primaryMobileError = false;
+
+      // Step 3: Parents & Guardian
+      _fatherNameController.text = 'Senthil Kumar M';
+      _fatherPhoneController.text = '+91 98765 11111';
+      _fatherEmailController.text = 'senthilkumar@gmail.com';
+      _fatherQual = 'Bachelor Degree';
+      _fatherOccupationController.text = 'Business';
+      _fatherIncome = '₹3,00,000 - ₹5,00,000';
+      _motherNameController.text = 'Lakshmi S';
+      _motherPhoneController.text = '+91 98765 22222';
+      _motherQual = 'School';
+      _motherOccupationController.text = 'Homemaker';
+      _motherIncome = '₹1,00,000 - ₹3,00,000';
+      _fatherNameError = false;
+      _motherNameError = false;
+
+      // Step 4: Previous Education
+      _tenthSchoolController.text = 'Government Higher Sec School';
+      _tenthBoard = 'State Board';
+      _tenthMedium = 'English';
+      _tenthRegNoController.text = '10TH98765';
+      _tenthYearController.text = '2021';
+      _tenthTotalController.text = '500';
+      _tenthObtainedController.text = '465';
+      _twelfthSchoolController.text = 'VSB Higher Sec School';
+      _twelfthBoard = 'State Board';
+      _twelfthMedium = 'English';
+      _twelfthRegNoController.text = '12TH12345';
+      _twelfthYearController.text = '2023';
+      _twelfthTotalController.text = '600';
+      _twelfthObtainedController.text = '552';
+      _calculateEducationPercentages();
+
+      // Step 5 & 6: Living & Transport
+      _selectedLivingType = LivingType.homeFamily;
+      _transportMode = PrimaryTransportMode.BUS;
+      _busType = 'College Bus';
+      _boardingPointController.text = 'Gandhigramam';
+      _busStopController.text = 'College Main Gate';
+      _pickupTimeController.text = '07:45 AM';
+      _distanceController.text = '14 km';
+      _travelTimeController.text = '35 mins';
+
+      // Step 8: Confirmation
+      _isConfirmed = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('⚡ Mock data auto-filled for testing!'),
+        backgroundColor: Color(0xFF2563EB),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
   int get _progressPercentage {
     final stepProgress = (_currentStep / _totalSteps * 100).round();
     return stepProgress.clamp(10, 100);
@@ -1377,12 +1462,40 @@ class _StudentProfileCompletionSheetState
   }
 
   Widget _buildStepHeader(String title, String subtitle) {
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Color(0xFF0F172A))),
-        const SizedBox(height: 2),
-        Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16.5, color: Color(0xFF0F172A))),
+              const SizedBox(height: 2),
+              Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: _fillMockData,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.bolt_rounded, size: 14, color: Color(0xFF2563EB)),
+                SizedBox(width: 4),
+                Text('Fill Mock Data', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
