@@ -232,13 +232,6 @@ class _StudentProfileCompletionSheetState
     });
     if (mounted) {
       setState(() => _isSavingDraft = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('💾 Profile draft saved! You can resume anytime.'),
-          backgroundColor: Color(0xFF2563EB),
-          duration: Duration(seconds: 2),
-        ),
-      );
     }
   }
 
