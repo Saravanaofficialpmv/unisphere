@@ -21,6 +21,10 @@ class _StudentProfileCompletionSheetState
 
   // Validation Error State Flags
   bool _dobError = false;
+  bool _genderError = false;
+  bool _bloodGroupError = false;
+  bool _religionError = false;
+  bool _communityError = false;
   bool _primaryMobileError = false;
   bool _fatherNameError = false;
   bool _motherNameError = false;
@@ -31,13 +35,13 @@ class _StudentProfileCompletionSheetState
   final _deptController = TextEditingController();
   final _emailController = TextEditingController();
   String? _dob;
-  String _gender = 'Male';
-  String _bloodGroup = 'O+';
+  String? _gender;
+  String? _bloodGroup;
   String _nationality = 'Indian';
-  String _religion = 'Hindu';
-  String _community = 'BC';
+  String? _religion;
+  String? _community;
   final _casteController = TextEditingController();
-  String _motherTongue = 'Tamil';
+  String? _motherTongue;
   bool _isFirstGraduate = false;
   bool _isDifferentlyAbled = false;
   final _disabilityController = TextEditingController();
@@ -76,18 +80,18 @@ class _StudentProfileCompletionSheetState
   final _fatherNameController = TextEditingController();
   final _fatherPhoneController = TextEditingController();
   final _fatherEmailController = TextEditingController(); // OPTIONAL
-  String _fatherQual = 'Bachelor Degree';
-  final _fatherOccupationController = TextEditingController(text: 'Business');
-  String _fatherIncome = '₹1,00,000 - ₹3,00,000';
+  String? _fatherQual;
+  final _fatherOccupationController = TextEditingController();
+  String? _fatherIncome;
 
   // Mother
   String? _motherPhotoUrl;
   final _motherNameController = TextEditingController();
   final _motherPhoneController = TextEditingController();
   final _motherEmailController = TextEditingController(); // OPTIONAL
-  String _motherQual = 'School';
-  final _motherOccupationController = TextEditingController(text: 'Homemaker');
-  String _motherIncome = '₹1,00,000 - ₹3,00,000';
+  String? _motherQual;
+  final _motherOccupationController = TextEditingController();
+  String? _motherIncome;
 
   // Guardian (Optional)
   bool _hasGuardian = false;
@@ -103,31 +107,31 @@ class _StudentProfileCompletionSheetState
   // ── Step 4: Previous Education ──
   // 10th
   final _tenthSchoolController = TextEditingController();
-  String _tenthBoard = 'State Board';
-  String _tenthMedium = 'English';
+  String? _tenthBoard;
+  String? _tenthMedium;
   final _tenthRegNoController = TextEditingController();
-  final _tenthYearController = TextEditingController(text: '2021');
+  final _tenthYearController = TextEditingController();
   final _tenthTotalController = TextEditingController(text: '500');
   final _tenthObtainedController = TextEditingController();
   double _tenthPercentage = 0.0;
 
   // 12th / Diploma
   final _twelfthSchoolController = TextEditingController();
-  String _twelfthBoard = 'State Board';
-  String _twelfthMedium = 'English';
+  String? _twelfthBoard;
+  String? _twelfthMedium;
   final _twelfthRegNoController = TextEditingController();
-  final _twelfthYearController = TextEditingController(text: '2023');
+  final _twelfthYearController = TextEditingController();
   final _twelfthTotalController = TextEditingController(text: '600');
   final _twelfthObtainedController = TextEditingController();
   double _twelfthPercentage = 0.0;
 
   // ── Step 5: Living & Accommodation ──
-  LivingType _selectedLivingType = LivingType.homeFamily;
-  final _hostelNameController = TextEditingController(text: 'VSB Men\'s Hostel');
-  final _hostelBlockController = TextEditingController(text: 'Block A');
-  final _hostelRoomController = TextEditingController(text: '304');
-  final _hostelBedController = TextEditingController(text: 'Bed 2');
-  final _hostelAdmissionController = TextEditingController(text: '10/08/2023');
+  LivingType? _selectedLivingType;
+  final _hostelNameController = TextEditingController();
+  final _hostelBlockController = TextEditingController();
+  final _hostelRoomController = TextEditingController();
+  final _hostelBedController = TextEditingController();
+  final _hostelAdmissionController = TextEditingController();
   final _accOwnerNameController = TextEditingController();
   final _accOwnerPhoneController = TextEditingController();
   final _accAddressController = TextEditingController();
@@ -136,12 +140,12 @@ class _StudentProfileCompletionSheetState
   bool get _isDayScholar => _selectedLivingType != LivingType.collegeHostel;
 
   // ── Step 6: Day Scholar Transport (STRICTLY ONLY: BUS, BIKE, WALK) ──
-  PrimaryTransportMode _transportMode = PrimaryTransportMode.BUS;
-  String _busType = 'College Bus';
-  final _boardingPointController = TextEditingController(text: 'Gandhigramam');
-  final _busStopController = TextEditingController(text: 'College Gate');
-  final _pickupTimeController = TextEditingController(text: '07:45 AM');
-  String _vehicleType = 'Bike';
+  PrimaryTransportMode? _transportMode;
+  String? _busType;
+  final _boardingPointController = TextEditingController();
+  final _busStopController = TextEditingController();
+  final _pickupTimeController = TextEditingController();
+  String? _vehicleType;
   final _vehicleRegNoController = TextEditingController();
   String _driverType = 'Student';
   bool _parkingPermission = true;
@@ -223,8 +227,8 @@ class _StudentProfileCompletionSheetState
       'motherPhone': _motherPhoneController.text,
       'tenthObtained': _tenthObtainedController.text,
       'twelfthObtained': _twelfthObtainedController.text,
-      'livingType': _selectedLivingType.name,
-      'transportMode': _transportMode.name,
+      'livingType': _selectedLivingType?.name ?? '',
+      'transportMode': _transportMode?.name ?? '',
     });
     if (mounted) {
       setState(() => _isSavingDraft = false);
@@ -247,9 +251,23 @@ class _StudentProfileCompletionSheetState
   }
 
   void _nextStep() {
-    if (_currentStep == 1 && (_dob == null || _dob!.isEmpty)) {
-      setState(() => _dobError = true);
-      return;
+    if (_currentStep == 1) {
+      final dobErr = _dob == null || _dob!.isEmpty;
+      final genderErr = _gender == null;
+      final bgErr = _bloodGroup == null;
+      final relErr = _religion == null;
+      final commErr = _community == null;
+
+      if (dobErr || genderErr || bgErr || relErr || commErr) {
+        setState(() {
+          _dobError = dobErr;
+          _genderError = genderErr;
+          _bloodGroupError = bgErr;
+          _religionError = relErr;
+          _communityError = commErr;
+        });
+        return;
+      }
     }
     if (_currentStep == 2 && _primaryMobileController.text.trim().isEmpty) {
       setState(() => _primaryMobileError = true);
@@ -318,13 +336,13 @@ class _StudentProfileCompletionSheetState
         collegeEmail: _emailController.text.trim(),
         profilePhotoUrl: _studentPhotoUrl,
         dateOfBirth: _dob,
-        gender: _gender,
-        bloodGroup: _bloodGroup,
+        gender: _gender ?? 'Male',
+        bloodGroup: _bloodGroup ?? 'O+',
         nationality: _nationality,
-        religion: _religion,
-        community: _community,
+        religion: _religion ?? 'Hindu',
+        community: _community ?? 'BC',
         caste: _casteController.text.trim(),
-        motherTongue: _motherTongue,
+        motherTongue: _motherTongue ?? 'Tamil',
         isFirstGraduate: _isFirstGraduate,
         isDifferentlyAbled: _isDifferentlyAbled,
         disabilityDetails: _disabilityController.text.trim(),
@@ -372,18 +390,18 @@ class _StudentProfileCompletionSheetState
           name: _fatherNameController.text.trim(),
           mobileNumber: _fatherPhoneController.text.trim(),
           email: _fatherEmailController.text.trim().isNotEmpty ? _fatherEmailController.text.trim() : null,
-          qualification: _fatherQual,
+          qualification: _fatherQual ?? 'Bachelor Degree',
           occupation: _fatherOccupationController.text.trim(),
-          annualIncome: _fatherIncome,
+          annualIncome: _fatherIncome ?? '₹1,00,000 - ₹3,00,000',
         ),
         mother: ParentRecord(
           photoUrl: _motherPhotoUrl,
           name: _motherNameController.text.trim(),
           mobileNumber: _motherPhoneController.text.trim(),
           email: _motherEmailController.text.trim().isNotEmpty ? _motherEmailController.text.trim() : null,
-          qualification: _motherQual,
+          qualification: _motherQual ?? 'School',
           occupation: _motherOccupationController.text.trim(),
-          annualIncome: _motherIncome,
+          annualIncome: _motherIncome ?? '₹1,00,000 - ₹3,00,000',
         ),
         guardian: _hasGuardian
             ? GuardianRecord(
@@ -401,8 +419,8 @@ class _StudentProfileCompletionSheetState
       education: StudentPreviousEducation(
         tenth: EducationRecord(
           institutionName: _tenthSchoolController.text.trim(),
-          boardOrUniversity: _tenthBoard,
-          medium: _tenthMedium,
+          boardOrUniversity: _tenthBoard ?? 'State Board',
+          medium: _tenthMedium ?? 'English',
           registerNumber: _tenthRegNoController.text.trim(),
           passingYear: _tenthYearController.text.trim(),
           totalMarks: double.tryParse(_tenthTotalController.text) ?? 500,
@@ -411,8 +429,8 @@ class _StudentProfileCompletionSheetState
         ),
         twelfthOrDiploma: EducationRecord(
           institutionName: _twelfthSchoolController.text.trim(),
-          boardOrUniversity: _twelfthBoard,
-          medium: _twelfthMedium,
+          boardOrUniversity: _twelfthBoard ?? 'State Board',
+          medium: _twelfthMedium ?? 'English',
           registerNumber: _twelfthRegNoController.text.trim(),
           passingYear: _twelfthYearController.text.trim(),
           totalMarks: double.tryParse(_twelfthTotalController.text) ?? 600,
@@ -421,7 +439,7 @@ class _StudentProfileCompletionSheetState
         ),
       ),
       living: StudentLivingDetails(
-        livingType: _selectedLivingType,
+        livingType: _selectedLivingType ?? LivingType.homeFamily,
         details: _selectedLivingType == LivingType.collegeHostel
             ? {
                 'hostelName': _hostelNameController.text.trim(),
@@ -439,7 +457,7 @@ class _StudentProfileCompletionSheetState
       ),
       transport: _isDayScholar
           ? StudentTransportDetails(
-              mode: _transportMode,
+              mode: _transportMode ?? PrimaryTransportMode.BUS,
               modeDetails: _transportMode == PrimaryTransportMode.BUS
                   ? {
                       'busType': _busType,
@@ -777,20 +795,60 @@ class _StudentProfileCompletionSheetState
         Row(
           children: [
             Expanded(
-              child: _buildDropdown('Gender', _gender, ['Male', 'Female', 'Other'], (val) => setState(() => _gender = val!)),
+              child: _buildDropdown(
+                'Gender',
+                _gender,
+                ['Male', 'Female', 'Other'],
+                (val) => setState(() {
+                  _gender = val;
+                  _genderError = false;
+                }),
+                hasError: _genderError,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildDropdown('Blood Group', _bloodGroup, ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'], (val) => setState(() => _bloodGroup = val!)),
+              child: _buildDropdown(
+                'Blood Group',
+                _bloodGroup,
+                ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
+                (val) => setState(() {
+                  _bloodGroup = val;
+                  _bloodGroupError = false;
+                }),
+                hasError: _bloodGroupError,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 14),
         Row(
           children: [
-            Expanded(child: _buildDropdown('Religion', _religion, ['Hindu', 'Christian', 'Muslim', 'Sikh', 'Jain', 'Other'], (val) => setState(() => _religion = val!))),
+            Expanded(
+              child: _buildDropdown(
+                'Religion',
+                _religion,
+                ['Hindu', 'Christian', 'Muslim', 'Sikh', 'Jain', 'Other'],
+                (val) => setState(() {
+                  _religion = val;
+                  _religionError = false;
+                }),
+                hasError: _religionError,
+              ),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _buildDropdown('Community', _community, ['OC', 'BC', 'MBC', 'SC', 'ST', 'DNC'], (val) => setState(() => _community = val!))),
+            Expanded(
+              child: _buildDropdown(
+                'Community',
+                _community,
+                ['OC', 'BC', 'MBC', 'SC', 'ST', 'DNC'],
+                (val) => setState(() {
+                  _community = val;
+                  _communityError = false;
+                }),
+                hasError: _communityError,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -912,8 +970,8 @@ class _StudentProfileCompletionSheetState
           phoneCtrl: _fatherPhoneController,
           emailCtrl: _fatherEmailController,
           occupationCtrl: _fatherOccupationController,
-          qualValue: _fatherQual,
-          incomeValue: _fatherIncome,
+          qualValue: _fatherQual ?? 'Bachelor Degree',
+          incomeValue: _fatherIncome ?? '₹1,00,000 - ₹3,00,000',
           nameError: _fatherNameError,
           onNameChanged: (val) {
             if (val.trim().isNotEmpty && _fatherNameError) {
@@ -932,8 +990,8 @@ class _StudentProfileCompletionSheetState
           phoneCtrl: _motherPhoneController,
           emailCtrl: _motherEmailController,
           occupationCtrl: _motherOccupationController,
-          qualValue: _motherQual,
-          incomeValue: _motherIncome,
+          qualValue: _motherQual ?? 'School',
+          incomeValue: _motherIncome ?? '₹1,00,000 - ₹3,00,000',
           nameError: _motherNameError,
           onNameChanged: (val) {
             if (val.trim().isNotEmpty && _motherNameError) {
@@ -1146,7 +1204,7 @@ class _StudentProfileCompletionSheetState
         const SizedBox(height: 16),
 
         if (_transportMode == PrimaryTransportMode.BUS) ...[
-          _buildDropdown('Bus Type', _busType, ['College Bus', 'Public Bus'], (val) => setState(() => _busType = val!)),
+          _buildDropdown('Bus Type', _busType, ['College Bus', 'Public Bus'], (val) => setState(() => _busType = val)),
           const SizedBox(height: 8),
           _buildTextField(_boardingPointController, 'Boarding Point', 'Gandhigramam'),
           const SizedBox(height: 8),
@@ -1154,7 +1212,7 @@ class _StudentProfileCompletionSheetState
         ],
 
         if (_transportMode == PrimaryTransportMode.BIKE) ...[
-          _buildDropdown('Vehicle Type', _vehicleType, ['Bike', 'Scooter'], (val) => setState(() => _vehicleType = val!)),
+          _buildDropdown('Vehicle Type', _vehicleType, ['Bike', 'Scooter'], (val) => setState(() => _vehicleType = val)),
           const SizedBox(height: 8),
           _buildTextField(_vehicleRegNoController, 'Vehicle Registration Number', 'TN 47 AB 1234'),
           const SizedBox(height: 8),
@@ -1261,8 +1319,8 @@ class _StudentProfileCompletionSheetState
         _buildSummaryCard('👤 Personal Details', [
           'Name: ${_nameController.text}',
           'DOB: ${_dob ?? 'Not selected'}',
-          'Gender: $_gender',
-          'Blood Group: $_bloodGroup',
+          'Gender: ${_gender ?? 'Not selected'}',
+          'Blood Group: ${_bloodGroup ?? 'Not selected'}',
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('📞 Contact & Address', [
@@ -1276,8 +1334,8 @@ class _StudentProfileCompletionSheetState
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('🏡 Living & Transport', [
-          'Staying Type: ${_selectedLivingType.name}',
-          if (_isDayScholar) 'Transport Mode: ${_transportMode.name}',
+          'Staying Type: ${_selectedLivingType?.name ?? 'Not selected'}',
+          if (_isDayScholar) 'Transport Mode: ${_transportMode?.name ?? 'Not selected'}',
         ]),
         const SizedBox(height: 20),
 
@@ -1377,17 +1435,51 @@ class _StudentProfileCompletionSheetState
     );
   }
 
-  Widget _buildDropdown(String label, String value, List<String> items, ValueChanged<String?> onChanged) {
+  Widget _buildDropdown(
+    String label,
+    String? value,
+    List<String> items,
+    ValueChanged<String?> onChanged, {
+    bool hasError = false,
+  }) {
+    final validValue = (value != null && items.contains(value)) ? value : null;
     return DropdownButtonFormField<String>(
-      initialValue: items.contains(value) ? value : items.first,
+      initialValue: validValue,
+      hint: Text(
+        'Select $label',
+        style: TextStyle(
+          color: hasError ? Colors.red : Colors.grey,
+          fontSize: 13,
+          fontWeight: hasError ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: hasError ? const Color(0xFFFEF2F2) : const Color(0xFFF8FAFC),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: hasError ? Colors.red : const Color(0xFFCBD5E1),
+            width: hasError ? 1.5 : 1.0,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: hasError ? Colors.red : const Color(0xFF2563EB),
+            width: hasError ? 2.0 : 1.5,
+          ),
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
-      items: items.map((it) => DropdownMenuItem(value: it, child: Text(it, style: const TextStyle(fontSize: 13)))).toList(),
+      items: items
+          .map((it) => DropdownMenuItem(
+                value: it,
+                child: Text(it, style: const TextStyle(fontSize: 13)),
+              ))
+          .toList(),
       onChanged: onChanged,
     );
   }
