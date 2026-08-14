@@ -30,7 +30,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
   }
 
   @override
@@ -170,6 +170,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 Tab(text: 'Personal & Contact', icon: Icon(Icons.person_outline, size: 18)),
                 Tab(text: 'Connected Profiles', icon: Icon(Icons.link_rounded, size: 18)),
                 Tab(text: 'Academics & Parents', icon: Icon(Icons.school_outlined, size: 18)),
+                Tab(text: 'Certifications Portfolio', icon: Icon(Icons.workspace_premium_rounded, size: 18)),
                 Tab(text: 'Document Vault', icon: Icon(Icons.folder_shared_outlined, size: 18)),
                 Tab(text: 'Settings & Security', icon: Icon(Icons.settings_outlined, size: 18)),
               ],
@@ -184,6 +185,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 _buildPersonalAndContactTab(),
                 _buildConnectedProfilesTab(),
                 _buildAcademicsAndParentsTab(),
+                _buildCertificationsPortfolioTab(),
                 _buildDocumentVaultTab(),
                 _buildSettingsAndSecurityTab(),
               ],
@@ -713,7 +715,447 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     );
   }
 
-  // ================= TAB 3: DOCUMENT VAULT =================
+  // ================= TAB 4: CERTIFICATIONS PORTFOLIO =================
+  Widget _buildCertificationsPortfolioTab() {
+    final List<Map<String, dynamic>> nptelCerts = [
+      {
+        'title': 'Programming in Java',
+        'issuer': 'IIT Kharagpur & NPTEL',
+        'score': '82%',
+        'grade': 'Elite',
+        'credentialId': 'NPTEL26CS820',
+        'issueDate': 'Aug 2026',
+        'status': 'Certified ✓',
+        'badgeColor': const Color(0xFFD97706),
+        'url': 'https://nptel.ac.in/noc/E-certificate',
+      },
+      {
+        'title': 'NPTEL Elite + Gold: Data Structures & Algorithms',
+        'issuer': 'IIT Madras & NPTEL',
+        'score': '92% (Top 1% National)',
+        'grade': 'Elite + Gold',
+        'credentialId': 'NPTEL25CS091',
+        'issueDate': 'Oct 2025',
+        'status': 'Verified',
+        'badgeColor': const Color(0xFFD97706),
+        'url': 'https://nptel.ac.in/noc/E-certificate',
+      },
+      {
+        'title': 'NPTEL Elite + Silver: Database Management Systems',
+        'issuer': 'IIT Kharagpur & NPTEL',
+        'score': '86% (Top 5% National)',
+        'grade': 'Elite + Silver',
+        'credentialId': 'NPTEL24CS042',
+        'issueDate': 'Apr 2025',
+        'status': 'Verified',
+        'badgeColor': const Color(0xFF475569),
+        'url': 'https://nptel.ac.in/noc/E-certificate',
+      },
+    ];
+
+    final List<Map<String, dynamic>> industryCerts = [
+      {
+        'title': 'AWS Certified Solutions Architect – Associate',
+        'issuer': 'Amazon Web Services (AWS)',
+        'level': 'Associate Grade',
+        'credentialId': 'AWS-ASA-9920148',
+        'issueDate': 'Nov 2025',
+        'expiryDate': 'Nov 2028',
+        'status': 'Verified',
+        'badgeColor': const Color(0xFF2563EB),
+        'url': 'https://aws.amazon.com/verification',
+      },
+      {
+        'title': 'Google Cloud Associate Cloud Engineer',
+        'issuer': 'Google Cloud Training',
+        'level': 'Professional Grade',
+        'credentialId': 'GCP-ACE-778102',
+        'issueDate': 'Jan 2026',
+        'expiryDate': 'Jan 2028',
+        'status': 'Verified',
+        'badgeColor': const Color(0xFF059669),
+        'url': 'https://google.accredible.com/verify',
+      },
+      {
+        'title': 'Meta Front-End Developer Professional Certificate',
+        'issuer': 'Coursera & Meta',
+        'level': 'Specialization',
+        'credentialId': 'META-FED-88419',
+        'issueDate': 'Feb 2026',
+        'expiryDate': 'Lifetime',
+        'status': 'Pending',
+        'badgeColor': const Color(0xFF7C3AED),
+        'url': 'https://coursera.org/verify/meta-fed',
+      },
+    ];
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Portfolio Summary Header Card
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B), size: 24),
+                  SizedBox(width: 10),
+                  Text(
+                    'Student Certifications Portfolio',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Verified records of NPTEL IIT Certifications & Industry Credentials.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Column(
+                        children: [
+                          Text('TOTAL CERTS', style: TextStyle(fontSize: 9.5, color: Colors.white70, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 2),
+                          Text('5', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD97706).withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
+                      ),
+                      child: const Column(
+                        children: [
+                          Text('NPTEL (IIT)', style: TextStyle(fontSize: 9.5, color: Color(0xFFFCD34D), fontWeight: FontWeight.bold)),
+                          SizedBox(height: 2),
+                          Text('2', style: TextStyle(fontSize: 18, color: Color(0xFFFBBF24), fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.4)),
+                      ),
+                      child: const Column(
+                        children: [
+                          Text('INDUSTRY', style: TextStyle(fontSize: 9.5, color: Color(0xFF93C5FD), fontWeight: FontWeight.bold)),
+                          SizedBox(height: 2),
+                          Text('3', style: TextStyle(fontSize: 18, color: Color(0xFF60A5FA), fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // ── 1. NPTEL CERTIFICATIONS SECTION ─────────────────────────────
+        _buildSectionHeader('🎓 NPTEL Certifications'),
+        const SizedBox(height: 8),
+        ...nptelCerts.map((cert) {
+          final Color color = cert['badgeColor'] as Color;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.workspace_premium_rounded, color: color, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cert['title'] as String,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            cert['issuer'] as String,
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECFDF5),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                      ),
+                      child: const Text(
+                        'Verified',
+                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('SCORE & RANK', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text(cert['score'] as String, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: color)),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('CREDENTIAL ID', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text(cert['credentialId'] as String, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Text('ISSUE DATE', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text(cert['issueDate'] as String, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      final uri = Uri.parse(cert['url'] as String);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                    label: const Text('Verify NPTEL Certificate', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFD97706),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+
+        const SizedBox(height: 24),
+
+        // ── 2. INDUSTRY CERTIFICATIONS SECTION ───────────────────────────
+        _buildSectionHeader('🏢 Industry Certifications'),
+        const SizedBox(height: 8),
+        ...industryCerts.map((cert) {
+          final Color color = cert['badgeColor'] as Color;
+          final bool isVerified = cert['status'] == 'Verified';
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.verified_user_rounded, color: color, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cert['title'] as String,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            cert['issuer'] as String,
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isVerified ? const Color(0xFFECFDF5) : const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: isVerified ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A)),
+                      ),
+                      child: Text(
+                        cert['status'] as String,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: isVerified ? const Color(0xFF059669) : const Color(0xFFD97706),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('CERT LEVEL', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text(cert['level'] as String, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: color)),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('CREDENTIAL ID', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text(cert['credentialId'] as String, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Text('VALIDITY', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text('${cert['issueDate']} - ${cert['expiryDate']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      final uri = Uri.parse(cert['url'] as String);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                    label: const Text('Verify Vendor Credential', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    style: TextButton.styleFrom(
+                      foregroundColor: color,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  // ================= TAB 5: DOCUMENT VAULT =================
   Widget _buildDocumentVaultTab() {
     return ListView(
       padding: const EdgeInsets.all(16),

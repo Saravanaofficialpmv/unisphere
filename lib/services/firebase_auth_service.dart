@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/services/auth_service.dart';
 
 class FirebaseAuthService implements AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseAuth? get _auth => Firebase.apps.isNotEmpty ? FirebaseAuth.instance : null;
+  FirebaseFirestore? get _firestore => Firebase.apps.isNotEmpty ? FirebaseFirestore.instance : null;
 
   UserModel? _currentUser;
   UserModel? _mockUser;
@@ -19,7 +20,8 @@ class FirebaseAuthService implements AuthService {
 
   void _init() {
     try {
-      _auth.authStateChanges().listen((User? fbUser) async {
+      if (_auth == null) return;
+      _auth!.authStateChanges().listen((User? fbUser) async {
         if (_mockUser != null) return;
         if (fbUser == null) {
           _currentUser = null;
@@ -92,39 +94,42 @@ class FirebaseAuthService implements AuthService {
     }
 
     // REAL FIREBASE SIGN IN WITH DEMO FALLBACK ON NETWORK/CONFIG ISSUE
-    try {
-      final credential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      if (credential.user != null) {
-        final userData = await getUserData(credential.user!.uid);
-        _currentUser = userData ?? _mapFirebaseUserToDefaultModel(credential.user!);
-        _stateController.add(_currentUser);
+    if (_auth != null) {
+      try {
+        final credential = await _auth!.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        if (credential.user != null) {
+          final userData = await getUserData(credential.user!.uid);
+          _currentUser = userData ?? _mapFirebaseUserToDefaultModel(credential.user!);
+          _stateController.add(_currentUser);
+          return;
+        }
+      } catch (e) {
+        debugPrint('Firebase Auth sign in attempt notice: $e');
       }
-    } catch (e) {
-      debugPrint('Firebase Auth sign in attempt notice: $e');
-
-      UserRole fallbackRole = UserRole.student;
-      if (lowerEmail.contains('hod')) {
-        fallbackRole = UserRole.hod;
-      } else if (lowerEmail.contains('admin')) {
-        fallbackRole = UserRole.admin;
-      } else if (lowerEmail.contains('staff') || lowerEmail.contains('faculty')) {
-        fallbackRole = UserRole.staff;
-      } else if (lowerEmail.contains('parent')) {
-        fallbackRole = UserRole.parent;
-      }
-
-      _mockUser = UserModel(
-        uid: 'DEMO-OFFLINE',
-        email: email,
-        name: email.contains('@') ? email.split('@').first : email,
-        role: fallbackRole,
-      );
-      _currentUser = _mockUser;
-      _stateController.add(_mockUser);
     }
+
+    UserRole fallbackRole = UserRole.student;
+    if (lowerEmail.contains('hod')) {
+      fallbackRole = UserRole.hod;
+    } else if (lowerEmail.contains('admin')) {
+      fallbackRole = UserRole.admin;
+    } else if (lowerEmail.contains('staff') || lowerEmail.contains('faculty')) {
+      fallbackRole = UserRole.staff;
+    } else if (lowerEmail.contains('parent')) {
+      fallbackRole = UserRole.parent;
+    }
+
+    _mockUser = UserModel(
+      uid: 'DEMO-OFFLINE',
+      email: email,
+      name: email.contains('@') ? email.split('@').first : email,
+      role: fallbackRole,
+    );
+    _currentUser = _mockUser;
+    _stateController.add(_mockUser);
   }
 
   @override
@@ -136,39 +141,43 @@ class FirebaseAuthService implements AuthService {
     String? phoneNumber,
     Map<String, dynamic>? metadata,
   }) async {
-    try {
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      if (credential.user != null) {
-        final newUser = UserModel(
-          uid: credential.user!.uid,
+    if (_auth != null) {
+      try {
+        final credential = await _auth!.createUserWithEmailAndPassword(
           email: email,
-          name: name,
-          role: role,
-          phoneNumber: phoneNumber,
-          metadata: metadata,
+          password: password,
         );
-        await saveUserData(newUser);
-        _currentUser = newUser;
-        _stateController.add(_currentUser);
+        if (credential.user != null) {
+          final newUser = UserModel(
+            uid: credential.user!.uid,
+            email: email,
+            name: name,
+            role: role,
+            phoneNumber: phoneNumber,
+            metadata: metadata,
+          );
+          await saveUserData(newUser);
+          _currentUser = newUser;
+          _stateController.add(_currentUser);
+          return;
+        }
+      } catch (e) {
+        debugPrint('Firebase Registration Error: $e');
       }
-    } catch (e) {
-      debugPrint('Firebase Registration Error: $e');
-      // Fallback user creation if network error
-      final fallbackUser = UserModel(
-        uid: 'USER-${DateTime.now().millisecondsSinceEpoch}',
-        email: email,
-        name: name,
-        role: role,
-        phoneNumber: phoneNumber,
-        metadata: metadata,
-      );
-      _mockUser = fallbackUser;
-      _currentUser = fallbackUser;
-      _stateController.add(_currentUser);
     }
+
+    // Fallback user creation if network/config error or _auth null
+    final fallbackUser = UserModel(
+      uid: 'USER-${DateTime.now().millisecondsSinceEpoch}',
+      email: email,
+      name: name,
+      role: role,
+      phoneNumber: phoneNumber,
+      metadata: metadata,
+    );
+    _mockUser = fallbackUser;
+    _currentUser = fallbackUser;
+    _stateController.add(_currentUser);
   }
 
   @override
@@ -183,8 +192,9 @@ class FirebaseAuthService implements AuthService {
 
   @override
   Future<void> sendPasswordResetEmail(String email) async {
+    if (_auth == null) return;
     try {
-      await _auth.sendPasswordResetEmail(email: email.trim());
+      await _auth!.sendPasswordResetEmail(email: email.trim());
     } catch (e) {
       debugPrint('Firebase Password Reset Error: $e');
       rethrow;
@@ -194,19 +204,21 @@ class FirebaseAuthService implements AuthService {
   @override
   Future<void> signOut() async {
     _mockUser = null;
-    try {
-      await _auth.signOut();
-    } catch (e) {
-      debugPrint('Firebase SignOut Warning: $e');
+    if (_auth != null) {
+      try {
+        await _auth!.signOut();
+      } catch (e) {
+        debugPrint('Firebase SignOut Warning: $e');
+      }
     }
     _currentUser = null;
     _stateController.add(null);
   }
 
   Future<UserModel?> getUserData(String uid) async {
-    if (uid.isEmpty) return null;
+    if (uid.isEmpty || _firestore == null) return null;
     try {
-      final doc = await _firestore.collection('users').doc(uid).get();
+      final doc = await _firestore!.collection('users').doc(uid).get();
       if (doc.exists && doc.data() != null) {
         return UserModel.fromMap(doc.data()!, uid);
       }
@@ -217,8 +229,9 @@ class FirebaseAuthService implements AuthService {
   }
 
   Future<void> saveUserData(UserModel user) async {
+    if (_firestore == null) return;
     try {
-      await _firestore.collection('users').doc(user.uid).set(user.toMap());
+      await _firestore!.collection('users').doc(user.uid).set(user.toMap());
     } catch (e) {
       debugPrint('Firestore saveUserData Warning: $e');
     }

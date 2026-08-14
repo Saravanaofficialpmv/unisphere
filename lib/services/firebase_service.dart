@@ -19,19 +19,24 @@ class FirebaseService {
   bool _initialized = false;
   bool get isInitialized => _initialized;
 
-  FirebaseAuth get auth => FirebaseAuth.instance;
-  FirebaseFirestore get firestore => FirebaseFirestore.instance;
-  FirebaseStorage get storage => FirebaseStorage.instance;
+  FirebaseAuth? get auth => Firebase.apps.isNotEmpty ? FirebaseAuth.instance : null;
+  FirebaseFirestore? get firestore => Firebase.apps.isNotEmpty ? FirebaseFirestore.instance : null;
+  FirebaseStorage? get storage => Firebase.apps.isNotEmpty ? FirebaseStorage.instance : null;
 
   /// Initialize Firebase app safely across platforms
   Future<bool> initialize() async {
-    if (_initialized) return true;
+    if (_initialized && Firebase.apps.isNotEmpty) return true;
 
     try {
       if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
+        try {
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+        } catch (e) {
+          debugPrint('Platform specific options failed, trying default initializeApp: $e');
+          await Firebase.initializeApp();
+        }
       }
       _initialized = true;
       debugPrint('Firebase initialized successfully.');
@@ -40,20 +45,19 @@ class FirebaseService {
       return true;
     } catch (e) {
       debugPrint('Firebase initialization warning: $e');
-      // Set to true so app continues cleanly with fallback/demo modes if needed
       _initialized = false;
       return false;
     }
   }
 
   // Firestore Collection References
-  CollectionReference get usersCollection => firestore.collection('users');
-  CollectionReference get announcementsCollection => firestore.collection('announcements');
-  CollectionReference get assignmentsCollection => firestore.collection('assignments');
-  CollectionReference get submissionsCollection => firestore.collection('submissions');
-  CollectionReference get marksCollection => firestore.collection('marks');
-  CollectionReference get attendanceCollection => firestore.collection('attendance');
-  CollectionReference get hackathonsCollection => firestore.collection('hackathons');
-  CollectionReference get examsCollection => firestore.collection('exams');
-  CollectionReference get leavesCollection => firestore.collection('leaves');
+  CollectionReference? get usersCollection => firestore?.collection('users');
+  CollectionReference? get announcementsCollection => firestore?.collection('announcements');
+  CollectionReference? get assignmentsCollection => firestore?.collection('assignments');
+  CollectionReference? get submissionsCollection => firestore?.collection('submissions');
+  CollectionReference? get marksCollection => firestore?.collection('marks');
+  CollectionReference? get attendanceCollection => firestore?.collection('attendance');
+  CollectionReference? get hackathonsCollection => firestore?.collection('hackathons');
+  CollectionReference? get examsCollection => firestore?.collection('exams');
+  CollectionReference? get leavesCollection => firestore?.collection('leaves');
 }

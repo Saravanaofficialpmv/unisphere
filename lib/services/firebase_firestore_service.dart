@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/models/announcement_model.dart';
@@ -16,7 +17,7 @@ final firebaseFirestoreServiceProvider = Provider<FirebaseFirestoreService>((ref
 });
 
 class FirebaseFirestoreService implements SupabaseService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore? get _firestore => Firebase.apps.isNotEmpty ? FirebaseFirestore.instance : null;
   final MockSupabaseService _fallbackMock = MockSupabaseService();
 
   FirebaseFirestoreService();
@@ -26,8 +27,9 @@ class FirebaseFirestoreService implements SupabaseService {
   // ==========================================
   @override
   Stream<List<AnnouncementModel>> getAnnouncements() {
+    if (_firestore == null) return _fallbackMock.getAnnouncements();
     try {
-      return _firestore
+      return _firestore!
           .collection('announcements')
           .orderBy('created_at', descending: true)
           .snapshots()
@@ -47,16 +49,18 @@ class FirebaseFirestoreService implements SupabaseService {
   }
 
   Future<void> addAnnouncement(AnnouncementModel announcement) async {
+    if (_firestore == null) return;
     try {
-      await _firestore.collection('announcements').doc(announcement.id).set(announcement.toMap());
+      await _firestore!.collection('announcements').doc(announcement.id).set(announcement.toMap());
     } catch (e) {
       debugPrint('Firestore addAnnouncement error: $e');
     }
   }
 
   Future<void> markAnnouncementRead(String announcementId, String userId) async {
+    if (_firestore == null) return;
     try {
-      await _firestore.collection('announcements').doc(announcementId).update({
+      await _firestore!.collection('announcements').doc(announcementId).update({
         'read_by_users': FieldValue.arrayUnion([userId])
       });
     } catch (e) {
@@ -69,8 +73,9 @@ class FirebaseFirestoreService implements SupabaseService {
   // ==========================================
   @override
   Stream<List<AssignmentModel>> getAssignments() {
+    if (_firestore == null) return _fallbackMock.getAssignments();
     try {
-      return _firestore
+      return _firestore!
           .collection('assignments')
           .orderBy('due_date', descending: true)
           .snapshots()
@@ -89,8 +94,9 @@ class FirebaseFirestoreService implements SupabaseService {
   }
 
   Future<void> createAssignment(AssignmentModel assignment) async {
+    if (_firestore == null) return;
     try {
-      await _firestore.collection('assignments').doc(assignment.id).set(assignment.toMap());
+      await _firestore!.collection('assignments').doc(assignment.id).set(assignment.toMap());
     } catch (e) {
       debugPrint('Firestore createAssignment error: $e');
     }
@@ -98,8 +104,9 @@ class FirebaseFirestoreService implements SupabaseService {
 
   @override
   Future<void> submitAssignment(SubmissionModel submission) async {
+    if (_firestore == null) return;
     try {
-      await _firestore.collection('submissions').doc(submission.id).set(submission.toMap());
+      await _firestore!.collection('submissions').doc(submission.id).set(submission.toMap());
     } catch (e) {
       debugPrint('Firestore submitAssignment exception: $e');
     }
@@ -107,8 +114,9 @@ class FirebaseFirestoreService implements SupabaseService {
 
   @override
   Stream<List<SubmissionModel>> getSubmissions(String assignmentId) {
+    if (_firestore == null) return _fallbackMock.getSubmissions(assignmentId);
     try {
-      return _firestore
+      return _firestore!
           .collection('submissions')
           .where('assignment_id', isEqualTo: assignmentId)
           .snapshots()
@@ -128,8 +136,9 @@ class FirebaseFirestoreService implements SupabaseService {
   // ==========================================
   @override
   Stream<List<MarkModel>> getMarks(String studentUid) {
+    if (_firestore == null) return _fallbackMock.getMarks(studentUid);
     try {
-      return _firestore
+      return _firestore!
           .collection('marks')
           .where('student_uid', isEqualTo: studentUid)
           .snapshots()
@@ -146,8 +155,9 @@ class FirebaseFirestoreService implements SupabaseService {
 
   @override
   Future<void> addMarks(MarkModel mark) async {
+    if (_firestore == null) return;
     try {
-      await _firestore.collection('marks').doc(mark.id).set(mark.toMap());
+      await _firestore!.collection('marks').doc(mark.id).set(mark.toMap());
     } catch (e) {
       debugPrint('Firestore addMarks exception: $e');
     }
@@ -158,8 +168,9 @@ class FirebaseFirestoreService implements SupabaseService {
   // ==========================================
   @override
   Stream<List<AttendanceRecord>> getAttendance(String studentUid) {
+    if (_firestore == null) return _fallbackMock.getAttendance(studentUid);
     try {
-      return _firestore
+      return _firestore!
           .collection('attendance')
           .where('student_uid', isEqualTo: studentUid)
           .snapshots()
@@ -175,8 +186,9 @@ class FirebaseFirestoreService implements SupabaseService {
   }
 
   Future<void> addAttendanceRecord(AttendanceRecord record) async {
+    if (_firestore == null) return;
     try {
-      await _firestore.collection('attendance').doc(record.id).set(record.toMap());
+      await _firestore!.collection('attendance').doc(record.id).set(record.toMap());
     } catch (e) {
       debugPrint('Firestore addAttendanceRecord error: $e');
     }
@@ -186,8 +198,9 @@ class FirebaseFirestoreService implements SupabaseService {
   // EXAMS
   // ==========================================
   Stream<List<ExamModel>> getExams() {
+    if (_firestore == null) return Stream.value([]);
     try {
-      return _firestore
+      return _firestore!
           .collection('exams')
           .snapshots()
           .map((snapshot) => snapshot.docs.map((doc) {
@@ -205,8 +218,9 @@ class FirebaseFirestoreService implements SupabaseService {
   }
 
   Future<void> addExam(ExamModel exam) async {
+    if (_firestore == null) return;
     try {
-      await _firestore.collection('exams').doc(exam.id).set(exam.toMap());
+      await _firestore!.collection('exams').doc(exam.id).set(exam.toMap());
     } catch (e) {
       debugPrint('Firestore addExam error: $e');
     }
@@ -216,8 +230,9 @@ class FirebaseFirestoreService implements SupabaseService {
   // HACKATHONS
   // ==========================================
   Stream<List<HackathonModel>> getHackathons() {
+    if (_firestore == null) return Stream.value([]);
     try {
-      return _firestore
+      return _firestore!
           .collection('hackathons')
           .snapshots()
           .map((snapshot) => snapshot.docs.map((doc) {
@@ -235,15 +250,16 @@ class FirebaseFirestoreService implements SupabaseService {
   }
 
   Future<void> registerHackathonTeam(String hackathonId, Map<String, dynamic> registrationData) async {
+    if (_firestore == null) return;
     try {
-      await _firestore
+      await _firestore!
           .collection('hackathons')
           .doc(hackathonId)
           .collection('registrations')
           .add(registrationData);
       
       // Increment registered teams count
-      await _firestore.collection('hackathons').doc(hackathonId).update({
+      await _firestore!.collection('hackathons').doc(hackathonId).update({
         'registeredTeams': FieldValue.increment(1)
       });
     } catch (e) {
@@ -255,8 +271,9 @@ class FirebaseFirestoreService implements SupabaseService {
   // INITIAL DATABASE SEEDING
   // ==========================================
   Future<void> seedInitialDataIfEmpty() async {
+    if (_firestore == null) return;
     try {
-      final annSnapshot = await _firestore.collection('announcements').limit(1).get();
+      final annSnapshot = await _firestore!.collection('announcements').limit(1).get();
       if (annSnapshot.docs.isEmpty) {
         debugPrint('Seeding initial Firestore announcements...');
         final now = DateTime.now();
@@ -288,7 +305,7 @@ class FirebaseFirestoreService implements SupabaseService {
         }
       }
 
-      final asgSnapshot = await _firestore.collection('assignments').limit(1).get();
+      final asgSnapshot = await _firestore!.collection('assignments').limit(1).get();
       if (asgSnapshot.docs.isEmpty) {
         debugPrint('Seeding initial Firestore assignments...');
         final now = DateTime.now();

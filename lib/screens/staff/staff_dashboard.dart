@@ -8,6 +8,7 @@ import 'package:unisphere/screens/staff/modules/staff_submission_review.dart';
 import 'package:unisphere/screens/staff/modules/staff_student_directory.dart';
 import 'package:unisphere/screens/staff/modules/staff_attendance_marking.dart';
 import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
+import 'package:unisphere/screens/staff/modules/staff_nptel_verification_screen.dart';
 
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
@@ -39,6 +40,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     SidebarItem(label: 'Give Assignment', icon: Icons.add_task_outlined),
     SidebarItem(label: 'Review Submissions', icon: Icons.checklist_outlined, badge: '12'),
     SidebarItem(label: 'Student Directory & Portfolios', icon: Icons.people_alt_outlined),
+    SidebarItem(label: 'NPTEL Certificate Verif.', icon: Icons.verified_user_outlined, badge: 'NPTEL'),
 
     SidebarItem(label: 'Upload Marks', icon: Icons.upload_file_outlined),
     SidebarItem(label: 'Staff Profile', icon: Icons.person_outline),
@@ -52,6 +54,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 2)),
     const StaffSubmissionReview(),
     const StaffStudentDirectory(),
+    const StaffNptelVerificationScreen(),
 
     const StaffMarksUploadModule(),
     const Center(child: Text('Faculty Profile Details')),

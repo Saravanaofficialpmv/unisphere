@@ -18,6 +18,7 @@ import 'modules/hod_announcements.dart';
 import 'modules/hod_reports_analytics.dart';
 import 'modules/hod_settings.dart';
 import 'modules/hod_charter_upload_screen.dart';
+import '../staff/modules/staff_nptel_verification_screen.dart';
 
 class HodShell extends ConsumerStatefulWidget {
   const HodShell({super.key});
@@ -35,6 +36,7 @@ class _HodShellState extends ConsumerState<HodShell> {
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
     SidebarItem(label: 'Staff Management', icon: Icons.badge_outlined),
     SidebarItem(label: 'Student Management', icon: Icons.school_outlined),
+    SidebarItem(label: 'NPTEL Cert. Verification', icon: Icons.verified_user_outlined, badge: 'NPTEL'),
     SidebarItem(label: 'Reports & Analytics', icon: Icons.insights_outlined),
     SidebarItem(label: 'Department Settings', icon: Icons.settings_outlined),
     SidebarItem.divider('ACADEMIC MODULES'),
@@ -56,6 +58,7 @@ class _HodShellState extends ConsumerState<HodShell> {
       HodHomeDashboard(onNavigate: _handleNavigation),
       const HodStaffManagement(),
       const HodStudentManagement(),
+      const StaffNptelVerificationScreen(),
       const HodReportsAnalytics(),
       const HodSettings(),
       const HodAttendanceManagement(),
@@ -67,6 +70,7 @@ class _HodShellState extends ConsumerState<HodShell> {
       const HodAnnouncements(),
     ];
   }
+
 
   void _handleNavigation(int index) {
     if (_innerNavigatorKey.currentState?.canPop() ?? false) {

@@ -31,6 +31,7 @@ import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/services/auth_service.dart';
 
 
+
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
 
@@ -491,6 +492,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       _buildProfileConnectionBanner(context),
                       const SizedBox(height: 20),
                       _buildQuickActions(),
+
                       const SizedBox(height: 24),
                       _buildSectionHeader(
                         'Today\'s Classes',
