@@ -7,18 +7,18 @@ import 'package:unisphere/services/firebase_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize Firebase Core & Auth services
+  try {
+    await FirebaseService.instance.initialize();
+  } catch (e) {
+    debugPrint('Firebase initialization notice: $e');
+  }
+
   runApp(
     const ProviderScope(
       child: UnisphereApp(),
     ),
   );
-
-  // Initialize Firebase & seed mock data in the background without blocking UI startup
-  try {
-    await FirebaseService.instance.initialize().timeout(const Duration(seconds: 3));
-  } catch (e) {
-    debugPrint('Firebase initialization notice: $e');
-  }
 }
 
 class UnisphereApp extends ConsumerWidget {

@@ -143,32 +143,32 @@ class FirebaseAuthService implements AuthService {
   Future<void> signInWithEmail(String email, String password) async {
     final lowerEmail = email.toLowerCase().trim();
 
-    // DEMO BYPASS ACCOUNTS (Instant offline testing without requiring live network credentials)
-    if (lowerEmail == 'hod.cse@unisphere.edu' || lowerEmail.contains('hod')) {
+    // DEMO BYPASS ACCOUNTS (Only for exact designated demo emails)
+    if (lowerEmail == 'hod.cse@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-HOD', email: email, name: 'Dr. R. Kumar', role: UserRole.hod);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'admin@unisphere.edu' || lowerEmail.contains('admin')) {
+    if (lowerEmail == 'admin@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-ADM', email: email, name: 'Demo Admin', role: UserRole.admin);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'staff@unisphere.edu' || lowerEmail.contains('staff') || lowerEmail.contains('faculty')) {
+    if (lowerEmail == 'staff@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-STF', email: email, name: 'Demo Staff', role: UserRole.staff);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'saravanapmvofficial@gmail.com' || lowerEmail.contains('student')) {
+    if (lowerEmail == 'saravanapmvofficial@gmail.com') {
       _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: 'Demo Student', role: UserRole.student);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'parent@unisphere.edu' || lowerEmail.contains('parent')) {
+    if (lowerEmail == 'parent@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-PRT', email: email, name: 'Demo Parent', role: UserRole.parent);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
@@ -176,41 +176,23 @@ class FirebaseAuthService implements AuthService {
     }
 
     // REAL FIREBASE SIGN IN WITH REALTIME HANDLER
+    final auth = _auth ?? FirebaseAuth.instance;
     try {
-      final auth = _auth;
-      if (auth != null) {
-        final credential = await auth.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        if (credential.user != null) {
-          _handleFirebaseUserChange(credential.user);
-          return;
-        }
+      final credential = await auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      if (credential.user != null) {
+        _handleFirebaseUserChange(credential.user);
+        return;
       }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Firebase Auth Sign In Error: ${e.code} - ${e.message}');
+      throw e.message ?? e.code;
     } catch (e) {
       debugPrint('Firebase Auth sign in attempt notice: $e');
+      rethrow;
     }
-
-    UserRole fallbackRole = UserRole.student;
-    if (lowerEmail.contains('hod')) {
-      fallbackRole = UserRole.hod;
-    } else if (lowerEmail.contains('admin')) {
-      fallbackRole = UserRole.admin;
-    } else if (lowerEmail.contains('staff') || lowerEmail.contains('faculty')) {
-      fallbackRole = UserRole.staff;
-    } else if (lowerEmail.contains('parent')) {
-      fallbackRole = UserRole.parent;
-    }
-
-    _mockUser = UserModel(
-      uid: 'DEMO-OFFLINE',
-      email: email,
-      name: email.contains('@') ? email.split('@').first : email,
-      role: fallbackRole,
-    );
-    _currentUser = _mockUser;
-    _stateController.add(_mockUser);
   }
 
   @override
@@ -222,43 +204,44 @@ class FirebaseAuthService implements AuthService {
     String? phoneNumber,
     Map<String, dynamic>? metadata,
   }) async {
-    try {
-      final auth = _auth;
-      if (auth != null) {
-        final credential = await auth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        if (credential.user != null) {
-          final newUser = UserModel(
-            uid: credential.user!.uid,
-            email: email,
-            name: name,
-            role: role,
-            phoneNumber: phoneNumber,
-            metadata: metadata,
-          );
-          await saveUserData(newUser);
-          _handleFirebaseUserChange(credential.user);
-          return;
-        }
-      }
-    } catch (e) {
-      debugPrint('Firebase Registration Error: $e');
+    final lowerEmail = email.toLowerCase().trim();
+    if (lowerEmail == 'saravanapmvofficial@gmail.com') {
+      _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: name, role: UserRole.student);
+      _currentUser = _mockUser;
+      _stateController.add(_mockUser);
+      return;
     }
 
-    // Fallback user creation if network/uninitialized error
-    final fallbackUser = UserModel(
-      uid: 'USER-${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      name: name,
-      role: role,
-      phoneNumber: phoneNumber,
-      metadata: metadata,
-    );
-    _mockUser = fallbackUser;
-    _currentUser = fallbackUser;
-    _stateController.add(_currentUser);
+    final auth = _auth ?? FirebaseAuth.instance;
+    try {
+      final credential = await auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      if (credential.user != null) {
+        try {
+          await credential.user!.updateDisplayName(name);
+        } catch (_) {}
+
+        final newUser = UserModel(
+          uid: credential.user!.uid,
+          email: email.trim(),
+          name: name,
+          role: role,
+          phoneNumber: phoneNumber,
+          metadata: metadata,
+        );
+        await saveUserData(newUser);
+        _handleFirebaseUserChange(credential.user);
+        return;
+      }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Firebase Registration Error: ${e.code} - ${e.message}');
+      throw e.message ?? e.code;
+    } catch (e) {
+      debugPrint('Firebase Registration Exception: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -266,11 +249,9 @@ class FirebaseAuthService implements AuthService {
     _currentUser = updatedUser;
     if (_mockUser != null) {
       _mockUser = updatedUser;
-      _stateController.add(updatedUser);
-    } else {
-      await saveUserData(updatedUser);
-      _stateController.add(updatedUser);
     }
+    await saveUserData(updatedUser);
+    _stateController.add(updatedUser);
   }
 
   @override

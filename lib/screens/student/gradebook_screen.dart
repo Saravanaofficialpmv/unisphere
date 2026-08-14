@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/providers/gradebook_provider.dart';
 import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
+import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 
 class GradebookScreen extends ConsumerStatefulWidget {
@@ -20,7 +22,10 @@ class GradebookScreen extends ConsumerStatefulWidget {
   ConsumerState<GradebookScreen> createState() => _GradebookScreenState();
 }
 
-class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTickerProviderStateMixin {
+class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   late TabController _tabController;
   int _selectedSemIndex = 3; // Default Sem 4
   String _selectedInternalFilter = 'All'; // 'All', 'IA-1', 'IA-2', 'Model'
@@ -110,6 +115,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final bool canPopRoute = ModalRoute.of(context)?.canPop ?? false;
 
     return PopScope(
@@ -239,6 +245,9 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
   Widget _buildInternalMarksTab() {
     final gradebookState = ref.watch(gradebookProvider);
     final currentSem = gradebookState.currentSemester;
+    final dbAssignments = ref.watch(allAssignmentsStreamProvider).value ?? [];
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final activeRegNo = currentUser?.metadata?['registerNumber']?.toString().trim() ?? '';
 
     // Mock internal assessment data for subjects with Retest history
     final internalSubjectData = [
@@ -385,6 +394,73 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
             ),
           ),
           const SizedBox(height: 16),
+
+          if (dbAssignments.isNotEmpty) ...[
+            const Row(
+              children: [
+                Icon(Icons.cloud_done_rounded, color: Color(0xFF2563EB), size: 16),
+                SizedBox(width: 6),
+                Text(
+                  'PUBLISHED STAFF MARKSHEETS (FIRESTORE DATABASE)',
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B), letterSpacing: 0.5),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ...dbAssignments.map((doc) {
+              final records = doc['studentRecords'] as List? ?? [];
+              final rec = records.firstWhere(
+                (r) => r['regNo']?.toString().trim().toLowerCase() == activeRegNo.toLowerCase(),
+                orElse: () => null,
+              );
+              final String title = doc['title']?.toString() ?? 'Faculty Marksheet';
+              final String fileName = doc['fileName']?.toString() ?? 'Marksheet.xlsx';
+              final String markStr = rec != null
+                  ? (rec['conv']?.toString() ?? rec['initial']?.toString() ?? 'Graded')
+                  : 'Published for Class';
+              final String statusStr = rec != null
+                  ? (rec['status']?.toString() ?? 'Marks Verified')
+                  : 'Class Record';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFBFDBFE)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B))),
+                          const SizedBox(height: 3),
+                          Text('File: $fileName • Status: $statusStr', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
+                      child: Text(markStr, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2563EB), fontSize: 13)),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
 
           // Current Active Term Indicator (Student Panel: Internal Marks for Current Term Only)
           Container(

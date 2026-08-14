@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unisphere/models/user_model.dart';
+import 'package:unisphere/services/auth_service.dart';
 
 // ── VSBEC GRADE SERVICE & UTILS ─────────────────────────────────────────────
 
@@ -265,56 +267,63 @@ class GradebookState {
 // ── STATE NOTIFIER ───────────────────────────────────────────────────────────
 
 class GradebookNotifier extends StateNotifier<GradebookState> {
-  GradebookNotifier() : super(_initialState());
+  GradebookNotifier({UserModel? user}) : super(_initialState(user));
 
-  static GradebookState _initialState() {
+  static GradebookState _initialState(UserModel? user) {
+    final email = user?.email.toLowerCase().trim() ?? '';
+    final isDemo = email == 'saravanapmvofficial@gmail.com' || (user != null && user.uid == 'DEMO-STU');
+    final meta = user?.metadata ?? {};
+
+    final double? dbCgpa = double.tryParse(meta['cgpa']?.toString() ?? '');
+    final String sem4Grade = (dbCgpa ?? 0.0) >= 9.0 ? 'O' : ((dbCgpa ?? 0.0) >= 8.0 ? 'A+' : ((dbCgpa ?? 0.0) >= 7.0 ? 'A' : 'B+'));
+
     return GradebookState(
       selectedSemesterIndex: 3, // Default Sem 4
       semesters: [
         SemesterModel(
           number: 1,
           name: 'Semester 1',
-          subjects: [
+          subjects: isDemo ? [
             SubjectModel(name: 'Mathematics I', code: 'MA101', credits: 4, grade: 'A+'),
             SubjectModel(name: 'Engineering Physics', code: 'PH101', credits: 4, grade: 'A'),
             SubjectModel(name: 'Basic Electrical Engg', code: 'EE101', credits: 3, grade: 'B+'),
             SubjectModel(name: 'C Programming Lab', code: 'CS101', credits: 3, grade: 'O'),
             SubjectModel(name: 'Engineering Graphics', code: 'ME101', credits: 2, grade: 'RA'),
-          ],
+          ] : [],
         ),
         SemesterModel(
           number: 2,
           name: 'Semester 2',
-          subjects: [
+          subjects: isDemo ? [
             SubjectModel(name: 'Mathematics II', code: 'MA201', credits: 4, grade: 'A'),
             SubjectModel(name: 'Engineering Chemistry', code: 'CH201', credits: 4, grade: 'A+'),
             SubjectModel(name: 'Data Structures in C++', code: 'CS201', credits: 4, grade: 'O'),
             SubjectModel(name: 'Digital Logic Design', code: 'EC201', credits: 3, grade: 'B+'),
             SubjectModel(name: 'Environmental Science', code: 'EV201', credits: 2, grade: 'SA'),
-          ],
+          ] : [],
         ),
         SemesterModel(
           number: 3,
           name: 'Semester 3',
-          subjects: [
+          subjects: isDemo ? [
             SubjectModel(name: 'Discrete Mathematics', code: 'MA301', credits: 4, grade: 'A+'),
             SubjectModel(name: 'Object Oriented Java', code: 'CS301', credits: 4, grade: 'A'),
             SubjectModel(name: 'Computer Architecture', code: 'CS302', credits: 4, grade: 'B+'),
             SubjectModel(name: 'Theory of Computation', code: 'CS303', credits: 3, grade: 'A'),
             SubjectModel(name: 'Database Foundations', code: 'CS304', credits: 3, grade: 'O'),
-          ],
+          ] : [],
         ),
         SemesterModel(
           number: 4,
           name: 'Semester 4',
           isCurrent: true,
           subjects: [
-            SubjectModel(name: 'Advanced Data Structures', code: 'CS401', credits: 4, grade: 'O'),
-            SubjectModel(name: 'Database Mgmt. Systems', code: 'CS402', credits: 4, grade: 'A+'),
-            SubjectModel(name: 'Operating Systems', code: 'CS403', credits: 4, grade: 'A'),
-            SubjectModel(name: 'Computer Networks', code: 'CS404', credits: 3, grade: 'B+'),
-            SubjectModel(name: 'Design & Analysis of Algo', code: 'CS405', credits: 3, grade: 'A+'),
-            SubjectModel(name: 'Full-Stack Web Dev Lab', code: 'CS406', credits: 2, grade: 'O'),
+            SubjectModel(name: 'Advanced Data Structures', code: 'CS401', credits: 4, grade: isDemo ? 'O' : sem4Grade),
+            SubjectModel(name: 'Database Mgmt. Systems', code: 'CS402', credits: 4, grade: isDemo ? 'A+' : sem4Grade),
+            SubjectModel(name: 'Operating Systems', code: 'CS403', credits: 4, grade: isDemo ? 'A' : sem4Grade),
+            SubjectModel(name: 'Computer Networks', code: 'CS404', credits: 3, grade: isDemo ? 'B+' : sem4Grade),
+            SubjectModel(name: 'Design & Analysis of Algo', code: 'CS405', credits: 3, grade: isDemo ? 'A+' : sem4Grade),
+            SubjectModel(name: 'Full-Stack Web Dev Lab', code: 'CS406', credits: 2, grade: isDemo ? 'O' : sem4Grade),
           ],
         ),
       ],
@@ -391,7 +400,7 @@ class GradebookNotifier extends StateNotifier<GradebookState> {
   }
 
   void resetToDefaults() {
-    state = _initialState();
+    state = _initialState(null);
   }
 }
 
@@ -399,5 +408,6 @@ class GradebookNotifier extends StateNotifier<GradebookState> {
 
 final gradebookProvider =
     StateNotifierProvider<GradebookNotifier, GradebookState>((ref) {
-  return GradebookNotifier();
+  final user = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+  return GradebookNotifier(user: user);
 });

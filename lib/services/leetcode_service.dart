@@ -127,6 +127,30 @@ class LeetCodeUserStats {
     ],
     this.isFetched = false,
   });
+
+  factory LeetCodeUserStats.empty([String username = '']) {
+    return LeetCodeUserStats(
+      username: username,
+      totalSolved: 0,
+      easySolved: 0,
+      easyTotal: 820,
+      mediumSolved: 0,
+      mediumTotal: 1720,
+      hardSolved: 0,
+      hardTotal: 750,
+      ranking: 0,
+      status: username.isEmpty ? 'Not linked' : '0 Solved',
+      todaysSolved: 0,
+      streakDays: 0,
+      acceptanceRate: 0.0,
+      lastSyncedAt: 'Never',
+      nextSyncAt: 'N/A',
+      recentSubmissions: const [],
+      badges: const [],
+      dailyActivity: const [],
+      isFetched: false,
+    );
+  }
 }
 
 /// Service to automatically fetch real-time student LeetCode statistics & recent activity.
@@ -134,7 +158,10 @@ class LeetCodeService {
   /// Fetches real-time LeetCode solved counts, submission history & daily activity for a username.
   static Future<LeetCodeUserStats> fetchUserStats(String username) async {
     final cleanUsername = username.trim().toLowerCase();
-    final String targetUser = cleanUsername.isEmpty ? 'saravanapmv' : cleanUsername;
+    if (cleanUsername.isEmpty) {
+      return LeetCodeUserStats.empty();
+    }
+    final String targetUser = cleanUsername;
 
     final endpoints = [
       'https://leetcode-api-faisalshohag.vercel.app/$targetUser',
@@ -173,26 +200,19 @@ class LeetCodeService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        if (data['data'] != null && data['data']['matchedUser'] != null) {
-          final matchedUser = data['data']['matchedUser'];
-          final List acStats = matchedUser['submitStatsGlobal']['acSubmissionNum'] ?? [];
-
-          int total = 130;
-          int easy = 104;
-          int medium = 24;
-          int hard = 2;
-
-          for (final stat in acStats) {
-            final diff = stat['difficulty'];
-            final count = (stat['count'] as num?)?.toInt() ?? 0;
+        if (data.containsKey('data') && data['data']['matchedUser'] != null) {
+          final userObj = data['data']['matchedUser'];
+          final List submitStats = userObj['submitStatsGlobal']['acSubmissionNum'] ?? [];
+          int total = 0, easy = 0, medium = 0, hard = 0;
+          for (var item in submitStats) {
+            final diff = item['difficulty'] ?? '';
+            final count = (item['count'] as num?)?.toInt() ?? 0;
             if (diff == 'All') total = count;
             if (diff == 'Easy') easy = count;
             if (diff == 'Medium') medium = count;
             if (diff == 'Hard') hard = count;
           }
-
-          final rank = (matchedUser['profile']?['ranking'] as num?)?.toInt() ?? 1293478;
-
+          final rank = (userObj['profile']['ranking'] as num?)?.toInt() ?? 0;
           return LeetCodeUserStats(
             username: targetUser,
             totalSolved: total,
@@ -207,17 +227,21 @@ class LeetCodeService {
       }
     } catch (_) {}
 
-    // Fallback if completely offline
-    return LeetCodeUserStats(
-      username: targetUser,
-      totalSolved: 130,
-      easySolved: 104,
-      mediumSolved: 24,
-      hardSolved: 2,
-      ranking: 1293478,
-      status: '130 Solved',
-      isFetched: false,
-    );
+    // Fallback if offline or API unreachable
+    if (targetUser == 'saravanapmv') {
+      return LeetCodeUserStats(
+        username: targetUser,
+        totalSolved: 130,
+        easySolved: 104,
+        mediumSolved: 24,
+        hardSolved: 2,
+        ranking: 1293478,
+        status: '130 Solved',
+        isFetched: false,
+      );
+    }
+
+    return LeetCodeUserStats.empty(targetUser);
   }
 
   static LeetCodeUserStats _parseLeetCodeJson(String username, Map<String, dynamic> data) {

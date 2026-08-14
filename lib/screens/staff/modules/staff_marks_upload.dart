@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
 
 class StaffMarksUploadModule extends StatefulWidget {
   const StaffMarksUploadModule({super.key});
@@ -213,7 +214,7 @@ class _StaffMarksUploadModuleState extends State<StaffMarksUploadModule> {
     );
   }
 
-  void _publishMarks() {
+  void _publishMarks() async {
     if (!_isFileUploaded) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -228,38 +229,45 @@ class _StaffMarksUploadModuleState extends State<StaffMarksUploadModule> {
       _isPublishing = true;
     });
 
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isPublishing = false;
-        });
+    await FirebaseFirestoreService().saveAssignmentMarks(
+      title: '$_selectedSubject - $_selectedExamType',
+      subject: _selectedSubject,
+      examType: _selectedExamType,
+      fileName: _uploadedFileName,
+      fileType: _selectedFormat,
+      studentRecords: _parsedRecords,
+    );
 
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Row(
-              children: [
-                Icon(Icons.verified_rounded, color: Color(0xFF059669), size: 28),
-                SizedBox(width: 10),
-                Text('Marks Published!', style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            content: Text(
-              'Successfully published $_uploadedRecordCount student marks for $_selectedSubject ($_selectedExamType) to the Student Gradebook Portal & HOD Audit Panel.',
-              style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
-            ),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF059669), foregroundColor: Colors.white),
-                child: const Text('Done'),
-              ),
+    if (mounted) {
+      setState(() {
+        _isPublishing = false;
+      });
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.verified_rounded, color: Color(0xFF059669), size: 28),
+              SizedBox(width: 10),
+              Text('Marks Published to Database!', style: TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
-        );
-      }
-    });
+          content: Text(
+            'Successfully published $_uploadedRecordCount student assignment records for $_selectedSubject ($_selectedExamType) to Cloud Firestore. Students can view their marks matched by Register Number.',
+            style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF059669), foregroundColor: Colors.white),
+              child: const Text('Done'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override

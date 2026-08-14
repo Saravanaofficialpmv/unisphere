@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
+import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/leetcode_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 
@@ -19,18 +20,18 @@ class LeetCodeDetailScreen extends ConsumerStatefulWidget {
 class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
   bool _isRefreshing = false;
   late TextEditingController _handleController;
-  LeetCodeUserStats _fullStats = const LeetCodeUserStats(
-    username: 'saravanapmv',
-    totalSolved: 130,
-    isFetched: true,
-  );
+  LeetCodeUserStats _fullStats = LeetCodeUserStats.empty();
 
   @override
   void initState() {
     super.initState();
     final overviewData = ref.read(academicOverviewProvider);
     _handleController = TextEditingController(text: overviewData.leetcodeUsername);
-    _loadFullStats(overviewData.leetcodeUsername);
+    if (overviewData.leetcodeUsername.isNotEmpty) {
+      _loadFullStats(overviewData.leetcodeUsername);
+    } else {
+      _fullStats = LeetCodeUserStats.empty();
+    }
   }
 
   @override
@@ -40,15 +41,32 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
   }
 
   Future<void> _loadFullStats(String username) async {
+    final cleanUser = username.trim();
+    if (cleanUser.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _fullStats = LeetCodeUserStats.empty();
+          _isRefreshing = false;
+        });
+      }
+      return;
+    }
+
     setState(() {
       _isRefreshing = true;
     });
-    final stats = await LeetCodeService.fetchUserStats(username);
+    final stats = await LeetCodeService.fetchUserStats(cleanUser);
     if (mounted) {
       setState(() {
         _fullStats = stats;
         _isRefreshing = false;
       });
+      // Sync back to academic overview provider
+      ref.read(academicOverviewProvider.notifier).updateData(
+        leetcodeUsername: cleanUser,
+        leetcodeSolved: stats.totalSolved,
+        leetcodeStatus: stats.status,
+      );
     }
   }
 
@@ -106,19 +124,29 @@ class _LeetCodeDetailScreenState extends ConsumerState<LeetCodeDetailScreen> {
               child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final newUsername = _handleController.text.trim();
                 if (newUsername.isNotEmpty) {
                   ref.read(academicOverviewProvider.notifier).fetchLeetCodeStats(newUsername);
                   _loadFullStats(newUsername);
+
+                  final currentUser = ref.read(authServiceProvider).currentUser;
+                  if (currentUser != null) {
+                    final updatedMeta = Map<String, dynamic>.from(currentUser.metadata ?? {});
+                    updatedMeta['leetcodeUsername'] = newUsername;
+                    final updatedUser = currentUser.copyWith(metadata: updatedMeta);
+                    await ref.read(authServiceProvider).updateUserProfile(updatedUser);
+                  }
                 }
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('LeetCode profile updated to @$newUsername! Syncing at 12:00 AM daily.'),
-                    backgroundColor: const Color(0xFF10B981),
-                  ),
-                );
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('LeetCode profile updated to @$newUsername! Syncing at 12:00 AM daily.'),
+                      backgroundColor: const Color(0xFF10B981),
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFEA580C),

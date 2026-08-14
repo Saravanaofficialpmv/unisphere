@@ -9,11 +9,24 @@ import 'package:unisphere/models/exam_model.dart';
 import 'package:unisphere/models/hackathon_model.dart';
 import 'package:unisphere/models/mark_model.dart';
 import 'package:unisphere/models/submission_model.dart';
+import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/services/database_seeder.dart';
 import 'package:unisphere/services/supabase_service.dart';
 
 final firebaseFirestoreServiceProvider = Provider<FirebaseFirestoreService>((ref) {
   return FirebaseFirestoreService();
+});
+
+final allStudentsStreamProvider = StreamProvider.autoDispose<List<UserModel>>((ref) {
+  return ref.watch(firebaseFirestoreServiceProvider).getStudents();
+});
+
+final allTimetablesStreamProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  return ref.watch(firebaseFirestoreServiceProvider).getAllTimetablesStream();
+});
+
+final allAssignmentsStreamProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  return ref.watch(firebaseFirestoreServiceProvider).getAllAssignmentsStream();
 });
 
 class FirebaseFirestoreService implements SupabaseService {
@@ -249,6 +262,154 @@ class FirebaseFirestoreService implements SupabaseService {
       });
     } catch (e) {
       debugPrint('Firestore registerHackathonTeam error: $e');
+    }
+  }
+  // ==========================================
+  // USERS & STUDENTS DIRECTORY
+  // ==========================================
+  Stream<List<UserModel>> getStudents() {
+    try {
+      return _firestore
+          .collection('users')
+          .snapshots()
+          .map((snapshot) => snapshot.docs
+              .map((doc) => UserModel.fromMap(doc.data(), doc.id))
+              .where((u) => u.role == UserRole.student)
+              .toList());
+    } catch (e) {
+      debugPrint('Firestore getStudents error: $e');
+      return Stream.value([]);
+    }
+  }
+
+  Future<bool> isRegisterNumberTaken(String regNo, String currentUid) async {
+    final cleanReg = regNo.trim().toLowerCase();
+    if (cleanReg.isEmpty) return false;
+    try {
+      final snapshot = await _firestore.collection('users').get();
+      for (var doc in snapshot.docs) {
+        if (doc.id == currentUid) continue;
+        final data = doc.data();
+        final existingReg = data['metadata']?['registerNumber']?.toString().toLowerCase().trim() ?? '';
+        if (existingReg == cleanReg && existingReg.isNotEmpty) {
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('Firestore isRegisterNumberTaken error: $e');
+    }
+    return false;
+  }
+
+  Future<void> saveSemesterWorkingDays(int semNumber, int totalWorkingDays) async {
+    try {
+      await _firestore.collection('attendance_configs').doc('sem_$semNumber').set({
+        'semNumber': semNumber,
+        'totalWorkingDays': totalWorkingDays,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveSemesterWorkingDays error: $e');
+    }
+  }
+
+  Stream<Map<int, int>> getSemesterWorkingDaysStream() {
+    try {
+      return _firestore.collection('attendance_configs').snapshots().map((snapshot) {
+        final Map<int, int> configs = {};
+        for (var doc in snapshot.docs) {
+          final data = doc.data();
+          final semNum = data['semNumber'] as int? ?? int.tryParse(doc.id.replaceAll('sem_', ''));
+          final days = data['totalWorkingDays'] as int?;
+          if (semNum != null && days != null) {
+            configs[semNum] = days;
+          }
+        }
+        return configs;
+      });
+    } catch (e) {
+      debugPrint('Firestore getSemesterWorkingDaysStream error: $e');
+      return Stream.value({});
+    }
+  }
+
+  Future<void> saveYearSectionTimetable({
+    required String year,
+    required String section,
+    required String fileName,
+    required String fileType,
+    String? fileUrl,
+    List<Map<String, dynamic>>? periods,
+  }) async {
+    try {
+      final docId = '${year.replaceAll(' ', '_')}_${section.replaceAll(' ', '_')}'.toLowerCase();
+      await _firestore.collection('timetables').doc(docId).set({
+        'year': year,
+        'section': section,
+        'fileName': fileName,
+        'fileType': fileType,
+        'fileUrl': fileUrl ?? '',
+        'uploadedAt': FieldValue.serverTimestamp(),
+        'uploadedBy': 'HOD Computer Science',
+        'periods': periods ?? [],
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveYearSectionTimetable error: $e');
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> getAllTimetablesStream() {
+    try {
+      return _firestore.collection('timetables').snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          data['id'] = doc.id;
+          return data;
+        }).toList();
+      });
+    } catch (e) {
+      debugPrint('Firestore getAllTimetablesStream error: $e');
+      return Stream.value([]);
+    }
+  }
+
+  Future<void> saveAssignmentMarks({
+    required String title,
+    required String subject,
+    required String examType,
+    required String fileName,
+    required String fileType,
+    required List<Map<String, String>> studentRecords,
+  }) async {
+    try {
+      final docId = 'assign_${subject.replaceAll(' ', '_')}_${examType.replaceAll(' ', '_')}'.toLowerCase();
+      await _firestore.collection('assignments').doc(docId).set({
+        'title': title,
+        'subject': subject,
+        'examType': examType,
+        'fileName': fileName,
+        'fileType': fileType,
+        'uploadedAt': FieldValue.serverTimestamp(),
+        'uploadedBy': 'Faculty Staff',
+        'studentRecords': studentRecords,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveAssignmentMarks error: $e');
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> getAllAssignmentsStream() {
+    try {
+      return _firestore.collection('assignments').snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          data['id'] = doc.id;
+          return data;
+        }).toList();
+      });
+    } catch (e) {
+      debugPrint('Firestore getAllAssignmentsStream error: $e');
+      return Stream.value([]);
     }
   }
 

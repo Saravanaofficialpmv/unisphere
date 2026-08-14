@@ -142,6 +142,25 @@ class GitHubUserStats {
     this.lastSyncedAt = 'Today at 12:00 AM',
     this.isFetched = false,
   });
+
+  factory GitHubUserStats.empty([String username = '']) {
+    return GitHubUserStats(
+      username: username,
+      name: username.isEmpty ? 'Not linked' : username,
+      avatarUrl: '',
+      bio: '',
+      publicRepos: 0,
+      followers: 0,
+      following: 0,
+      starsEarned: 0,
+      commitsThisYear: 0,
+      topLanguages: const [],
+      languageBreakdown: const {},
+      featuredRepos: const [],
+      lastSyncedAt: 'Never',
+      isFetched: false,
+    );
+  }
 }
 
 class GitHubService {
@@ -151,7 +170,7 @@ class GitHubService {
   static Future<GitHubUserStats> fetchUserStats(String rawUsername) async {
     final username = rawUsername.trim().replaceAll('@', '');
     if (username.isEmpty) {
-      return _getFallbackStats('Saravanaofficialpmv');
+      return GitHubUserStats.empty();
     }
 
     try {
@@ -168,7 +187,7 @@ class GitHubService {
       final profileJson = jsonDecode(profileResp.body) as Map<String, dynamic>;
 
       // 2. Fetch User Repositories
-      final reposUri = Uri.parse('$_baseUrl/$username/repos?sort=updated&per_page=100');
+      final reposUri = Uri.parse('$_baseUrl/$username/repos?sort=updated&per_page=30');
       final reposResp = await http.get(reposUri, headers: {
         'User-Agent': 'UNISPHERE-App',
       }).timeout(const Duration(seconds: 8));
@@ -233,16 +252,6 @@ class GitHubService {
             ((entry.value / totalLangRepos) * 100).toStringAsFixed(1),
           );
         }
-      } else {
-        topLanguages = ['HTML', 'TypeScript', 'Dart', 'JavaScript', 'Python', 'Java'];
-        languageBreakdown = {
-          'HTML': 33.3,
-          'TypeScript': 25.0,
-          'Dart': 16.7,
-          'JavaScript': 8.3,
-          'Python': 8.3,
-          'Java': 8.3,
-        };
       }
 
       // Format Last Synced Timestamp
@@ -254,17 +263,13 @@ class GitHubService {
       final lastSyncedAt = 'Today at $formattedHour:$minute $period';
 
       final publicReposCount = profileJson['public_repos'] as int? ?? repoItems.length;
-      final followers = profileJson['followers'] as int? ?? 2;
-      final following = profileJson['following'] as int? ?? 1;
+      final followers = profileJson['followers'] as int? ?? 0;
+      final following = profileJson['following'] as int? ?? 0;
       final rawBio = profileJson['bio'] as String?;
-      final bio = (rawBio != null && rawBio.isNotEmpty)
-          ? rawBio
-          : 'Flutter Developer & AI Enthusiast • Building Smart Campus Systems @ UNISPHERE';
+      final bio = (rawBio != null && rawBio.isNotEmpty) ? rawBio : 'GitHub Developer';
       final rawName = profileJson['name'] as String?;
-      final name = (rawName != null && rawName.isNotEmpty) ? rawName : 'saravana perumal';
-      final avatarUrl = profileJson['avatar_url'] as String? ?? 'https://avatars.githubusercontent.com/u/200975098?v=4';
-
-      final finalCommitsCount = totalCommitsCount > 0 ? totalCommitsCount : 87;
+      final name = (rawName != null && rawName.isNotEmpty) ? rawName : username;
+      final avatarUrl = profileJson['avatar_url'] as String? ?? '';
 
       return GitHubUserStats(
         username: username,
@@ -275,14 +280,10 @@ class GitHubService {
         followers: followers,
         following: following,
         starsEarned: totalStars,
-        commitsThisYear: finalCommitsCount,
-        topLanguages: topLanguages.isNotEmpty
-            ? topLanguages
-            : ['HTML', 'TypeScript', 'Dart', 'JavaScript', 'Python', 'Java'],
+        commitsThisYear: totalCommitsCount,
+        topLanguages: topLanguages,
         languageBreakdown: languageBreakdown,
-        featuredRepos: repoItems.isNotEmpty
-            ? repoItems.take(6).toList()
-            : _getFallbackStats(username).featuredRepos,
+        featuredRepos: repoItems.take(6).toList(),
         lastSyncedAt: lastSyncedAt,
         isFetched: true,
       );
@@ -292,6 +293,13 @@ class GitHubService {
   }
 
   static GitHubUserStats _getFallbackStats(String username) {
+    if (username.isEmpty) {
+      return GitHubUserStats.empty();
+    }
+    if (username.toLowerCase() != 'saravanaofficialpmv') {
+      return GitHubUserStats.empty(username);
+    }
+
     final now = DateTime.now();
     final hour = now.hour;
     final minute = now.minute.toString().padLeft(2, '0');
@@ -300,7 +308,7 @@ class GitHubService {
     final lastSyncedAt = 'Today at $formattedHour:$minute $period';
 
     return GitHubUserStats(
-      username: username.isEmpty ? 'Saravanaofficialpmv' : username,
+      username: username,
       name: 'saravana perumal',
       avatarUrl: 'https://avatars.githubusercontent.com/u/200975098?v=4',
       bio: 'Flutter Developer & AI Enthusiast • Building Smart Campus Systems @ UNISPHERE',

@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
 import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';
 import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
-
+import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
+import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:unisphere/core/constants/app_departments.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -45,9 +47,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
     final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'User Profile';
     final email = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty) ? currentUser.email : 'user@unisphere.edu';
-    final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true ? currentUser!.metadata!['registerNumber'].toString() : (currentUser?.uid ?? 'RA2111003010001');
-    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true ? currentUser!.metadata!['department'].toString() : 'Computer Science';
-    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true ? currentUser!.metadata!['year'].toString() : '3rd Year';
+    final isDemo = currentUser?.email.toLowerCase().trim() == 'saravanapmvofficial@gmail.com';
+    final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true 
+        ? currentUser!.metadata!['registerNumber'].toString() 
+        : (isDemo ? 'RA2111003010001' : (currentUser?.uid.startsWith('DEMO-') == true ? 'DEMO-REG-001' : 'Pending ID'));
+    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true 
+        ? currentUser!.metadata!['department'].toString() 
+        : (isDemo ? 'Computer Science' : 'Not Specified');
+    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true 
+        ? currentUser!.metadata!['year'].toString() 
+        : (isDemo ? '3rd Year' : '1st Year');
     final roleName = currentUser?.roleName ?? 'Student';
 
     return Scaffold(
@@ -226,10 +235,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
     final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'User Profile';
     final email = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty) ? currentUser.email : 'user@unisphere.edu';
-    final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true ? currentUser!.metadata!['registerNumber'].toString() : (currentUser?.uid ?? 'RA2111003010001');
-    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true ? currentUser!.metadata!['department'].toString() : 'Computer Science';
-    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true ? currentUser!.metadata!['year'].toString() : '3rd Year';
-    final phone = currentUser?.phoneNumber ?? currentUser?.metadata?['phoneNumber'] ?? '+91 98765 43210';
+    final isDemo = currentUser?.email.toLowerCase().trim() == 'saravanapmvofficial@gmail.com';
+    final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true 
+        ? currentUser!.metadata!['registerNumber'].toString() 
+        : (isDemo ? 'RA2111003010001' : (currentUser?.uid.startsWith('DEMO-') == true ? 'DEMO-REG-001' : 'Pending ID'));
+    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true 
+        ? currentUser!.metadata!['department'].toString() 
+        : (isDemo ? 'Computer Science' : 'Not Specified');
+    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true 
+        ? currentUser!.metadata!['year'].toString() 
+        : (isDemo ? '3rd Year' : '1st Year');
+    final phone = currentUser?.phoneNumber ?? currentUser?.metadata?['phoneNumber'] ?? (isDemo ? '+91 98765 43210' : 'Not Provided');
     final roleName = currentUser?.roleName ?? 'Student';
 
     return ListView(
@@ -262,16 +278,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
         Consumer(
           builder: (context, ref, child) {
             final overviewData = ref.watch(academicOverviewProvider);
+            final hasLinkedin = overviewData.linkedinUrl.isNotEmpty;
+            final hasGithub = overviewData.githubUsername.isNotEmpty;
+            final hasLeetcode = overviewData.leetcodeUsername.isNotEmpty;
+
             return Column(
               children: [
                 // LinkedIn Card
                 _buildProfessionalLinkCard(
                   title: 'LinkedIn Professional Profile',
-                  handle: overviewData.linkedinUrl,
-                  subtitle: 'Official Professional Network Profile',
+                  handle: hasLinkedin ? overviewData.linkedinUrl : 'Submit LinkedIn Profile',
+                  subtitle: hasLinkedin ? 'Official Professional Network Profile' : 'Click here to submit your LinkedIn URL to connect',
                   icon: Icons.work_rounded,
                   brandColor: const Color(0xFF0A66C2),
                   onOpenUrl: () async {
+                    if (!hasLinkedin) {
+                      _showSubmitLinkedInDialog(context, ref);
+                      return;
+                    }
                     final uri = Uri.parse(overviewData.linkedinUrl);
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -282,11 +306,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 // GitHub Card
                 _buildProfessionalLinkCard(
                   title: 'GitHub Developer Profile',
-                  handle: '@${overviewData.githubUsername}',
-                  subtitle: '${overviewData.githubRepos} Public Repos • ${overviewData.githubCommits} Commits',
+                  handle: hasGithub ? '@${overviewData.githubUsername}' : 'Submit GitHub ID',
+                  subtitle: hasGithub
+                      ? '${overviewData.githubRepos} Public Repos • ${overviewData.githubCommits} Commits'
+                      : 'Click here to submit your GitHub Username to view repositories',
                   icon: Icons.integration_instructions_rounded,
                   brandColor: const Color(0xFF0F172A),
                   onOpenUrl: () async {
+                    if (!hasGithub) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const GitHubDetailScreen()),
+                      );
+                      return;
+                    }
                     final uri = Uri.parse('https://github.com/${overviewData.githubUsername}');
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -297,11 +329,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 // LeetCode Card
                 _buildProfessionalLinkCard(
                   title: 'LeetCode DSA Profile',
-                  handle: '@${overviewData.leetcodeUsername}',
-                  subtitle: '${overviewData.leetcodeSolved} Problems Solved',
+                  handle: hasLeetcode ? '@${overviewData.leetcodeUsername}' : 'Submit LeetCode ID',
+                  subtitle: hasLeetcode ? '${overviewData.leetcodeSolved} Problems Solved' : 'Click here to submit your LeetCode ID to view solved analytics',
                   icon: Icons.code_rounded,
                   brandColor: const Color(0xFFEA580C),
                   onOpenUrl: () async {
+                    if (!hasLeetcode) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LeetCodeDetailScreen()),
+                      );
+                      return;
+                    }
                     final uri = Uri.parse('https://leetcode.com/u/${overviewData.leetcodeUsername}');
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -316,13 +354,95 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
         const SizedBox(height: 20),
         _buildSectionHeader('🚨 Medical & Emergency Contacts'),
         _buildCard([
-          _buildInfoRow('Primary Contact', 'R. Selvam (Father) • +91 98401 23456', icon: Icons.emergency_outlined),
-          _buildInfoRow('Secondary Contact', 'S. Lakshmi (Mother) • +91 98401 65432', icon: Icons.contact_phone_outlined),
-          _buildInfoRow('Medical Conditions', 'No known allergies / Fit for campus sports', icon: Icons.health_and_safety_outlined),
-          _buildInfoRow('Campus Health Insurance ID', 'UNI-HLTH-2026-8849', icon: Icons.verified_user_outlined),
+          _buildInfoRow(
+            'Primary Contact',
+            currentUser?.metadata?['emergencyContactPrimary'] ?? (isDemo ? 'R. Selvam (Father) • +91 98401 23456' : 'Not configured'),
+            icon: Icons.emergency_outlined,
+          ),
+          _buildInfoRow(
+            'Secondary Contact',
+            currentUser?.metadata?['emergencyContactSecondary'] ?? (isDemo ? 'S. Lakshmi (Mother) • +91 98401 65432' : 'Not configured'),
+            icon: Icons.contact_phone_outlined,
+          ),
+          _buildInfoRow(
+            'Medical Conditions',
+            currentUser?.metadata?['medicalConditions'] ?? (isDemo ? 'No known allergies / Fit for campus sports' : 'None reported'),
+            icon: Icons.health_and_safety_outlined,
+          ),
+          _buildInfoRow(
+            'Campus Health Insurance ID',
+            currentUser?.metadata?['healthInsuranceId'] ?? (isDemo ? 'UNI-HLTH-2026-8849' : 'Not issued'),
+            icon: Icons.verified_user_outlined,
+          ),
         ]),
         const SizedBox(height: 40),
       ],
+    );
+  }
+
+  void _showSubmitLinkedInDialog(BuildContext context, WidgetRef ref) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.work_rounded, color: Color(0xFF0A66C2)),
+              SizedBox(width: 10),
+              Text('Submit LinkedIn Profile', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter your official LinkedIn profile URL to link your professional network.',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  hintText: 'https://www.linkedin.com/in/yourname',
+                  prefixIcon: const Icon(Icons.link_rounded, color: Color(0xFF0A66C2)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0A66C2),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () async {
+                final url = controller.text.trim();
+                if (url.isNotEmpty) {
+                  ref.read(academicOverviewProvider.notifier).fetchLinkedInStats(url);
+                  final currentUser = ref.read(authServiceProvider).currentUser;
+                  if (currentUser != null) {
+                    final meta = Map<String, dynamic>.from(currentUser.metadata ?? {});
+                    meta['linkedinUrl'] = url;
+                    final updated = currentUser.copyWith(metadata: meta);
+                    await ref.read(authServiceProvider).updateUserProfile(updated);
+                  }
+                }
+                if (context.mounted) Navigator.pop(context);
+              },
+              child: const Text('Submit & Link'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1408,6 +1528,12 @@ class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
   late final TextEditingController _regNoController;
   late final TextEditingController _phoneController;
   late final TextEditingController _sectionController;
+  late final TextEditingController _leetcodeController;
+  late final TextEditingController _githubController;
+  late final TextEditingController _emergencyPrimaryController;
+  late final TextEditingController _emergencySecondaryController;
+  late final TextEditingController _cgpaController;
+  late final TextEditingController _attendanceController;
   late String _selectedDept;
   String _selectedSemester = 'Semester 6 (3rd Year)';
   bool _isSubmitting = false;
@@ -1427,9 +1553,16 @@ class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
   void initState() {
     super.initState();
     final meta = widget.user.metadata ?? {};
-    _regNoController = TextEditingController(text: meta['registerNumber'] ?? 'RA2111003010001');
-    _phoneController = TextEditingController(text: widget.user.phoneNumber ?? '+91 98765 43210');
-    _sectionController = TextEditingController(text: meta['section'] ?? 'Sec A');
+    final isDemo = widget.user.email.toLowerCase().trim() == 'saravanapmvofficial@gmail.com';
+    _regNoController = TextEditingController(text: meta['registerNumber'] ?? (isDemo ? 'RA2111003010001' : ''));
+    _phoneController = TextEditingController(text: widget.user.phoneNumber ?? (isDemo ? '+91 98765 43210' : ''));
+    _sectionController = TextEditingController(text: meta['section'] ?? (isDemo ? 'Sec A' : ''));
+    _leetcodeController = TextEditingController(text: meta['leetcodeUsername'] ?? '');
+    _githubController = TextEditingController(text: meta['githubUsername'] ?? '');
+    _emergencyPrimaryController = TextEditingController(text: meta['emergencyContactPrimary'] ?? '');
+    _emergencySecondaryController = TextEditingController(text: meta['emergencyContactSecondary'] ?? '');
+    _cgpaController = TextEditingController(text: meta['cgpa']?.toString() ?? (isDemo ? '8.72' : ''));
+    _attendanceController = TextEditingController(text: meta['attendance']?.toString() ?? (isDemo ? '85.0' : ''));
 
     final deptVal = meta['department']?.toString() ?? '';
     _selectedDept = AppDepartments.list.firstWhere(
@@ -1446,6 +1579,12 @@ class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
     _regNoController.dispose();
     _phoneController.dispose();
     _sectionController.dispose();
+    _leetcodeController.dispose();
+    _githubController.dispose();
+    _emergencyPrimaryController.dispose();
+    _emergencySecondaryController.dispose();
+    _cgpaController.dispose();
+    _attendanceController.dispose();
     super.dispose();
   }
 
@@ -1455,11 +1594,47 @@ class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
     setState(() => _isSubmitting = true);
 
     try {
+      final regNo = _regNoController.text.trim();
+      final isTaken = await ref.read(firebaseFirestoreServiceProvider).isRegisterNumberTaken(regNo, widget.user.uid);
+      if (isTaken) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('⚠️ Register ID "$regNo" is already taken by another student! Please check your unique student ID.'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        setState(() => _isSubmitting = false);
+        return;
+      }
+
       final updatedMeta = Map<String, dynamic>.from(widget.user.metadata ?? {});
-      updatedMeta['registerNumber'] = _regNoController.text.trim();
+      updatedMeta['registerNumber'] = regNo;
       updatedMeta['department'] = _selectedDept;
       updatedMeta['section'] = _sectionController.text.trim();
       updatedMeta['semester'] = _selectedSemester;
+      if (_leetcodeController.text.trim().isNotEmpty) {
+        updatedMeta['leetcodeUsername'] = _leetcodeController.text.trim();
+      }
+      if (_githubController.text.trim().isNotEmpty) {
+        updatedMeta['githubUsername'] = _githubController.text.trim();
+      }
+      if (_emergencyPrimaryController.text.trim().isNotEmpty) {
+        updatedMeta['emergencyContactPrimary'] = _emergencyPrimaryController.text.trim();
+      }
+      if (_emergencySecondaryController.text.trim().isNotEmpty) {
+        updatedMeta['emergencyContactSecondary'] = _emergencySecondaryController.text.trim();
+      }
+      if (_cgpaController.text.trim().isNotEmpty) {
+        final double? c = double.tryParse(_cgpaController.text.trim());
+        if (c != null) updatedMeta['cgpa'] = c;
+      }
+      if (_attendanceController.text.trim().isNotEmpty) {
+        final double? a = double.tryParse(_attendanceController.text.trim());
+        if (a != null) updatedMeta['attendance'] = a;
+      }
       updatedMeta['verificationStatus'] = 'pending';
       updatedMeta['submittedAt'] = DateTime.now().toIso8601String();
 
@@ -1470,10 +1645,22 @@ class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
 
       await ref.read(authServiceProvider).updateUserProfile(updatedUser);
 
+      // Trigger academic overview update
+      ref.read(academicOverviewProvider.notifier).updateData(
+        cgpa: double.tryParse(_cgpaController.text.trim()),
+        attendancePercentage: double.tryParse(_attendanceController.text.trim()),
+      );
+      if (_leetcodeController.text.trim().isNotEmpty) {
+        ref.read(academicOverviewProvider.notifier).fetchLeetCodeStats(_leetcodeController.text.trim());
+      }
+      if (_githubController.text.trim().isNotEmpty) {
+        ref.read(academicOverviewProvider.notifier).fetchGitHubStats(_githubController.text.trim());
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🎉 Profile submitted to Dr. R. Kumar (HOD, CSE) for verification!'),
+            content: Text('🎉 Profile submitted to database & HOD for verification!'),
             backgroundColor: Color(0xFFD97706),
             behavior: SnackBarBehavior.floating,
           ),
@@ -1631,6 +1818,102 @@ class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
               decoration: InputDecoration(
                 hintText: '+91 98765 43210',
                 prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 18),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Current CGPA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _cgpaController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          hintText: 'e.g. 8.75',
+                          prefixIcon: const Icon(Icons.grade_outlined, color: AppColors.primary, size: 18),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Attendance (%)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _attendanceController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          hintText: 'e.g. 88.5',
+                          prefixIcon: const Icon(Icons.percent_rounded, color: Color(0xFF059669), size: 18),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('LeetCode Handle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _leetcodeController,
+                        decoration: InputDecoration(
+                          hintText: 'e.g. johndoe',
+                          prefixIcon: const Icon(Icons.code_rounded, color: Color(0xFFEA580C), size: 18),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('GitHub Username', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _githubController,
+                        decoration: InputDecoration(
+                          hintText: 'e.g. johndoe-dev',
+                          prefixIcon: const Icon(Icons.integration_instructions_rounded, color: Color(0xFF0F172A), size: 18),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            const Text('Emergency Contact (Name & Phone)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
+            const SizedBox(height: 6),
+            TextFormField(
+              controller: _emergencyPrimaryController,
+              decoration: InputDecoration(
+                hintText: 'e.g. Parent Name • +91 98765 43210',
+                prefixIcon: const Icon(Icons.emergency_outlined, color: Colors.redAccent, size: 18),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),

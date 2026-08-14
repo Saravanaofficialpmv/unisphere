@@ -82,31 +82,31 @@ class SupabaseAuthService implements AuthService {
     final lowerEmail = email.toLowerCase().trim();
 
     // DEMO BYPASS
-    if (lowerEmail == 'hod.cse@unisphere.edu' || lowerEmail.contains('hod')) {
+    if (lowerEmail == 'hod.cse@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-HOD', email: email, name: 'Dr. R. Kumar', role: UserRole.hod);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'admin@unisphere.edu' || lowerEmail.contains('admin')) {
+    if (lowerEmail == 'admin@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-ADM', email: email, name: 'Demo Admin', role: UserRole.admin);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'staff@unisphere.edu' || lowerEmail.contains('staff') || lowerEmail.contains('faculty')) {
+    if (lowerEmail == 'staff@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-STF', email: email, name: 'Demo Staff', role: UserRole.staff);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'saravanapmvofficial@gmail.com' || lowerEmail.contains('student')) {
+    if (lowerEmail == 'saravanapmvofficial@gmail.com') {
       _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: 'Demo Student', role: UserRole.student);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'parent@unisphere.edu' || lowerEmail.contains('parent')) {
+    if (lowerEmail == 'parent@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-PRT', email: email, name: 'Demo Parent', role: UserRole.parent);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);

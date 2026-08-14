@@ -66,17 +66,17 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
     final String cgpa = s['cgpa'] ?? '8.85';
     final String attendance = s['attendance'] ?? '95.0%';
 
-    final String leetcodeUsername = s['leetcodeUsername'] ?? 'saravanapmv';
-    final int leetcodeSolved = s['leetcodeSolved'] ?? 130;
-    final int leetcodeEasy = s['leetcodeEasy'] ?? 104;
-    final int leetcodeMedium = s['leetcodeMedium'] ?? 24;
-    final int leetcodeHard = s['leetcodeHard'] ?? 2;
-    final int leetcodeStreak = s['leetcodeStreak'] ?? 12;
+    final String leetcodeUsername = s['leetcodeUsername'] ?? '';
+    final int leetcodeSolved = leetcodeUsername.isEmpty ? 0 : (s['leetcodeSolved'] ?? 130);
+    final int leetcodeEasy = leetcodeUsername.isEmpty ? 0 : (s['leetcodeEasy'] ?? 104);
+    final int leetcodeMedium = leetcodeUsername.isEmpty ? 0 : (s['leetcodeMedium'] ?? 24);
+    final int leetcodeHard = leetcodeUsername.isEmpty ? 0 : (s['leetcodeHard'] ?? 2);
+    final int leetcodeStreak = leetcodeUsername.isEmpty ? 0 : (s['leetcodeStreak'] ?? 12);
 
-    final String githubUsername = s['githubUsername'] ?? 'Saravanaofficialpmv';
-    final int githubRepos = s['githubRepos'] ?? 14;
-    final int githubCommits = s['githubCommits'] ?? 87;
-    final int githubStars = s['githubStars'] ?? 0;
+    final String githubUsername = s['githubUsername'] ?? '';
+    final int githubRepos = githubUsername.isEmpty ? 0 : (s['githubRepos'] ?? 14);
+    final int githubCommits = githubUsername.isEmpty ? 0 : (s['githubCommits'] ?? 87);
+    final int githubStars = githubUsername.isEmpty ? 0 : (s['githubStars'] ?? 0);
     final List<String> techStack = List<String>.from(
       s['githubTopTech'] ?? ['Flutter/Dart', 'C++', 'Java', 'Python'],
     );

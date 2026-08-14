@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/models/assignment_model.dart';
 import 'package:unisphere/models/submission_model.dart';
 import 'package:unisphere/services/assignment_service.dart';
+import 'package:unisphere/services/firebase_firestore_service.dart';
+import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/widgets/common/apple_glass_card.dart';
 import 'package:intl/intl.dart';
 
-class StudentAssignmentPortal extends StatefulWidget {
+class StudentAssignmentPortal extends ConsumerStatefulWidget {
   final String studentUid;
   final String studentName;
   final String registerNumber;
@@ -21,10 +24,10 @@ class StudentAssignmentPortal extends StatefulWidget {
   });
 
   @override
-  State<StudentAssignmentPortal> createState() => _StudentAssignmentPortalState();
+  ConsumerState<StudentAssignmentPortal> createState() => _StudentAssignmentPortalState();
 }
 
-class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with SingleTickerProviderStateMixin {
+class _StudentAssignmentPortalState extends ConsumerState<StudentAssignmentPortal> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final AssignmentService _service = AssignmentService();
   String _selectedFilter = 'All';
@@ -58,6 +61,11 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final meta = currentUser?.metadata ?? {};
+    final activeRegNo = meta['registerNumber']?.toString().trim() ?? widget.registerNumber;
+    final dbAssignments = ref.watch(allAssignmentsStreamProvider).value ?? [];
+
     final assignments = _service.assignments;
 
     // Stats counts
@@ -207,6 +215,9 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
             ),
             const SizedBox(height: 20),
 
+            // Staff Published Assignments & Marks (Cloud Firestore)
+            _buildStaffPublishedDatabaseAssignments(dbAssignments, activeRegNo),
+
             // Assignment Cards List
             _buildAssignmentList(assignments),
           ],
@@ -336,6 +347,157 @@ class _StudentAssignmentPortalState extends State<StudentAssignmentPortal> with 
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStaffPublishedDatabaseAssignments(List<Map<String, dynamic>> dbAssignments, String activeRegNo) {
+    if (dbAssignments.isEmpty) return const SizedBox.shrink();
+
+    final List<Widget> cards = [];
+
+    for (var doc in dbAssignments) {
+      final records = doc['studentRecords'] as List? ?? [];
+      final studentRecord = records.firstWhere(
+        (r) => r['regNo']?.toString().trim().toLowerCase() == activeRegNo.trim().toLowerCase(),
+        orElse: () => null,
+      );
+
+      final title = doc['title']?.toString() ?? 'Staff Assignment';
+      final fileName = doc['fileName']?.toString() ?? 'Assignment_Marksheet.xlsx';
+      final fileType = doc['fileType']?.toString() ?? 'Excel Sheet (.xlsx)';
+
+      final String markStr = studentRecord != null
+          ? (studentRecord['conv']?.toString() ?? studentRecord['initial']?.toString() ?? 'Graded')
+          : 'Published for Class';
+      final String statusStr = studentRecord != null
+          ? (studentRecord['status']?.toString() ?? 'Marks Verified')
+          : 'Class Record';
+
+      cards.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.cloud_done_rounded, color: Color(0xFF2563EB), size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          'OFFICIAL STAFF EXCEL PUBLICATION',
+                          style: TextStyle(color: Color(0xFF2563EB), fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      statusStr,
+                      style: const TextStyle(color: Color(0xFF2E7D32), fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'File: $fileName ($fileType) • Reg No: $activeRegNo',
+                style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Text(
+                      'Score / Conv: $markStr',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1D4ED8)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('📥 Downloading $fileName for Reg No: $activeRegNo...'),
+                            backgroundColor: const Color(0xFF059669),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.download_rounded, size: 15),
+                      label: const Text('Download Excel File', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: const [
+            Icon(Icons.assignment_turned_in_rounded, color: Color(0xFF2563EB), size: 18),
+            SizedBox(width: 6),
+            Text(
+              'STAFF PUBLISHED ASSIGNMENTS & MARKS',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B), letterSpacing: 0.8),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        ...cards,
+        const SizedBox(height: 16),
+      ],
     );
   }
 

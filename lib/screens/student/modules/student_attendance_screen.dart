@@ -24,11 +24,6 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
   String _historyFilter = 'All';
   String _searchQuery = '';
 
-  // Interactive Attendance Simulator ("What-If" Calculator) state
-  bool _showSimulator = false;
-  int _simulatedAttendDays = 0;
-  int _simulatedMissDays = 0;
-
   // Track expanded subject card index
   int? _expandedSubjectIndex;
 
@@ -1182,9 +1177,6 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
           ),
           const SizedBox(height: 6),
 
-          _buildAttendanceSimulatorWidget(selectedSemData.attendedWorkingDays, selectedSemData.totalWorkingDays),
-          const SizedBox(height: 12),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -1205,14 +1197,39 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
               ],
             ),
           ),
-          const SizedBox(height: 10),
-
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: dailyLogs.length,
-            itemBuilder: (context, index) {
+          if (dailyLogs.isEmpty)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.calendar_today_outlined, size: 36, color: Color(0xFF64748B)),
+                  SizedBox(height: 10),
+                  Text(
+                    'No Daily Attendance Logs Yet',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Faculty daily session attendance marking will appear here live once recorded.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: dailyLogs.length,
+              itemBuilder: (context, index) {
               final log = dailyLogs[index];
               final isExpanded = _expandedSubjectIndex == index;
               final isPresent = log.isPresent;
@@ -1403,222 +1420,6 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
             ),
           );
         }),
-      ),
-    );
-  }
-
-  Widget _buildAttendanceSimulatorWidget(int currentAttended, int currentTotal) {
-    final projectedAttended = (currentAttended + _simulatedAttendDays).clamp(0, 500);
-    final projectedTotal = (currentTotal + _simulatedAttendDays + _simulatedMissDays).clamp(1, 500);
-    final projectedPct = (projectedAttended / projectedTotal) * 100.0;
-    final currentPct = (currentAttended / currentTotal) * 100.0;
-    final diff = projectedPct - currentPct;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          InkWell(
-            onTap: () => setState(() => _showSimulator = !_showSimulator),
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.calculate_rounded, color: Color(0xFF38BDF8), size: 20),
-                      SizedBox(width: 10),
-                      Text(
-                        'ATTENDANCE SIMULATOR (WHAT-IF)',
-                        style: TextStyle(
-                          color: Color(0xFF38BDF8),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Icon(
-                    _showSimulator ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                    color: const Color(0xFF38BDF8),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_showSimulator) ...[
-            const Divider(color: Color(0xFF1E293B), height: 1),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Classes to Attend',
-                              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                IconButton.filledTonal(
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  onPressed: () {
-                                    if (_simulatedAttendDays > 0) {
-                                      setState(() => _simulatedAttendDays--);
-                                    }
-                                  },
-                                  icon: const Icon(Icons.remove, size: 16),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: const Color(0xFF1E293B),
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  child: Text(
-                                    '+$_simulatedAttendDays',
-                                    style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold, fontSize: 13),
-                                  ),
-                                ),
-                                IconButton.filledTonal(
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  onPressed: () => setState(() => _simulatedAttendDays++),
-                                  icon: const Icon(Icons.add, size: 16),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: const Color(0xFF1E293B),
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Classes to Miss',
-                              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                IconButton.filledTonal(
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  onPressed: () {
-                                    if (_simulatedMissDays > 0) {
-                                      setState(() => _simulatedMissDays--);
-                                    }
-                                  },
-                                  icon: const Icon(Icons.remove, size: 16),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: const Color(0xFF1E293B),
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  child: Text(
-                                    '-$_simulatedMissDays',
-                                    style: const TextStyle(color: Color(0xFFF87171), fontWeight: FontWeight.bold, fontSize: 13),
-                                  ),
-                                ),
-                                IconButton.filledTonal(
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  onPressed: () => setState(() => _simulatedMissDays++),
-                                  icon: const Icon(Icons.add, size: 16),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: const Color(0xFF1E293B),
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Simulated Attendance:', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${projectedPct.toStringAsFixed(1)}%',
-                              style: TextStyle(
-                                color: projectedPct >= 75.0 ? const Color(0xFF34D399) : const Color(0xFFF87171),
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: diff >= 0 ? const Color(0xFF064E3B) : const Color(0xFF7F1D1D),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                diff >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}%',
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }

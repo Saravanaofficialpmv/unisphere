@@ -639,7 +639,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final isSelected = _isSignUp == isSignUpTab;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _isSignUp = isSignUpTab),
+        onTap: () {
+          setState(() {
+            _isSignUp = isSignUpTab;
+            if (_isSignUp) {
+              _emailController.clear();
+              _passwordController.clear();
+            }
+          });
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
