@@ -19,6 +19,12 @@ class _StudentProfileCompletionSheetState
   bool _isSavingDraft = false;
   bool _isSubmitting = false;
 
+  // Validation Error State Flags
+  bool _dobError = false;
+  bool _primaryMobileError = false;
+  bool _fatherNameError = false;
+  bool _motherNameError = false;
+
   // ── Step 1: Personal ──
   final _nameController = TextEditingController();
   final _regNoController = TextEditingController();
@@ -242,16 +248,23 @@ class _StudentProfileCompletionSheetState
 
   void _nextStep() {
     if (_currentStep == 1 && (_dob == null || _dob!.isEmpty)) {
-      _showError('Please select your Date of Birth');
+      setState(() => _dobError = true);
       return;
     }
     if (_currentStep == 2 && _primaryMobileController.text.trim().isEmpty) {
-      _showError('Please enter Primary Mobile Number');
+      setState(() => _primaryMobileError = true);
       return;
     }
-    if (_currentStep == 3 && (_fatherNameController.text.trim().isEmpty || _motherNameController.text.trim().isEmpty)) {
-      _showError('Please enter Father and Mother Names');
-      return;
+    if (_currentStep == 3) {
+      final fEmpty = _fatherNameController.text.trim().isEmpty;
+      final mEmpty = _motherNameController.text.trim().isEmpty;
+      if (fEmpty || mEmpty) {
+        setState(() {
+          _fatherNameError = fEmpty;
+          _motherNameError = mEmpty;
+        });
+        return;
+      }
     }
 
     _saveDraft();
@@ -692,7 +705,17 @@ class _StudentProfileCompletionSheetState
         const SizedBox(height: 12),
 
         // Date of Birth DatePicker
-        const Text('Date of Birth *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Date of Birth *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+            if (_dobError)
+              const Text(
+                '⚠️ Required field',
+                style: TextStyle(color: Colors.red, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+          ],
+        ),
         const SizedBox(height: 6),
         GestureDetector(
           onTap: () async {
@@ -703,25 +726,52 @@ class _StudentProfileCompletionSheetState
               lastDate: DateTime.now(),
             );
             if (picked != null) {
-              setState(() => _dob = DateFormat('dd/MM/yyyy').format(picked));
+              setState(() {
+                _dob = DateFormat('dd/MM/yyyy').format(picked);
+                _dobError = false;
+              });
             }
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: _dobError ? const Color(0xFFFEF2F2) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
+              border: Border.all(
+                color: _dobError ? Colors.red : const Color(0xFFCBD5E1),
+                width: _dobError ? 1.5 : 1.0,
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(_dob ?? 'Select Date of Birth', style: TextStyle(color: _dob == null ? Colors.grey : Colors.black87, fontSize: 14)),
-                const Icon(Icons.calendar_month_rounded, color: Color(0xFF2563EB), size: 20),
+                Text(
+                  _dob ?? 'Select Date of Birth',
+                  style: TextStyle(
+                    color: _dobError
+                        ? Colors.red
+                        : (_dob == null ? Colors.grey : Colors.black87),
+                    fontSize: 14,
+                    fontWeight: _dobError ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_month_rounded,
+                  color: _dobError ? Colors.red : const Color(0xFF2563EB),
+                  size: 20,
+                ),
               ],
             ),
           ),
         ),
+        if (_dobError)
+          const Padding(
+            padding: EdgeInsets.only(top: 4, left: 4),
+            child: Text(
+              'Please select your Date of Birth to proceed',
+              style: TextStyle(color: Colors.red, fontSize: 11.5, fontWeight: FontWeight.w600),
+            ),
+          ),
         const SizedBox(height: 14),
 
         Row(
@@ -775,7 +825,19 @@ class _StudentProfileCompletionSheetState
       children: [
         _buildStepHeader('Step 2: Contact & Address', 'Provide emergency contacts and current living address.'),
         const SizedBox(height: 16),
-        _buildTextField(_primaryMobileController, 'Primary Mobile Number *', '+91 98765 43210', icon: Icons.phone_rounded),
+        _buildTextField(
+          _primaryMobileController,
+          'Primary Mobile Number *',
+          '+91 98765 43210',
+          icon: Icons.phone_rounded,
+          hasError: _primaryMobileError,
+          errorText: 'Please enter Primary Mobile Number',
+          onChanged: (val) {
+            if (val.trim().isNotEmpty && _primaryMobileError) {
+              setState(() => _primaryMobileError = false);
+            }
+          },
+        ),
         const SizedBox(height: 12),
         _buildTextField(_alternateMobileController, 'Alternate Mobile Number (Optional)', '+91 98765 00000'),
         const SizedBox(height: 12),
@@ -852,6 +914,12 @@ class _StudentProfileCompletionSheetState
           occupationCtrl: _fatherOccupationController,
           qualValue: _fatherQual,
           incomeValue: _fatherIncome,
+          nameError: _fatherNameError,
+          onNameChanged: (val) {
+            if (val.trim().isNotEmpty && _fatherNameError) {
+              setState(() => _fatherNameError = false);
+            }
+          },
           onQualChanged: (v) => setState(() => _fatherQual = v!),
           onIncomeChanged: (v) => setState(() => _fatherIncome = v!),
         ),
@@ -866,6 +934,12 @@ class _StudentProfileCompletionSheetState
           occupationCtrl: _motherOccupationController,
           qualValue: _motherQual,
           incomeValue: _motherIncome,
+          nameError: _motherNameError,
+          onNameChanged: (val) {
+            if (val.trim().isNotEmpty && _motherNameError) {
+              setState(() => _motherNameError = false);
+            }
+          },
           onQualChanged: (v) => setState(() => _motherQual = v!),
           onIncomeChanged: (v) => setState(() => _motherIncome = v!),
         ),
@@ -898,6 +972,8 @@ class _StudentProfileCompletionSheetState
     required TextEditingController occupationCtrl,
     required String qualValue,
     required String incomeValue,
+    bool nameError = false,
+    ValueChanged<String>? onNameChanged,
     required ValueChanged<String?> onQualChanged,
     required ValueChanged<String?> onIncomeChanged,
   }) {
@@ -906,14 +982,21 @@ class _StudentProfileCompletionSheetState
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: nameError ? Colors.red : const Color(0xFFE2E8F0), width: nameError ? 1.5 : 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Color(0xFF0F172A))),
           const SizedBox(height: 12),
-          _buildTextField(nameCtrl, 'Full Name *', 'Parent Name'),
+          _buildTextField(
+            nameCtrl,
+            'Full Name *',
+            'Parent Name',
+            hasError: nameError,
+            errorText: 'Please enter parent name',
+            onChanged: onNameChanged,
+          ),
           const SizedBox(height: 8),
           _buildTextField(phoneCtrl, 'Mobile Number *', '+91 98765 43210'),
           const SizedBox(height: 8),
@@ -1255,16 +1338,40 @@ class _StudentProfileCompletionSheetState
     );
   }
 
-  Widget _buildTextField(TextEditingController ctrl, String label, String hint, {IconData? icon}) {
+  Widget _buildTextField(
+    TextEditingController ctrl,
+    String label,
+    String hint, {
+    IconData? icon,
+    bool hasError = false,
+    String? errorText,
+    ValueChanged<String>? onChanged,
+  }) {
     return TextFormField(
       controller: ctrl,
+      onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: icon != null ? Icon(icon, color: const Color(0xFF2563EB), size: 18) : null,
+        prefixIcon: icon != null ? Icon(icon, color: hasError ? Colors.red : const Color(0xFF2563EB), size: 18) : null,
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: hasError ? const Color(0xFFFEF2F2) : const Color(0xFFF8FAFC),
+        errorText: hasError ? (errorText ?? 'Required field') : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: hasError ? Colors.red : const Color(0xFFCBD5E1),
+            width: hasError ? 1.5 : 1.0,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: hasError ? Colors.red : const Color(0xFF2563EB),
+            width: hasError ? 2.0 : 1.5,
+          ),
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
     );
