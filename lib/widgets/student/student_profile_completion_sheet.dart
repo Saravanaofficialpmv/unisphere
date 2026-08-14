@@ -1050,7 +1050,7 @@ class _StudentProfileCompletionSheetState
 
         // Father Card
         _buildParentCard(
-          title: '👨‍👦 Father Details',
+          title: 'Father Details',
           nameCtrl: _fatherNameController,
           phoneCtrl: _fatherPhoneController,
           emailCtrl: _fatherEmailController,
@@ -1070,7 +1070,7 @@ class _StudentProfileCompletionSheetState
 
         // Mother Card
         _buildParentCard(
-          title: '👩‍👦 Mother Details',
+          title: 'Mother Details',
           nameCtrl: _motherNameController,
           phoneCtrl: _motherPhoneController,
           emailCtrl: _motherEmailController,
@@ -1200,10 +1200,10 @@ class _StudentProfileCompletionSheetState
         _buildStepHeader('Step 5: Living & Accommodation', 'Where are you currently staying during college term?'),
         const SizedBox(height: 16),
 
-        _buildLivingOptionCard(LivingType.collegeHostel, '🏰 College Hostel', 'Official VSB Hostel Resident'),
-        _buildLivingOptionCard(LivingType.homeFamily, '🏡 Home with Family', 'Staying with parents / day scholar'),
-        _buildLivingOptionCard(LivingType.pgHostel, '🏢 PG / Private Hostel', 'Private hostel accommodation'),
-        _buildLivingOptionCard(LivingType.rentedHouse, '🏠 Rented House / Room', 'Rented house with friends'),
+        _buildLivingOptionCard(LivingType.collegeHostel, 'College Hostel', 'Official VSB Hostel Resident'),
+        _buildLivingOptionCard(LivingType.homeFamily, 'Home with Family', 'Staying with parents / day scholar'),
+        _buildLivingOptionCard(LivingType.pgHostel, 'PG / Private Hostel', 'Private hostel accommodation'),
+        _buildLivingOptionCard(LivingType.rentedHouse, 'Rented House / Room', 'Rented house with friends'),
 
         const SizedBox(height: 16),
         if (_selectedLivingType == LivingType.collegeHostel) ...[
@@ -1284,11 +1284,11 @@ class _StudentProfileCompletionSheetState
 
         Row(
           children: [
-            Expanded(child: _buildTransportChip(PrimaryTransportMode.BUS, '🚌 Bus', Icons.directions_bus_rounded)),
+            Expanded(child: _buildTransportChip(PrimaryTransportMode.BUS, 'Bus', Icons.directions_bus_rounded)),
             const SizedBox(width: 8),
-            Expanded(child: _buildTransportChip(PrimaryTransportMode.BIKE, '🏍️ Bike', Icons.two_wheeler_rounded)),
+            Expanded(child: _buildTransportChip(PrimaryTransportMode.BIKE, 'Bike', Icons.two_wheeler_rounded)),
             const SizedBox(width: 8),
-            Expanded(child: _buildTransportChip(PrimaryTransportMode.WALK, '🚶 Walk', Icons.directions_walk_rounded)),
+            Expanded(child: _buildTransportChip(PrimaryTransportMode.WALK, 'Walk', Icons.directions_walk_rounded)),
           ],
         ),
         const SizedBox(height: 16),
@@ -1406,24 +1406,24 @@ class _StudentProfileCompletionSheetState
         _buildStepHeader('Step 8: Review & Submit', 'Confirm all profile summary details before final submission.'),
         const SizedBox(height: 16),
 
-        _buildSummaryCard('👤 Personal Details', [
+        _buildSummaryCard('Personal Details', [
           'Name: ${_nameController.text}',
           'DOB: ${_dob ?? 'Not selected'}',
           'Gender: ${_gender ?? 'Not selected'}',
           'Blood Group: ${_bloodGroup ?? 'Not selected'}',
         ]),
         const SizedBox(height: 12),
-        _buildSummaryCard('📞 Contact & Address', [
+        _buildSummaryCard('Contact & Address', [
           'Mobile: ${_primaryMobileController.text}',
           'Permanent: ${_permLine1Controller.text}, ${_permCityController.text}',
         ]),
         const SizedBox(height: 12),
-        _buildSummaryCard('👨‍👩‍👧 Parents Details', [
+        _buildSummaryCard('Parents Details', [
           'Father: ${_fatherNameController.text} (${_fatherPhoneController.text})',
           'Mother: ${_motherNameController.text} (${_motherPhoneController.text})',
         ]),
         const SizedBox(height: 12),
-        _buildSummaryCard('🏡 Living & Transport', [
+        _buildSummaryCard('Living & Transport', [
           'Staying Type: ${_selectedLivingType?.name ?? 'Not selected'}',
           if (_isDayScholar) 'Transport Mode: ${_transportMode?.name ?? 'Not selected'}',
         ]),
