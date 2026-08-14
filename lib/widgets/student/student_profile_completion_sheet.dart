@@ -761,33 +761,60 @@ class _StudentProfileCompletionSheetState
             ),
           ),
 
-          // Fixed Bottom Dark Full-Width Action Button (Matching Reference Image)
+          // Fixed Bottom Control Buttons
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
               color: Colors.white,
               border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
             ),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _currentStep == 8
-                    ? (_isSubmitting ? null : _submitFinalProfile)
-                    : _nextStep,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(
-                        _currentStep == 8 ? 'Submit' : 'Next',
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            child: Row(
+              children: [
+                if (_currentStep > 1) ...[
+                  SizedBox(
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: _previousStep,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF0F172A),
+                        side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(horizontal: 22),
                       ),
-              ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.arrow_back_rounded, size: 18),
+                          SizedBox(width: 6),
+                          Text('Back', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _currentStep == 8
+                          ? (_isSubmitting ? null : _submitFinalProfile)
+                          : _nextStep,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F172A),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: _isSubmitting
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text(
+                              _currentStep == 8 ? 'Submit' : 'Next',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
