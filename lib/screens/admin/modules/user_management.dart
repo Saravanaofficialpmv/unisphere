@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/core/constants/app_departments.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class UserManagementModule extends StatefulWidget {
   const UserManagementModule({super.key});
@@ -1208,9 +1209,10 @@ class _UserManagementModuleState extends State<UserManagementModule> {
                       child: Column(
                         children: [
                           if (isUploading) ...[
-                            const CircularProgressIndicator(),
-                            const SizedBox(height: 12),
-                            const Text('Processing and validating records...', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                            const CustomLoader(
+                              size: 36,
+                              label: 'Processing and validating records...',
+                            ),
                           ] else ...[
                             const Icon(Icons.cloud_upload_outlined, size: 36, color: Color(0xFF0066FF)),
                             const SizedBox(height: 8),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
-
 
 class CertificateModel {
   final String id;
@@ -33,15 +33,15 @@ class CertificateModel {
   });
 }
 
-class CertificationsScreen extends StatefulWidget {
+class CertificationsScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
   const CertificationsScreen({super.key, this.onBack});
 
   @override
-  State<CertificationsScreen> createState() => _CertificationsScreenState();
+  ConsumerState<CertificationsScreen> createState() => _CertificationsScreenState();
 }
 
-class _CertificationsScreenState extends State<CertificationsScreen> {
+class _CertificationsScreenState extends ConsumerState<CertificationsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedStatusFilter = 'All';
   final String _selectedCategoryFilter = 'All';

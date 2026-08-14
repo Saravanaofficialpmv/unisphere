@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -35,8 +36,8 @@ class FirebaseService {
       }
       _initialized = true;
       debugPrint('Firebase initialized successfully.');
-      // Asynchronously seed initial data if collections are empty
-      FirebaseFirestoreService().seedInitialDataIfEmpty();
+      // Asynchronously seed initial data in microtask without blocking initialization flow
+      unawaited(FirebaseFirestoreService().seedInitialDataIfEmpty());
       return true;
     } catch (e) {
       debugPrint('Firebase initialization warning: $e');

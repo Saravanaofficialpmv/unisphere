@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
@@ -174,12 +175,20 @@ class _HodShellState extends ConsumerState<HodShell> {
 }
 
   Widget _buildSidebar() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final userName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name
+        : 'Dr. R. Kumar';
+    final userEmail = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty)
+        ? currentUser.email
+        : 'hod.cse@unisphere.edu';
+
     return MainSidebar(
       selectedIndex: _currentIndex,
       onDestinationSelected: _handleNavigation,
       items: _sidebarItems,
-      userName: 'Dr. R. Kumar',
-      userEmail: 'hod.cse@unisphere.edu',
+      userName: userName,
+      userEmail: userEmail,
     );
   }
 

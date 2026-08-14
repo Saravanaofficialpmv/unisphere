@@ -473,11 +473,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          illustration,
-          const SizedBox(height: 48),
+      child: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              illustration,
+              const SizedBox(height: 24),
           Text(
             title,
             textAlign: TextAlign.center,
@@ -501,7 +503,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildIllustration(IconData icon, {Color? color}) {

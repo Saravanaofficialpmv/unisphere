@@ -16,6 +16,8 @@ import 'package:unisphere/screens/student/cgpa_details_screen.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
 
+import 'package:unisphere/widgets/common/custom_loader.dart';
+
 final authStateProvider = StreamProvider<UserModel?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
 });
@@ -68,7 +70,14 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (context, state) => const Scaffold(body: Center(child: CircularProgressIndicator())),
+        builder: (context, state) => const Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Loader(
+              label: 'Loading UNISPHERE...',
+            ),
+          ),
+        ),
       ),
       GoRoute(
         path: '/onboarding',

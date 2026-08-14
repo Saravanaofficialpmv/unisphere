@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class StudentUpcomingTasksScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -246,7 +247,7 @@ class _StudentUpcomingTasksScreenState extends State<StudentUpcomingTasksScreen>
                   child: Column(
                     children: [
                       if (isUploading)
-                        const CircularProgressIndicator()
+                        const CustomLoader(size: 32, label: 'Uploading file...')
                       else if (selectedFileName != null) ...[
                         const Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 32),
                         const SizedBox(height: 6),

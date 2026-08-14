@@ -43,6 +43,23 @@ class UserModel {
     };
   }
 
+  String get roleName {
+    switch (role) {
+      case UserRole.admin:
+        return 'Administrator';
+      case UserRole.hod:
+        return 'HOD / Department Admin';
+      case UserRole.staff:
+        return 'Staff / Faculty';
+      case UserRole.student:
+        return 'Student';
+      case UserRole.parent:
+        return 'Parent / Guardian';
+      default:
+        return 'User';
+    }
+  }
+
   UserModel copyWith({
     String? name,
     String? email,

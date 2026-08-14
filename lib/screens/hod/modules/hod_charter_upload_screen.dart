@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class HodCharterUploadScreen extends StatefulWidget {
   const HodCharterUploadScreen({super.key});
@@ -329,7 +330,7 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
               ),
               const SizedBox(height: 18),
               _isUploading
-                  ? const CircularProgressIndicator()
+                  ? const CustomLoader(size: 36, label: 'Uploading & processing document...')
                   : ElevatedButton.icon(
                       onPressed: _pickAndUploadPdf,
                       icon: const Icon(Icons.file_upload_rounded, size: 18),

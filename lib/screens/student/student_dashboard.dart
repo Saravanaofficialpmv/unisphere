@@ -171,12 +171,20 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   }
 
   Widget _buildSidebar() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final userName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name
+        : 'Student User';
+    final userEmail = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty)
+        ? currentUser.email
+        : 'student@unisphere.edu';
+
     return MainSidebar(
       selectedIndex: _currentIndex,
       onDestinationSelected: _handleNavigation,
       items: _sidebarItems,
-      userName: 'Alex Johnson',
-      userEmail: 'alex.j@unisphere.edu',
+      userName: userName,
+      userEmail: userEmail,
     );
   }
 }
@@ -924,6 +932,18 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
   // ── Welcome Header ──────────────────────
   Widget _buildWelcomeSection() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final displayName = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty)
+        ? currentUser.name
+        : 'Student User';
+    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true
+        ? currentUser!.metadata!['department'].toString()
+        : 'Computer Science';
+    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true
+        ? currentUser!.metadata!['year'].toString()
+        : '3rd Year';
+    final userSubtitle = '$dept • $year';
+
     return Row(
       children: [
         Container(
@@ -966,17 +986,17 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                 ),
               ),
               const SizedBox(height: 1),
-              const Text(
-                'Alex Johnson',
-                style: TextStyle(
+              Text(
+                displayName,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF0F172A),
                 ),
               ),
-              const Text(
-                'Computer Science • 3rd Year',
-                style: TextStyle(
+              Text(
+                userSubtitle,
+                style: const TextStyle(
                   fontSize: 12,
                   color: Color(0xFF94A3B8),
                   fontWeight: FontWeight.w500,

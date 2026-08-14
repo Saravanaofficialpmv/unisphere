@@ -9,6 +9,7 @@ import 'package:unisphere/models/exam_model.dart';
 import 'package:unisphere/models/hackathon_model.dart';
 import 'package:unisphere/models/mark_model.dart';
 import 'package:unisphere/models/submission_model.dart';
+import 'package:unisphere/services/database_seeder.dart';
 import 'package:unisphere/services/supabase_service.dart';
 
 final firebaseFirestoreServiceProvider = Provider<FirebaseFirestoreService>((ref) {
@@ -256,63 +257,19 @@ class FirebaseFirestoreService implements SupabaseService {
   // ==========================================
   Future<void> seedInitialDataIfEmpty() async {
     try {
-      final annSnapshot = await _firestore.collection('announcements').limit(1).get();
+      final annSnapshot = await _firestore
+          .collection('announcements')
+          .limit(1)
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(const Duration(seconds: 5));
       if (annSnapshot.docs.isEmpty) {
-        debugPrint('Seeding initial Firestore announcements...');
-        final now = DateTime.now();
-        final seedAnnouncements = [
-          AnnouncementModel(
-            id: 'ann_101',
-            title: 'College Holiday Notice',
-            content: 'College will remain closed on 15th August for Independence Day celebrations.',
-            authorName: 'Office of Dean & Campus Administration',
-            createdAt: now.subtract(const Duration(hours: 2)),
-            category: 'Holiday',
-            priority: 'Important',
-            isNew: true,
-          ),
-          AnnouncementModel(
-            id: 'ann_102',
-            title: 'Off-Campus Placement & Internship Drive 2026',
-            content: 'Registrations are open for the upcoming Placement Drive by Google, Microsoft, and Cognizant.',
-            authorName: 'Career Guidance & Placement Cell',
-            createdAt: now.subtract(const Duration(hours: 6)),
-            category: 'Placement',
-            priority: 'Urgent',
-            isNew: true,
-          ),
-        ];
-
-        for (var ann in seedAnnouncements) {
-          await addAnnouncement(ann);
-        }
-      }
-
-      final asgSnapshot = await _firestore.collection('assignments').limit(1).get();
-      if (asgSnapshot.docs.isEmpty) {
-        debugPrint('Seeding initial Firestore assignments...');
-        final now = DateTime.now();
-        final seedAssignments = [
-          AssignmentModel(
-            id: 'asg_101',
-            title: 'Submit Lab Record',
-            courseCode: 'CS201',
-            subjectName: 'Data Structures Lab',
-            authorName: 'Prof. Sarah Jenkins',
-            description: 'Prepare and submit your lab record for Data Structures.',
-            createdAt: now.subtract(const Duration(days: 1)),
-            dueDate: now.add(const Duration(days: 3)),
-            maxMarks: 100,
-            targetedClasses: ['CSE - 3rd Year - Sec A'],
-          ),
-        ];
-
-        for (var asg in seedAssignments) {
-          await createAssignment(asg);
-        }
+        debugPrint('Seeding initial Firestore database across all collections...');
+        await DatabaseSeeder.seedAllData().timeout(const Duration(seconds: 10));
       }
     } catch (e) {
-      debugPrint('Firestore seedInitialDataIfEmpty notice: $e');
+      if (!e.toString().contains('TimeoutException')) {
+        debugPrint('Firestore seedInitialDataIfEmpty notice: $e');
+      }
     }
   }
 }

@@ -135,9 +135,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           _emailController.text.trim(),
           _passwordController.text,
         );
-        if (mounted) {
-          _showSnackBar('✅ Logged in successfully!', AppColors.success);
-        }
       }
     } catch (e) {
       if (mounted) _showSnackBar('Authentication Notice: ${e.toString()}', AppColors.error);

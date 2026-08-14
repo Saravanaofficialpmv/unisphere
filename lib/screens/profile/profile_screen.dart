@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';
 import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
 
@@ -41,6 +42,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'User Profile';
+    final email = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty) ? currentUser.email : 'user@unisphere.edu';
+    final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true ? currentUser!.metadata!['registerNumber'].toString() : (currentUser?.uid ?? 'RA2111003010001');
+    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true ? currentUser!.metadata!['department'].toString() : 'Computer Science';
+    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true ? currentUser!.metadata!['year'].toString() : '3rd Year';
+    final roleName = currentUser?.roleName ?? 'Student';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -106,18 +115,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Saravana Kumar',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    name,
+                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    '7377221CS101 • B.E. Computer Science',
+                    '$year • $dept',
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12.5, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    '3rd Year / Semester VI • Batch 2022–2026',
+                    '$regNo • $email • $roleName',
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 11.5),
                   ),
                   const SizedBox(height: 10),
@@ -214,6 +223,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
 
   // ================= TAB 1: PERSONAL & CONTACT =================
   Widget _buildPersonalAndContactTab() {
+    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+    final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'User Profile';
+    final email = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty) ? currentUser.email : 'user@unisphere.edu';
+    final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true ? currentUser!.metadata!['registerNumber'].toString() : (currentUser?.uid ?? 'RA2111003010001');
+    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true ? currentUser!.metadata!['department'].toString() : 'Computer Science';
+    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true ? currentUser!.metadata!['year'].toString() : '3rd Year';
+    final phone = currentUser?.phoneNumber ?? currentUser?.metadata?['phoneNumber'] ?? '+91 98765 43210';
+    final roleName = currentUser?.roleName ?? 'Student';
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -221,21 +239,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
 
         _buildSectionHeader('👤 Personal Information'),
         _buildCard([
-          _buildInfoRow('Full Name', 'Saravana Kumar'),
-          _buildInfoRow('Date of Birth & Age', '14 Aug 2004 (21 Yrs)'),
-          _buildInfoRow('Gender', 'Male'),
-          _buildInfoRow('Blood Group', 'O+', isBadge: true, badgeColor: Colors.red.shade100, badgeTextColor: Colors.red.shade800),
+          _buildInfoRow('Full Name', name),
+          _buildInfoRow('Account Role', roleName),
+          _buildInfoRow('Department / Major', dept),
+          _buildInfoRow('Academic Year', year),
+          _buildInfoRow('Blood Group', currentUser?.metadata?['bloodGroup'] ?? 'O+', isBadge: true, badgeColor: Colors.red.shade100, badgeTextColor: Colors.red.shade800),
           _buildInfoRow('Nationality', 'Indian'),
-          _buildInfoRow('Category / Quota', 'General • Government Quota'),
-          _buildInfoRow('Government ID', 'Aadhar (XXXX-XXXX-4821)'),
+          _buildInfoRow('Register / ID No.', regNo),
         ]),
 
         const SizedBox(height: 20),
         _buildSectionHeader('📞 Contact Details'),
         _buildCard([
-          _buildInfoRow('Institutional Email', 'saravana.cs22@unisphere.edu', icon: Icons.email_outlined),
-          _buildInfoRow('Personal Email', 'saravana.official@gmail.com', icon: Icons.alternate_email),
-          _buildInfoRow('Primary Phone Number', '+91 98765 43210', icon: Icons.phone_android_outlined),
+          _buildInfoRow('Institutional Email', email, icon: Icons.email_outlined),
+          _buildInfoRow('Primary Phone Number', phone, icon: Icons.phone_android_outlined),
           _buildInfoRow('Permanent Address', 'No. 42, Anna Nagar West, Chennai, Tamil Nadu - 600040', icon: Icons.home_outlined),
           _buildInfoRow('Hostel / Residence', 'Hostel Block B, Room 304 (Hosteller)', icon: Icons.location_city_outlined),
         ]),
@@ -907,7 +924,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
 
         const SizedBox(height: 24),
         ElevatedButton.icon(
-          onPressed: () => ref.read(authServiceProvider).signOut(),
+          onPressed: () => showSignOutConfirmationSheet(context, ref),
           icon: const Icon(Icons.logout_rounded, size: 18),
           label: const Text('Log Out of Account', style: TextStyle(fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(
@@ -1024,11 +1041,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                       child: Icon(Icons.person, size: 45, color: Colors.white),
                     ),
                     const SizedBox(height: 8),
-                    const Text('SARAVANA KUMAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                    const Text('REG NO: 7377221CS101', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    const Text('B.E. COMPUTER SCIENCE & ENGG', style: TextStyle(color: Colors.white, fontSize: 11)),
-                    const Text('BATCH: 2022–2026 • BLOOD: O+', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
+                        final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'STUDENT USER';
+                        final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true ? currentUser!.metadata!['registerNumber'].toString() : (currentUser?.uid ?? 'RA2111003010001');
+                        final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true ? currentUser!.metadata!['department'].toString() : 'COMPUTER SCIENCE';
+                        return Column(
+                          children: [
+                            Text(name.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('REG NO: $regNo', style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 4),
+                            Text(dept.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 11)),
+                          ],
+                        );
+                      },
+                    ),
+                    const Text('UNISPHERE CAMPUS • VERIFIED STUDENT', style: TextStyle(color: Colors.white70, fontSize: 11)),
                   ],
                 ),
               ),
