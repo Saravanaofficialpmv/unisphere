@@ -52,7 +52,7 @@ class _StudentProfileCompletionSheetState
   final _alternateMobileController = TextEditingController();
   final _personalEmailController = TextEditingController();
   final _emergencyNameController = TextEditingController();
-  final _emergencyRelationController = TextEditingController();
+  String? _emergencyRelation;
   final _emergencyPhoneController = TextEditingController();
 
   // Permanent Address
@@ -97,7 +97,7 @@ class _StudentProfileCompletionSheetState
   bool _hasGuardian = false;
   String? _guardianPhotoUrl;
   final _guardianNameController = TextEditingController();
-  final _guardianRelationController = TextEditingController();
+  String? _guardianRelation;
   final _guardianPhoneController = TextEditingController();
   final _guardianEmailController = TextEditingController();
   final _guardianQualController = TextEditingController();
@@ -345,7 +345,7 @@ class _StudentProfileCompletionSheetState
         alternateMobile: _alternateMobileController.text.trim(),
         personalEmail: _personalEmailController.text.trim(),
         emergencyContactName: _emergencyNameController.text.trim(),
-        emergencyContactRelationship: _emergencyRelationController.text.trim(),
+        emergencyContactRelationship: _emergencyRelation ?? 'Father',
         emergencyContactNumber: _emergencyPhoneController.text.trim(),
         permanentAddress: StudentAddress(
           addressLine1: _permLine1Controller.text.trim(),
@@ -400,7 +400,7 @@ class _StudentProfileCompletionSheetState
             ? GuardianRecord(
                 photoUrl: _guardianPhotoUrl,
                 name: _guardianNameController.text.trim(),
-                relationship: _guardianRelationController.text.trim(),
+                relationship: _guardianRelation ?? 'Guardian',
                 mobileNumber: _guardianPhoneController.text.trim(),
                 email: _guardianEmailController.text.trim().isNotEmpty ? _guardianEmailController.text.trim() : null,
                 qualification: _guardianQualController.text.trim(),
@@ -901,7 +901,14 @@ class _StudentProfileCompletionSheetState
           children: [
             Expanded(child: _buildTextField(_emergencyNameController, 'Contact Name', 'Father / Guardian Name')),
             const SizedBox(width: 12),
-            Expanded(child: _buildTextField(_emergencyRelationController, 'Relationship', 'Father')),
+            Expanded(
+              child: _buildDropdown(
+                'Relationship',
+                _emergencyRelation,
+                ['Father', 'Mother', 'Guardian', 'Uncle', 'Aunt', 'Brother', 'Sister', 'Other'],
+                (val) => setState(() => _emergencyRelation = val),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -1007,7 +1014,12 @@ class _StudentProfileCompletionSheetState
           const SizedBox(height: 8),
           _buildTextField(_guardianNameController, 'Guardian Name', 'Name'),
           const SizedBox(height: 8),
-          _buildTextField(_guardianRelationController, 'Relationship', 'Uncle / Local Guardian'),
+          _buildDropdown(
+            'Relationship',
+            _guardianRelation,
+            ['Father', 'Mother', 'Guardian', 'Uncle', 'Aunt', 'Brother', 'Sister', 'Other'],
+            (val) => setState(() => _guardianRelation = val),
+          ),
           const SizedBox(height: 8),
           _buildTextField(_guardianPhoneController, 'Mobile Number', '+91 98765 00000'),
         ],
