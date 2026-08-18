@@ -145,6 +145,18 @@ class _HodStudentVerificationsScreenState extends ConsumerState<HodStudentVerifi
                                   'Father: ${item['parents']?['father']?['name'] ?? 'N/A'} (${item['parents']?['father']?['mobileNumber'] ?? ''})',
                                   'Mother: ${item['parents']?['mother']?['name'] ?? 'N/A'} (${item['parents']?['mother']?['mobileNumber'] ?? ''})',
                                 ]),
+                                const SizedBox(height: 10),
+                                _buildDetailSection('📄 Step 7 Documents', [
+                                  if (item['documents'] is List && (item['documents'] as List).isNotEmpty)
+                                    ...((item['documents'] as List).map((doc) {
+                                      final dMap = doc is Map ? doc : {};
+                                      final fName = dMap['fileName']?.toString() ?? '';
+                                      final dName = dMap['name']?.toString() ?? 'Document';
+                                      return fName.isNotEmpty ? '✅ $dName ($fName)' : '⚠️ $dName: Pending Upload';
+                                    }))
+                                  else
+                                    'No documents submitted',
+                                ]),
                                 const SizedBox(height: 14),
 
                                 if (vStatus == 'pending_hod' || vStatus == 'submitted' || vStatus == 'pending')

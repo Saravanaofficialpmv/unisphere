@@ -270,6 +270,14 @@ class _StudentProfileCompletionSheetState
         if (draft['diplomaObtained'] != null) _diplomaObtainedController.text = draft['diplomaObtained'];
         if (draft['diplomaTotal'] != null) _diplomaTotalController.text = draft['diplomaTotal'];
         if (draft['diplomaYear'] != null) _diplomaYearController.text = draft['diplomaYear'];
+        if (draft['documents'] != null && draft['documents'] is List) {
+          _uploadedDocuments.clear();
+          for (var d in (draft['documents'] as List)) {
+            if (d is Map<String, dynamic>) {
+              _uploadedDocuments.add(StudentDocument.fromMap(d));
+            }
+          }
+        }
         _calculateEducationPercentages();
       });
     }
@@ -357,6 +365,7 @@ class _StudentProfileCompletionSheetState
       'diplomaYear': _diplomaYearController.text,
       'livingType': _selectedLivingType?.name ?? '',
       'transportMode': _transportMode?.name ?? '',
+      'documents': _activeDocuments.map((d) => d.toMap()).toList(),
     });
     if (mounted) {
       setState(() => _isSavingDraft = false);
@@ -729,7 +738,7 @@ class _StudentProfileCompletionSheetState
               usualDepartureTime: _departureTimeController.text.trim(),
             )
           : null,
-      documents: _uploadedDocuments,
+      documents: _activeDocuments,
     );
 
     final profileMap = profile.toMap();
