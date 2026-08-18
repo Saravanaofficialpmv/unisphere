@@ -339,15 +339,21 @@ class EducationRecord {
 class StudentPreviousEducation {
   final EducationRecord tenth;
   final EducationRecord twelfthOrDiploma;
+  final EducationRecord? diploma;
+  final bool hasDiploma;
 
   StudentPreviousEducation({
     required this.tenth,
     required this.twelfthOrDiploma,
+    this.diploma,
+    this.hasDiploma = false,
   });
 
   Map<String, dynamic> toMap() => {
         'tenth': tenth.toMap(),
         'twelfthOrDiploma': twelfthOrDiploma.toMap(),
+        'diploma': diploma?.toMap(),
+        'hasDiploma': hasDiploma,
       };
 
   factory StudentPreviousEducation.fromMap(Map<String, dynamic> map) =>
@@ -356,6 +362,10 @@ class StudentPreviousEducation {
             map['tenth'] as Map<String, dynamic>? ?? {}),
         twelfthOrDiploma: EducationRecord.fromMap(
             map['twelfthOrDiploma'] as Map<String, dynamic>? ?? {}),
+        diploma: map['diploma'] != null
+            ? EducationRecord.fromMap(map['diploma'] as Map<String, dynamic>)
+            : null,
+        hasDiploma: map['hasDiploma'] ?? (map['diploma'] != null),
       );
 }
 

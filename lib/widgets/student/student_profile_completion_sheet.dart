@@ -126,6 +126,15 @@ class _StudentProfileCompletionSheetState
   final _twelfthObtainedController = TextEditingController();
   double _twelfthPercentage = 0.0;
 
+  // Diploma / Polytechnic (Optional)
+  bool _hasDiploma = false;
+  final _diplomaCollegeController = TextEditingController();
+  final _diplomaBranchController = TextEditingController();
+  final _diplomaYearController = TextEditingController();
+  final _diplomaTotalController = TextEditingController(text: '100');
+  final _diplomaObtainedController = TextEditingController();
+  double _diplomaPercentage = 0.0;
+
   // ── Step 5: Living & Accommodation ──
   LivingType? _selectedLivingType;
   final _hostelNameController = TextEditingController();
@@ -205,6 +214,12 @@ class _StudentProfileCompletionSheetState
         if (draft['motherPhone'] != null) _motherPhoneController.text = draft['motherPhone'];
         if (draft['tenthObtained'] != null) _tenthObtainedController.text = draft['tenthObtained'];
         if (draft['twelfthObtained'] != null) _twelfthObtainedController.text = draft['twelfthObtained'];
+        if (draft['hasDiploma'] != null) _hasDiploma = draft['hasDiploma'];
+        if (draft['diplomaCollege'] != null) _diplomaCollegeController.text = draft['diplomaCollege'];
+        if (draft['diplomaBranch'] != null) _diplomaBranchController.text = draft['diplomaBranch'];
+        if (draft['diplomaObtained'] != null) _diplomaObtainedController.text = draft['diplomaObtained'];
+        if (draft['diplomaTotal'] != null) _diplomaTotalController.text = draft['diplomaTotal'];
+        if (draft['diplomaYear'] != null) _diplomaYearController.text = draft['diplomaYear'];
         _calculateEducationPercentages();
       });
     }
@@ -218,6 +233,10 @@ class _StudentProfileCompletionSheetState
     final twTotal = double.tryParse(_twelfthTotalController.text) ?? 600;
     final twObtained = double.tryParse(_twelfthObtainedController.text) ?? 0;
     if (twTotal > 0) _twelfthPercentage = (twObtained / twTotal) * 100;
+
+    final dTotal = double.tryParse(_diplomaTotalController.text) ?? 100;
+    final dObtained = double.tryParse(_diplomaObtainedController.text) ?? 0;
+    if (dTotal > 0) _diplomaPercentage = (dObtained / dTotal) * 100;
   }
 
   Future<void> _saveDraft() async {
@@ -242,6 +261,12 @@ class _StudentProfileCompletionSheetState
       'motherPhone': _motherPhoneController.text,
       'tenthObtained': _tenthObtainedController.text,
       'twelfthObtained': _twelfthObtainedController.text,
+      'hasDiploma': _hasDiploma,
+      'diplomaCollege': _diplomaCollegeController.text,
+      'diplomaBranch': _diplomaBranchController.text,
+      'diplomaObtained': _diplomaObtainedController.text,
+      'diplomaTotal': _diplomaTotalController.text,
+      'diplomaYear': _diplomaYearController.text,
       'livingType': _selectedLivingType?.name ?? '',
       'transportMode': _transportMode?.name ?? '',
     });
@@ -313,6 +338,15 @@ class _StudentProfileCompletionSheetState
       _twelfthYearController.text = '2023';
       _twelfthTotalController.text = '600';
       _twelfthObtainedController.text = '552';
+
+      // Diploma
+      _hasDiploma = true;
+      _diplomaCollegeController.text = 'VSB Polytechnic College';
+      _diplomaBranchController.text = 'Diploma in Computer Engineering';
+      _diplomaYearController.text = '2025';
+      _diplomaTotalController.text = '100';
+      _diplomaObtainedController.text = '88.5';
+
       _calculateEducationPercentages();
 
       // Step 5 & 6: Living & Transport
@@ -522,6 +556,19 @@ class _StudentProfileCompletionSheetState
           marksObtained: double.tryParse(_twelfthObtainedController.text) ?? 0,
           percentage: _twelfthPercentage,
         ),
+        hasDiploma: _hasDiploma,
+        diploma: _hasDiploma
+            ? EducationRecord(
+                institutionName: _diplomaCollegeController.text.trim(),
+                boardOrUniversity: 'DOTE / Polytechnic Board',
+                medium: 'English',
+                registerNumber: _diplomaBranchController.text.trim(),
+                passingYear: _diplomaYearController.text.trim(),
+                totalMarks: double.tryParse(_diplomaTotalController.text) ?? 100,
+                marksObtained: double.tryParse(_diplomaObtainedController.text) ?? 0,
+                percentage: _diplomaPercentage,
+              )
+            : null,
       ),
       living: StudentLivingDetails(
         livingType: _selectedLivingType ?? LivingType.homeFamily,
@@ -1248,32 +1295,75 @@ class _StudentProfileCompletionSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStepHeader('Step 4: Previous Education', 'Enter your 10th and 12th/Diploma academic records.'),
+        _buildStepHeader('Step 4: Previous Education', 'Enter your 10th, 12th, and optional Diploma academic records.'),
         const SizedBox(height: 16),
 
-        const Text('10th Standard Records', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text('10th Standard Records', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
         const SizedBox(height: 8),
         _buildTextField(_tenthSchoolController, 'School Name', 'Government / Private School'),
         const SizedBox(height: 8),
         Row(
           children: [
-            Expanded(child: _buildTextField(_tenthObtainedController, 'Marks Obtained', '450')),
+            Expanded(child: _buildTextField(_tenthObtainedController, 'Marks Obtained', '450', onChanged: (_) => setState(_calculateEducationPercentages))),
             const SizedBox(width: 12),
-            Expanded(child: _buildTextField(_tenthTotalController, 'Total Marks', '500')),
+            Expanded(child: _buildTextField(_tenthTotalController, 'Total Marks', '500', onChanged: (_) => setState(_calculateEducationPercentages))),
           ],
         ),
         const SizedBox(height: 16),
 
-        const Text('12th Standard / Diploma Records', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text('12th Standard Records', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
         const SizedBox(height: 8),
-        _buildTextField(_twelfthSchoolController, 'Higher Sec School / Polytechnic', 'School / College Name'),
+        _buildTextField(_twelfthSchoolController, 'Higher Sec School Name', 'VSB Higher Sec School'),
         const SizedBox(height: 8),
         Row(
           children: [
-            Expanded(child: _buildTextField(_twelfthObtainedController, 'Marks Obtained', '540')),
+            Expanded(child: _buildTextField(_twelfthObtainedController, 'Marks Obtained', '540', onChanged: (_) => setState(_calculateEducationPercentages))),
             const SizedBox(width: 12),
-            Expanded(child: _buildTextField(_twelfthTotalController, 'Total Marks', '600')),
+            Expanded(child: _buildTextField(_twelfthTotalController, 'Total Marks', '600', onChanged: (_) => setState(_calculateEducationPercentages))),
           ],
+        ),
+        const SizedBox(height: 16),
+
+        // Diploma Section Toggle & Details
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            children: [
+              SwitchListTile(
+                title: const Text('+ Completed Diploma / Polytechnic?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
+                subtitle: const Text('Enable if student completed a Polytechnic Diploma course', style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                value: _hasDiploma,
+                onChanged: (val) => setState(() => _hasDiploma = val),
+                activeThumbColor: const Color(0xFF2563EB),
+              ),
+              if (_hasDiploma) ...[
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    children: [
+                      _buildTextField(_diplomaCollegeController, 'Polytechnic College Name', 'e.g. VSB Polytechnic College'),
+                      const SizedBox(height: 8),
+                      _buildTextField(_diplomaBranchController, 'Diploma Branch / Course', 'e.g. Diploma in Computer Engineering'),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(child: _buildTextField(_diplomaObtainedController, 'Marks / CGPA / % Obtained', '88.5', onChanged: (_) => setState(_calculateEducationPercentages))),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildTextField(_diplomaTotalController, 'Total Marks / Max CGPA', '100', onChanged: (_) => setState(_calculateEducationPercentages))),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _buildTextField(_diplomaYearController, 'Year of Passing', '2023'),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ],
     );
@@ -1508,6 +1598,13 @@ class _StudentProfileCompletionSheetState
         _buildSummaryCard('Parents Details', [
           'Father: ${_fatherNameController.text} (${_fatherPhoneController.text})',
           'Mother: ${_motherNameController.text} (${_motherPhoneController.text})',
+        ]),
+        const SizedBox(height: 12),
+        _buildSummaryCard('Previous Education', [
+          '10th Standard: ${_tenthSchoolController.text.isNotEmpty ? _tenthSchoolController.text : "Recorded"} (${_tenthObtainedController.text}/${_tenthTotalController.text})',
+          '12th Standard: ${_twelfthSchoolController.text.isNotEmpty ? _twelfthSchoolController.text : "Recorded"} (${_twelfthObtainedController.text}/${_twelfthTotalController.text})',
+          if (_hasDiploma)
+            'Diploma / Polytechnic: ${_diplomaCollegeController.text} (${_diplomaBranchController.text}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text}',
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Living & Transport', [
