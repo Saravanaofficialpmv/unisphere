@@ -95,13 +95,6 @@ class _StudentMembershipModalState extends ConsumerState<StudentMembershipModal>
       }
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ℹ️ Membership status updated: No active membership.'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
       }
     } catch (e) {
       if (mounted) {
@@ -115,24 +108,33 @@ class _StudentMembershipModalState extends ConsumerState<StudentMembershipModal>
   }
 
   Future<void> _saveMembershipDetails() async {
-    if (_formKey.currentState != null && !_formKey.currentState!.validate()) return;
+    final user = ref.read(currentUserProvider).value ?? ref.read(authServiceProvider).currentUser;
+    if (user == null) return;
+
+    final String finalOrg = _selectedOrg == 'Other' ? _customOrgController.text.trim() : _selectedOrg;
+    final String finalId = _membershipIdController.text.trim();
+
+    if (_hasMembership == true && (finalOrg.isEmpty || finalId.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select/enter Organization and Membership ID'), backgroundColor: AppColors.error),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
-
     try {
-      final user = ref.read(currentUserProvider).value ?? ref.read(authServiceProvider).currentUser;
-      if (user != null) {
-        final finalOrg = _selectedOrg == 'Other' ? _customOrgController.text.trim() : _selectedOrg;
-        final finalId = _membershipIdController.text.trim();
-
-        final meta = Map<String, dynamic>.from(user.metadata ?? {});
-        meta['hasMembership'] = true;
-        meta['membershipOrg'] = finalOrg;
-        meta['membershipId'] = finalId;
-        meta['membershipUpdatedAt'] = DateTime.now().toIso8601String();
-
-        final updatedUser = user.copyWith(metadata: meta);
-        await ref.read(authServiceProvider).updateUserProfile(updatedUser);
-
+      final meta = Map<String, dynamic>.from(user.metadata ?? {});
+      
+      if (_hasMembership == false) {
+        final regNo = meta['registerNumber']?.toString() ?? '';
+        await ref.read(firebaseFirestoreServiceProvider).saveStudentMembershipDetails(
+          studentUid: user.uid,
+          registerNumber: regNo,
+          hasMembership: false,
+          membershipOrg: 'None',
+          membershipId: 'N/A',
+        );
+      } else {
         final regNo = meta['registerNumber']?.toString() ?? '';
         await ref.read(firebaseFirestoreServiceProvider).saveStudentMembershipDetails(
           studentUid: user.uid,
@@ -145,13 +147,6 @@ class _StudentMembershipModalState extends ConsumerState<StudentMembershipModal>
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ Professional Membership ($__finalOrgText) saved successfully!'),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
       }
     } catch (e) {
       if (mounted) {
