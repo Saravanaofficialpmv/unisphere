@@ -294,6 +294,7 @@ class StudentParentDetails {
 // ── Education Record ──
 class EducationRecord {
   final String institutionName;
+  final String? institutionAddress;
   final String boardOrUniversity;
   final String medium;
   final String registerNumber;
@@ -304,6 +305,7 @@ class EducationRecord {
 
   EducationRecord({
     required this.institutionName,
+    this.institutionAddress,
     required this.boardOrUniversity,
     required this.medium,
     required this.registerNumber,
@@ -315,6 +317,7 @@ class EducationRecord {
 
   Map<String, dynamic> toMap() => {
         'institutionName': institutionName,
+        'institutionAddress': institutionAddress,
         'boardOrUniversity': boardOrUniversity,
         'medium': medium,
         'registerNumber': registerNumber,
@@ -326,6 +329,7 @@ class EducationRecord {
 
   factory EducationRecord.fromMap(Map<String, dynamic> map) => EducationRecord(
         institutionName: map['institutionName'] ?? '',
+        institutionAddress: map['institutionAddress'],
         boardOrUniversity: map['boardOrUniversity'] ?? '',
         medium: map['medium'] ?? 'English',
         registerNumber: map['registerNumber'] ?? '',

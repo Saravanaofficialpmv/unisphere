@@ -191,6 +191,7 @@ class DatabaseSeeder {
           'education': {
             'tenth': {
               'institutionName': 'Government Higher Sec School',
+              'institutionAddress': 'Main Road, Karur, Tamil Nadu',
               'boardOrUniversity': 'State Board',
               'medium': 'Tamil',
               'marksObtained': 465,
@@ -200,6 +201,7 @@ class DatabaseSeeder {
             },
             'twelfthOrDiploma': {
               'institutionName': 'VSB Higher Sec School',
+              'institutionAddress': 'Covai Road, Karur, Tamil Nadu',
               'boardOrUniversity': 'State Board',
               'medium': 'English',
               'marksObtained': 552,
@@ -210,6 +212,7 @@ class DatabaseSeeder {
             'hasDiploma': true,
             'diploma': {
               'institutionName': 'VSB Polytechnic College',
+              'institutionAddress': 'Covai Road, Karur, Tamil Nadu',
               'boardOrUniversity': 'DOTE / Polytechnic Board',
               'medium': 'English',
               'registerNumber': 'Diploma in Computer Engineering',

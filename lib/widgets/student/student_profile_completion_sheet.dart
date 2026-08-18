@@ -114,6 +114,7 @@ class _StudentProfileCompletionSheetState
   // 10th
   // 10th
   final _tenthSchoolController = TextEditingController();
+  final _tenthAddressController = TextEditingController();
   String? _tenthBoard;
   String _tenthMedium = 'English';
   final _tenthOtherMediumController = TextEditingController();
@@ -129,6 +130,7 @@ class _StudentProfileCompletionSheetState
 
   // 12th / Diploma
   final _twelfthSchoolController = TextEditingController();
+  final _twelfthAddressController = TextEditingController();
   String? _twelfthBoard;
   String _twelfthMedium = 'English';
   final _twelfthOtherMediumController = TextEditingController();
@@ -148,6 +150,7 @@ class _StudentProfileCompletionSheetState
   String _diplomaMedium = 'English';
   final _diplomaOtherMediumController = TextEditingController();
   final _diplomaCollegeController = TextEditingController();
+  final _diplomaAddressController = TextEditingController();
   final _diplomaBranchController = TextEditingController();
   final _diplomaYearController = TextEditingController();
   final _diplomaTotalController = TextEditingController(text: '100');
@@ -237,6 +240,9 @@ class _StudentProfileCompletionSheetState
         if (draft['motherPhone'] != null) _motherPhoneController.text = draft['motherPhone'];
         if (draft['tenthObtained'] != null) _tenthObtainedController.text = draft['tenthObtained'];
         if (draft['twelfthObtained'] != null) _twelfthObtainedController.text = draft['twelfthObtained'];
+        if (draft['tenthAddress'] != null) _tenthAddressController.text = draft['tenthAddress'];
+        if (draft['twelfthAddress'] != null) _twelfthAddressController.text = draft['twelfthAddress'];
+        if (draft['diplomaAddress'] != null) _diplomaAddressController.text = draft['diplomaAddress'];
         if (draft['tenthMedium'] != null) _tenthMedium = draft['tenthMedium'];
         if (draft['twelfthMedium'] != null) _twelfthMedium = draft['twelfthMedium'];
         if (draft['diplomaMedium'] != null) _diplomaMedium = draft['diplomaMedium'];
@@ -319,6 +325,9 @@ class _StudentProfileCompletionSheetState
       'motherPhone': _motherPhoneController.text,
       'tenthObtained': _tenthObtainedController.text,
       'twelfthObtained': _twelfthObtainedController.text,
+      'tenthAddress': _tenthAddressController.text,
+      'twelfthAddress': _twelfthAddressController.text,
+      'diplomaAddress': _diplomaAddressController.text,
       'tenthMedium': _tenthMedium,
       'twelfthMedium': _twelfthMedium,
       'diplomaMedium': _diplomaMedium,
@@ -394,6 +403,7 @@ class _StudentProfileCompletionSheetState
       _has12th = true;
       _hasDiploma = true;
       _tenthSchoolController.text = 'Government Higher Sec School';
+      _tenthAddressController.text = 'Main Road, Karur, Tamil Nadu';
       _tenthBoard = 'State Board';
       _tenthMedium = 'English';
       _tenthRegNoController.text = '10TH98765';
@@ -401,6 +411,7 @@ class _StudentProfileCompletionSheetState
       _tenthTotalController.text = '500';
       _tenthObtainedController.text = '465';
       _twelfthSchoolController.text = 'VSB Higher Sec School';
+      _twelfthAddressController.text = 'Covai Road, Karur, Tamil Nadu';
       _twelfthBoard = 'State Board';
       _twelfthMedium = 'English';
       _twelfthRegNoController.text = '12TH12345';
@@ -412,6 +423,7 @@ class _StudentProfileCompletionSheetState
       _diplomaEvalMode = 'Grade';
       _selectedDiplomaGrade = 'A+';
       _diplomaCollegeController.text = 'VSB Polytechnic College';
+      _diplomaAddressController.text = 'Covai Road, Karur, Tamil Nadu';
       _diplomaBranchController.text = 'Diploma in Computer Engineering';
       _diplomaYearController.text = '2025';
       _diplomaTotalController.text = 'First Class with Distinction';
@@ -621,6 +633,7 @@ class _StudentProfileCompletionSheetState
       education: StudentPreviousEducation(
         tenth: EducationRecord(
           institutionName: _tenthSchoolController.text.trim(),
+          institutionAddress: _tenthAddressController.text.trim(),
           boardOrUniversity: _tenthBoard ?? 'State Board',
           medium: _effectiveTenthMedium,
           registerNumber: _tenthRegNoController.text.trim(),
@@ -631,6 +644,7 @@ class _StudentProfileCompletionSheetState
         ),
         twelfthOrDiploma: EducationRecord(
           institutionName: _twelfthSchoolController.text.trim(),
+          institutionAddress: _twelfthAddressController.text.trim(),
           boardOrUniversity: _twelfthBoard ?? 'State Board',
           medium: _effectiveTwelfthMedium,
           registerNumber: _twelfthRegNoController.text.trim(),
@@ -643,6 +657,7 @@ class _StudentProfileCompletionSheetState
         diploma: _hasDiploma
             ? EducationRecord(
                 institutionName: _diplomaCollegeController.text.trim(),
+                institutionAddress: _diplomaAddressController.text.trim(),
                 boardOrUniversity: 'DOTE / Polytechnic Board',
                 medium: _effectiveDiplomaMedium,
                 registerNumber: _diplomaBranchController.text.trim(),
@@ -1406,6 +1421,8 @@ class _StudentProfileCompletionSheetState
               const SizedBox(height: 12),
               _buildTextField(_tenthSchoolController, 'School Name *', 'Government / Private Higher Sec School'),
               const SizedBox(height: 8),
+              _buildTextField(_tenthAddressController, 'School Address / Location *', 'e.g. Main Road, Karur, Tamil Nadu'),
+              const SizedBox(height: 8),
               _buildMediumSelector(_tenthMedium, _tenthOtherMediumController, (val) => setState(() => _tenthMedium = val)),
               const SizedBox(height: 8),
               Row(
@@ -1453,6 +1470,8 @@ class _StudentProfileCompletionSheetState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildTextField(_twelfthSchoolController, 'Higher Sec School Name *', 'VSB Higher Sec School'),
+                      const SizedBox(height: 8),
+                      _buildTextField(_twelfthAddressController, 'School Address / Location *', 'e.g. Covai Road, Karur, Tamil Nadu'),
                       const SizedBox(height: 8),
                       _buildMediumSelector(_twelfthMedium, _twelfthOtherMediumController, (val) => setState(() => _twelfthMedium = val)),
                       const SizedBox(height: 8),
@@ -1507,6 +1526,8 @@ class _StudentProfileCompletionSheetState
                       _buildTextField(_diplomaCollegeController, 'Polytechnic College Name *', 'e.g. VSB Polytechnic College'),
                       const SizedBox(height: 8),
                       _buildTextField(_diplomaBranchController, 'Diploma Branch / Specialization *', 'e.g. Diploma in Computer Engineering'),
+                      const SizedBox(height: 8),
+                      _buildTextField(_diplomaAddressController, 'College Address / Location *', 'e.g. Covai Road, Karur, Tamil Nadu'),
                       const SizedBox(height: 8),
                       _buildMediumSelector(_diplomaMedium, _diplomaOtherMediumController, (val) => setState(() => _diplomaMedium = val)),
                       const SizedBox(height: 12),
@@ -2023,11 +2044,11 @@ class _StudentProfileCompletionSheetState
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Previous Education', [
-          '10th Standard: ${_tenthSchoolController.text.isNotEmpty ? _tenthSchoolController.text : "Recorded"} (${_tenthObtainedController.text}/${_tenthTotalController.text}) - Medium: $_effectiveTenthMedium',
+          '10th Standard: ${_tenthSchoolController.text.isNotEmpty ? _tenthSchoolController.text : "Recorded"} (${_tenthAddressController.text.isNotEmpty ? _tenthAddressController.text : "Address recorded"}) (${_tenthObtainedController.text}/${_tenthTotalController.text}) - Medium: $_effectiveTenthMedium',
           if (_has12th)
-            '12th Standard: ${_twelfthSchoolController.text.isNotEmpty ? _twelfthSchoolController.text : "Recorded"} (${_twelfthObtainedController.text}/${_twelfthTotalController.text}) - Medium: $_effectiveTwelfthMedium',
+            '12th Standard: ${_twelfthSchoolController.text.isNotEmpty ? _twelfthSchoolController.text : "Recorded"} (${_twelfthAddressController.text.isNotEmpty ? _twelfthAddressController.text : "Address recorded"}) (${_twelfthObtainedController.text}/${_twelfthTotalController.text}) - Medium: $_effectiveTwelfthMedium',
           if (_hasDiploma)
-            'Diploma / Polytechnic: ${_diplomaCollegeController.text.isNotEmpty ? _diplomaCollegeController.text : "Recorded"} (${_diplomaBranchController.text}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text} ($_diplomaEvalMode, Medium: $_effectiveDiplomaMedium)',
+            'Diploma / Polytechnic: ${_diplomaCollegeController.text.isNotEmpty ? _diplomaCollegeController.text : "Recorded"} (${_diplomaBranchController.text}) (${_diplomaAddressController.text.isNotEmpty ? _diplomaAddressController.text : "Address recorded"}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text} ($_diplomaEvalMode, Medium: $_effectiveDiplomaMedium)',
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Living & Transport', [
