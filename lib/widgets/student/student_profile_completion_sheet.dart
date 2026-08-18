@@ -328,14 +328,6 @@ class _StudentProfileCompletionSheetState
       // Step 8: Confirmation
       _isConfirmed = true;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('⚡ Mock data auto-filled for testing!'),
-        backgroundColor: Color(0xFF2563EB),
-        duration: Duration(seconds: 1),
-      ),
-    );
   }
 
   int get _progressPercentage {
