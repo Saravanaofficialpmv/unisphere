@@ -131,7 +131,8 @@ class _StudentProfileCompletionSheetState
   double _twelfthPercentage = 0.0;
 
   // Diploma / Polytechnic
-  String _diplomaEvalMode = 'Percentage'; // 'Percentage' or 'CGPA'
+  String _diplomaEvalMode = 'Percentage'; // 'Percentage' or 'Grade'
+  String _selectedDiplomaGrade = 'A+';
   final _diplomaCollegeController = TextEditingController();
   final _diplomaBranchController = TextEditingController();
   final _diplomaYearController = TextEditingController();
@@ -221,6 +222,7 @@ class _StudentProfileCompletionSheetState
         if (draft['has12th'] != null) _has12th = draft['has12th'];
         if (draft['hasDiploma'] != null) _hasDiploma = draft['hasDiploma'];
         if (draft['diplomaEvalMode'] != null) _diplomaEvalMode = draft['diplomaEvalMode'];
+        if (draft['selectedDiplomaGrade'] != null) _selectedDiplomaGrade = draft['selectedDiplomaGrade'];
         if (draft['diplomaCollege'] != null) _diplomaCollegeController.text = draft['diplomaCollege'];
         if (draft['diplomaBranch'] != null) _diplomaBranchController.text = draft['diplomaBranch'];
         if (draft['diplomaObtained'] != null) _diplomaObtainedController.text = draft['diplomaObtained'];
@@ -240,10 +242,30 @@ class _StudentProfileCompletionSheetState
     final twObtained = double.tryParse(_twelfthObtainedController.text) ?? 0;
     if (twTotal > 0) _twelfthPercentage = (twObtained / twTotal) * 100;
 
-    if (_diplomaEvalMode == 'CGPA') {
-      final maxCgpa = double.tryParse(_diplomaTotalController.text) ?? 10.0;
-      final cgpa = double.tryParse(_diplomaObtainedController.text) ?? 0.0;
-      if (maxCgpa > 0) _diplomaPercentage = (cgpa / maxCgpa) * 100;
+    if (_diplomaEvalMode == 'Grade') {
+      final grade = _diplomaObtainedController.text.trim().toUpperCase();
+      switch (grade) {
+        case 'O':
+          _diplomaPercentage = 95.0;
+          break;
+        case 'A+':
+          _diplomaPercentage = 85.0;
+          break;
+        case 'A':
+          _diplomaPercentage = 75.0;
+          break;
+        case 'B+':
+          _diplomaPercentage = 65.0;
+          break;
+        case 'B':
+          _diplomaPercentage = 55.0;
+          break;
+        case 'C':
+          _diplomaPercentage = 45.0;
+          break;
+        default:
+          _diplomaPercentage = 80.0;
+      }
     } else {
       final dTotal = double.tryParse(_diplomaTotalController.text) ?? 100;
       final dObtained = double.tryParse(_diplomaObtainedController.text) ?? 0;
@@ -276,6 +298,7 @@ class _StudentProfileCompletionSheetState
       'has12th': _has12th,
       'hasDiploma': _hasDiploma,
       'diplomaEvalMode': _diplomaEvalMode,
+      'selectedDiplomaGrade': _selectedDiplomaGrade,
       'diplomaCollege': _diplomaCollegeController.text,
       'diplomaBranch': _diplomaBranchController.text,
       'diplomaObtained': _diplomaObtainedController.text,
@@ -356,11 +379,13 @@ class _StudentProfileCompletionSheetState
       _twelfthObtainedController.text = '552';
 
       // Diploma
+      _diplomaEvalMode = 'Grade';
+      _selectedDiplomaGrade = 'A+';
       _diplomaCollegeController.text = 'VSB Polytechnic College';
       _diplomaBranchController.text = 'Diploma in Computer Engineering';
       _diplomaYearController.text = '2025';
-      _diplomaTotalController.text = '100';
-      _diplomaObtainedController.text = '88.5';
+      _diplomaTotalController.text = 'First Class with Distinction';
+      _diplomaObtainedController.text = 'A+';
 
       _calculateEducationPercentages();
 
@@ -1452,7 +1477,7 @@ class _StudentProfileCompletionSheetState
                       _buildTextField(_diplomaBranchController, 'Diploma Branch / Specialization *', 'e.g. Diploma in Computer Engineering'),
                       const SizedBox(height: 12),
 
-                      // Evaluation Mode Selector (Percentage vs CGPA)
+                      // Evaluation Mode Selector (Percentage vs Grade)
                       const Text(
                         'Diploma Evaluation Mode *',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF1E40AF)),
@@ -1467,8 +1492,11 @@ class _StudentProfileCompletionSheetState
                               if (selected) {
                                 setState(() {
                                   _diplomaEvalMode = 'Percentage';
-                                  if (_diplomaTotalController.text == '10.0' || _diplomaTotalController.text == '10') {
+                                  if (_diplomaTotalController.text.contains('Class') || _diplomaTotalController.text.contains('Grade')) {
                                     _diplomaTotalController.text = '100';
+                                  }
+                                  if (_diplomaObtainedController.text.isEmpty || _diplomaObtainedController.text == 'A+') {
+                                    _diplomaObtainedController.text = '88.5';
                                   }
                                   _calculateEducationPercentages();
                                 });
@@ -1483,22 +1511,23 @@ class _StudentProfileCompletionSheetState
                           ),
                           const SizedBox(width: 8),
                           ChoiceChip(
-                            label: const Text('CGPA / Grade Points'),
-                            selected: _diplomaEvalMode == 'CGPA',
+                            label: const Text('Grade (O, A+, A, B+, B, C)'),
+                            selected: _diplomaEvalMode == 'Grade',
                             onSelected: (selected) {
                               if (selected) {
                                 setState(() {
-                                  _diplomaEvalMode = 'CGPA';
-                                  if (_diplomaTotalController.text == '100') {
-                                    _diplomaTotalController.text = '10.0';
+                                  _diplomaEvalMode = 'Grade';
+                                  if (_diplomaObtainedController.text.isEmpty || double.tryParse(_diplomaObtainedController.text) != null) {
+                                    _diplomaObtainedController.text = _selectedDiplomaGrade;
                                   }
+                                  _diplomaTotalController.text = 'First Class with Distinction';
                                   _calculateEducationPercentages();
                                 });
                               }
                             },
                             selectedColor: const Color(0xFF2563EB),
                             labelStyle: TextStyle(
-                              color: _diplomaEvalMode == 'CGPA' ? Colors.white : const Color(0xFF0F172A),
+                              color: _diplomaEvalMode == 'Grade' ? Colors.white : const Color(0xFF0F172A),
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -1506,27 +1535,76 @@ class _StudentProfileCompletionSheetState
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildTextField(
-                              _diplomaObtainedController,
-                              _diplomaEvalMode == 'CGPA' ? 'CGPA / Grade Obtained *' : 'Percentage / Marks Obtained *',
-                              _diplomaEvalMode == 'CGPA' ? '8.85' : '88.5',
-                              onChanged: (_) => setState(_calculateEducationPercentages),
+                      if (_diplomaEvalMode == 'Grade') ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Grade Obtained *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0F172A))),
+                                  const SizedBox(height: 4),
+                                  DropdownButtonFormField<String>(
+                                    value: ['O', 'A+', 'A', 'B+', 'B', 'C'].contains(_diplomaObtainedController.text.trim())
+                                        ? _diplomaObtainedController.text.trim()
+                                        : 'A+',
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    ),
+                                    items: const [
+                                      DropdownMenuItem(value: 'O', child: Text('O Grade (Outstanding)')),
+                                      DropdownMenuItem(value: 'A+', child: Text('A+ Grade (Distinction)')),
+                                      DropdownMenuItem(value: 'A', child: Text('A Grade (First Class)')),
+                                      DropdownMenuItem(value: 'B+', child: Text('B+ Grade (Above Avg)')),
+                                      DropdownMenuItem(value: 'B', child: Text('B Grade (Second Class)')),
+                                      DropdownMenuItem(value: 'C', child: Text('C Grade (Pass Grade)')),
+                                    ],
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        setState(() {
+                                          _selectedDiplomaGrade = val;
+                                          _diplomaObtainedController.text = val;
+                                          _calculateEducationPercentages();
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildTextField(
-                              _diplomaTotalController,
-                              _diplomaEvalMode == 'CGPA' ? 'Max CGPA Scale *' : 'Total Marks / Out of *',
-                              _diplomaEvalMode == 'CGPA' ? '10.0' : '100',
-                              onChanged: (_) => setState(_calculateEducationPercentages),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildTextField(_diplomaTotalController, 'Class / Division *', 'First Class with Distinction'),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ] else ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                _diplomaObtainedController,
+                                'Percentage / Marks Obtained *',
+                                '88.5',
+                                onChanged: (_) => setState(_calculateEducationPercentages),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildTextField(
+                                _diplomaTotalController,
+                                'Total Marks / Out of *',
+                                '100',
+                                onChanged: (_) => setState(_calculateEducationPercentages),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       _buildTextField(_diplomaYearController, 'Year of Passing', '2023'),
                     ],
