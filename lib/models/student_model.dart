@@ -12,6 +12,9 @@ class StudentModel {
   final String academicStatus;
   final String? cgpa;
   final String? attendancePercent;
+  final String? membershipId;
+  final String? membershipOrg;
+  final bool? hasMembership;
 
   StudentModel({
     required this.studentId,
@@ -27,6 +30,9 @@ class StudentModel {
     this.academicStatus = 'Active',
     this.cgpa,
     this.attendancePercent,
+    this.membershipId,
+    this.membershipOrg,
+    this.hasMembership,
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> map, String id) {
@@ -44,6 +50,9 @@ class StudentModel {
       academicStatus: map['academic_status'] ?? map['academicStatus'] ?? 'Active',
       cgpa: map['cgpa']?.toString(),
       attendancePercent: map['attendance_percent']?.toString() ?? map['attendancePercent']?.toString(),
+      membershipId: map['membership_id'] ?? map['membershipId'],
+      membershipOrg: map['membership_org'] ?? map['membershipOrg'],
+      hasMembership: map['has_membership'] ?? map['hasMembership'],
     );
   }
 
@@ -62,6 +71,9 @@ class StudentModel {
       'academic_status': academicStatus,
       'cgpa': cgpa,
       'attendance_percent': attendancePercent,
+      'membership_id': membershipId,
+      'membership_org': membershipOrg,
+      'has_membership': hasMembership,
     };
   }
 }

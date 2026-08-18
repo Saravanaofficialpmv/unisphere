@@ -17,6 +17,7 @@ import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/widgets/common/complete_profile_dialog.dart';
+import 'package:unisphere/screens/profile/profile_screen.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {
   const StaffDashboard({super.key});
@@ -60,7 +61,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     const StaffNptelVerificationScreen(),
 
     const StaffMarksUploadModule(),
-    const Center(child: Text('Faculty Profile Details')),
+    ProfileScreen(onBack: () => _handleNavigation(0)),
     const StaffAttendanceMarkingModule(),
     const Center(child: Text('Faculty Library Access')),
   ];

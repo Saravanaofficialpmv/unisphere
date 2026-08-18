@@ -414,23 +414,42 @@ class FirebaseFirestoreService implements SupabaseService {
   }
 
   // ==========================================
-  // STUDENT 360° PROFILE MANAGEMENT
+  // STUDENT 360° PROFILE MANAGEMENT & REG NO PERSISTENCE
   // ==========================================
-  Future<void> saveStudentProfileDraft(String uid, Map<String, dynamic> draftData) async {
+  Future<void> saveStudentProfileDraft(String identifier, Map<String, dynamic> draftData) async {
     try {
-      await _firestore.collection('student_profile_drafts').doc(uid).set({
+      final regNo = (draftData['registerNumber'] ?? draftData['personal']?['registerNumber'])?.toString().trim() ?? '';
+      final nowStr = DateTime.now().toIso8601String();
+      final dataToSave = {
         ...draftData,
-        'updatedAt': DateTime.now().toIso8601String(),
-      }, SetOptions(merge: true));
+        'updatedAt': nowStr,
+      };
+
+      // Save under main identifier
+      await _firestore.collection('student_profile_drafts').doc(identifier).set(dataToSave, SetOptions(merge: true));
+
+      // Store under unique regNo if available
+      if (regNo.isNotEmpty && regNo != identifier) {
+        await _firestore.collection('student_profile_drafts').doc(regNo).set(dataToSave, SetOptions(merge: true));
+      }
     } catch (e) {
       debugPrint('Firestore saveStudentProfileDraft error: $e');
     }
   }
 
-  Future<Map<String, dynamic>?> getStudentProfileDraft(String uid) async {
+  Future<Map<String, dynamic>?> getStudentProfileDraft(String identifier) async {
     try {
-      final doc = await _firestore.collection('student_profile_drafts').doc(uid).get();
-      return doc.data();
+      final doc = await _firestore.collection('student_profile_drafts').doc(identifier).get();
+      if (doc.exists && doc.data() != null) return doc.data();
+
+      // Fallback lookup by registerNumber
+      final snap = await _firestore
+          .collection('student_profile_drafts')
+          .where('registerNumber', isEqualTo: identifier)
+          .limit(1)
+          .get();
+      if (snap.docs.isNotEmpty) return snap.docs.first.data();
+      return null;
     } catch (e) {
       debugPrint('Firestore getStudentProfileDraft error: $e');
       return null;
@@ -440,36 +459,216 @@ class FirebaseFirestoreService implements SupabaseService {
   Future<void> submitFullStudentProfile(Map<String, dynamic> profileMap) async {
     try {
       final uid = profileMap['studentUid']?.toString() ?? '';
-      if (uid.isEmpty) return;
+      final regNo = (profileMap['personal']?['registerNumber'] ?? profileMap['registerNumber'])?.toString().trim() ?? '';
+
+      if (uid.isEmpty && regNo.isEmpty) return;
 
       final nowStr = DateTime.now().toIso8601String();
       profileMap['completionStatus'] = 'submitted';
       profileMap['completionPercentage'] = 100;
       profileMap['submittedAt'] = nowStr;
 
-      // Save complete profile doc under student_profiles collection
-      await _firestore.collection('student_profiles').doc(uid).set(profileMap, SetOptions(merge: true));
+      // 1. Store details under regNo in student_profiles collection (as primary unique ID)
+      if (regNo.isNotEmpty) {
+        await _firestore.collection('student_profiles').doc(regNo).set(profileMap, SetOptions(merge: true));
+      }
 
-      // Update user document profile completion status
-      await _firestore.collection('users').doc(uid).set({
-        'profileCompletionStatus': 'submitted',
-        'metadata': {
-          'profileCompletionPercentage': 100,
-          'submittedAt': nowStr,
-        }
-      }, SetOptions(merge: true));
+      // 2. Also store details under uid for UID-based lookups
+      if (uid.isNotEmpty) {
+        await _firestore.collection('student_profiles').doc(uid).set(profileMap, SetOptions(merge: true));
+      }
+
+      // 3. Store details under regNo in students collection
+      if (regNo.isNotEmpty) {
+        await _firestore.collection('students').doc(regNo).set({
+          'register_number': regNo,
+          'user_id': uid,
+          'details': profileMap,
+          'updated_at': nowStr,
+        }, SetOptions(merge: true));
+      }
+
+      // 4. Update user document profile completion status & metadata
+      if (uid.isNotEmpty) {
+        await _firestore.collection('users').doc(uid).set({
+          'profileCompletionStatus': 'submitted',
+          'metadata': {
+            'registerNumber': regNo.isNotEmpty ? regNo : null,
+            'profileCompletionPercentage': 100,
+            'submittedAt': nowStr,
+          }
+        }, SetOptions(merge: true));
+      }
+
+      if (regNo.isNotEmpty) {
+        await _firestore.collection('users').doc(regNo).set({
+          'profileCompletionStatus': 'submitted',
+          'metadata': {
+            'registerNumber': regNo,
+            'profileCompletionPercentage': 100,
+            'submittedAt': nowStr,
+          }
+        }, SetOptions(merge: true));
+      }
     } catch (e) {
       debugPrint('Firestore submitFullStudentProfile error: $e');
     }
   }
 
-  Stream<Map<String, dynamic>?> getFullStudentProfileStream(String uid) {
+  Stream<Map<String, dynamic>?> getFullStudentProfileStream(String identifier) {
     try {
-      return _firestore.collection('student_profiles').doc(uid).snapshots().map((doc) => doc.data());
+      return _firestore.collection('student_profiles').doc(identifier).snapshots().map((doc) {
+        if (doc.exists && doc.data() != null) {
+          return doc.data();
+        }
+        return null;
+      });
     } catch (e) {
       debugPrint('Firestore getFullStudentProfileStream error: $e');
       return Stream.value(null);
     }
+  }
+
+  /// Save professional membership details (membershipId, org, hasMembership)
+  /// for student directly under regNo and UID across database collections.
+  Future<void> saveStudentMembershipDetails({
+    required String studentUid,
+    required String registerNumber,
+    required bool hasMembership,
+    required String membershipOrg,
+    required String membershipId,
+  }) async {
+    try {
+      final nowStr = DateTime.now().toIso8601String();
+      final cleanReg = registerNumber.trim();
+      final membershipData = {
+        'hasMembership': hasMembership,
+        'membershipOrg': membershipOrg,
+        'membershipId': membershipId,
+        'membershipUpdatedAt': nowStr,
+      };
+
+      // 1. Save in users collection (under uid and regNo metadata)
+      if (studentUid.isNotEmpty) {
+        await _firestore.collection('users').doc(studentUid).set({
+          'metadata': membershipData,
+        }, SetOptions(merge: true));
+      }
+      if (cleanReg.isNotEmpty) {
+        await _firestore.collection('users').doc(cleanReg).set({
+          'metadata': membershipData,
+        }, SetOptions(merge: true));
+      }
+
+      // 2. Save in student_profiles collection (under regNo and studentUid)
+      if (cleanReg.isNotEmpty) {
+        await _firestore.collection('student_profiles').doc(cleanReg).set({
+          'membership': membershipData,
+          'membershipId': membershipId,
+          'membershipOrg': membershipOrg,
+          'hasMembership': hasMembership,
+          'updatedAt': nowStr,
+        }, SetOptions(merge: true));
+      }
+      if (studentUid.isNotEmpty) {
+        await _firestore.collection('student_profiles').doc(studentUid).set({
+          'membership': membershipData,
+          'membershipId': membershipId,
+          'membershipOrg': membershipOrg,
+          'hasMembership': hasMembership,
+          'updatedAt': nowStr,
+        }, SetOptions(merge: true));
+      }
+
+      // 3. Save in students collection (under regNo and studentUid)
+      if (cleanReg.isNotEmpty) {
+        await _firestore.collection('students').doc(cleanReg).set({
+          'membership_id': membershipId,
+          'membership_org': membershipOrg,
+          'has_membership': hasMembership,
+          'updated_at': nowStr,
+        }, SetOptions(merge: true));
+      }
+      if (studentUid.isNotEmpty) {
+        await _firestore.collection('students').doc(studentUid).set({
+          'membership_id': membershipId,
+          'membership_org': membershipOrg,
+          'has_membership': hasMembership,
+          'updated_at': nowStr,
+        }, SetOptions(merge: true));
+      }
+
+      debugPrint('✅ Membership details (ID: $membershipId) stored on database under regNo: "$cleanReg" / UID: "$studentUid"');
+    } catch (e) {
+      debugPrint('Firestore saveStudentMembershipDetails error: $e');
+    }
+  }
+
+  /// Check whether the membership ID is stored on the database for a student
+  /// by Registration Number (regNo) or UID.
+  Future<Map<String, dynamic>> checkStudentMembershipInDatabase(String regNoOrUid) async {
+    final cleanId = regNoOrUid.trim();
+    if (cleanId.isEmpty) {
+      return {'found': false, 'membershipId': 'N/A', 'message': 'Invalid regNo or UID'};
+    }
+
+    try {
+      // 1. Check student_profiles collection under regNo doc ID
+      final profileDoc = await _firestore.collection('student_profiles').doc(cleanId).get();
+      if (profileDoc.exists && profileDoc.data() != null) {
+        final data = profileDoc.data()!;
+        final memId = data['membershipId'] ?? data['membership']?['membershipId'] ?? data['metadata']?['membershipId'];
+        if (memId != null && memId.toString().isNotEmpty && memId.toString() != 'N/A') {
+          return {
+            'found': true,
+            'source': 'student_profiles doc($cleanId)',
+            'membershipId': memId.toString(),
+            'membershipOrg': data['membershipOrg'] ?? data['membership']?['membershipOrg'] ?? 'ISTE',
+            'hasMembership': data['hasMembership'] ?? data['membership']?['hasMembership'] ?? true,
+          };
+        }
+      }
+
+      // 2. Check users collection under doc(cleanId)
+      final userDoc = await _firestore.collection('users').doc(cleanId).get();
+      if (userDoc.exists && userDoc.data() != null) {
+        final meta = userDoc.data()!['metadata'] as Map<String, dynamic>? ?? {};
+        final memId = meta['membershipId'];
+        if (memId != null && memId.toString().isNotEmpty && memId.toString() != 'N/A') {
+          return {
+            'found': true,
+            'source': 'users doc($cleanId)',
+            'membershipId': memId.toString(),
+            'membershipOrg': meta['membershipOrg'] ?? 'ISTE',
+            'hasMembership': meta['hasMembership'] ?? true,
+          };
+        }
+      }
+
+      // 3. Check students collection under doc(cleanId)
+      final studentDoc = await _firestore.collection('students').doc(cleanId).get();
+      if (studentDoc.exists && studentDoc.data() != null) {
+        final data = studentDoc.data()!;
+        final memId = data['membership_id'] ?? data['membershipId'];
+        if (memId != null && memId.toString().isNotEmpty && memId.toString() != 'N/A') {
+          return {
+            'found': true,
+            'source': 'students doc($cleanId)',
+            'membershipId': memId.toString(),
+            'membershipOrg': data['membership_org'] ?? data['membershipOrg'] ?? 'ISTE',
+            'hasMembership': data['has_membership'] ?? data['hasMembership'] ?? true,
+          };
+        }
+      }
+    } catch (e) {
+      debugPrint('checkStudentMembershipInDatabase error: $e');
+    }
+
+    return {
+      'found': false,
+      'membershipId': 'N/A',
+      'message': 'No membership record found in database for $cleanId',
+    };
   }
 
   // ==========================================

@@ -32,6 +32,8 @@ import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
 import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/models/user_model.dart';
+import 'package:unisphere/widgets/student/student_membership_modal.dart';
 
 
 
@@ -56,6 +58,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
     SidebarItem(label: 'Timetable', icon: Icons.calendar_month_outlined),
+    SidebarItem(label: 'Upcoming Tasks', icon: Icons.task_alt_outlined),
     SidebarItem(label: 'Attendance', icon: Icons.calendar_today_outlined),
     SidebarItem(label: 'Academic Marks', icon: Icons.bar_chart_outlined),
     SidebarItem(label: 'Fees & Payments', icon: Icons.payments_outlined),
@@ -441,6 +444,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
                       // Profile Verification Banner (Prompt to complete profile & submit to HOD)
                       _buildProfileCompletionBanner(),
+                      _buildMembershipReminderBanner(),
 
                       // 2. Academic Overview Card with background glow
                       Stack(
@@ -660,6 +664,109 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
               isRejected ? 'Edit & Resubmit' : (isPending ? 'View Profile' : 'Complete Now →'),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMembershipReminderBanner() {
+    final user = ref.watch(authServiceProvider).currentUser;
+    final meta = user?.metadata ?? {};
+
+    // Only applicable for student role
+    if (user?.role != UserRole.student) return const SizedBox.shrink();
+
+    final hasMembership = meta['hasMembership'];
+    final org = meta['membershipOrg']?.toString();
+    final memId = meta['membershipId']?.toString();
+
+    // If membership status is recorded and valid, render compact badge card
+    if (hasMembership == true && org != null && memId != null && org != 'None') {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEFF6FF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFBFDBFE)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.verified_user_rounded, color: Color(0xFF2563EB), size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '🏅 Technical Society: $org • ID: $memId',
+                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            InkWell(
+              onTap: () => StudentMembershipModal.show(context),
+              child: const Padding(
+                padding: EdgeInsets.all(4.0),
+                child: Text('Edit', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (hasMembership == false) return const SizedBox.shrink();
+
+    // REMINDER BANNER for unrecorded membership status:
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF7C3AED), Color(0xFF4F46E5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.card_membership_rounded, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('⚠️ Technical Society Membership Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
+                SizedBox(height: 2),
+                Text('Are you an active ISTE, CSI, IEEE, or other society member? Tap to record your status & ID.', style: TextStyle(color: Colors.white70, fontSize: 11)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () => StudentMembershipModal.show(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF7C3AED),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: const Size(0, 34),
+            ),
+            child: const Text('Update →', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
           ),
         ],
       ),

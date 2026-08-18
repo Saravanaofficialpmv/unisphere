@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:unisphere/models/notification_model.dart';
+import 'package:unisphere/models/user_model.dart';
+import 'package:unisphere/repositories/notification_repository.dart';
+import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/services/notification_scheduler_service.dart';
+
+// Provider for starting and managing background notification scheduler
+final notificationSchedulerProvider = Provider<NotificationSchedulerService>((ref) {
+  final scheduler = NotificationSchedulerService();
+  scheduler.startScheduler();
+  ref.onDispose(() => scheduler.stopScheduler());
+  return scheduler;
+});
 
 class NotificationItem {
+  final NotificationModel rawModel;
   final String id;
   final String title;
-  final String category; // 'Features', 'Academic', 'Events', 'Alerts', 'Finance'
+  final String category; // 'All', 'Academic', 'Attendance', 'Finance', 'Career', 'Events', 'System', 'Approvals'
+  final String priority; // 'critical', 'high', 'medium', 'low'
+  final String type; // 'automated' | 'manual'
   final String timeAgo;
   final String summary;
   final String fullDetails;
@@ -15,13 +32,16 @@ class NotificationItem {
   final Color badgeColor;
   final Color badgeTextColor;
   final bool isUnread;
-  final String? featureId; // Map to FeatureRegistry ID
+  final String? featureId;
   final Map<String, String>? metadata;
 
   NotificationItem({
+    required this.rawModel,
     required this.id,
     required this.title,
     required this.category,
+    required this.priority,
+    required this.type,
     required this.timeAgo,
     required this.summary,
     required this.fullDetails,
@@ -36,11 +56,127 @@ class NotificationItem {
     this.metadata,
   });
 
+  factory NotificationItem.fromModel(NotificationModel model) {
+    IconData icon;
+    Color iconColor;
+    Color iconBgColor;
+
+    switch (model.category.toLowerCase()) {
+      case 'attendance':
+        icon = Icons.calendar_month_rounded;
+        iconColor = const Color(0xFFDC2626);
+        iconBgColor = const Color(0xFFFEE2E2);
+        break;
+      case 'academic':
+        icon = Icons.school_rounded;
+        iconColor = const Color(0xFF2563EB);
+        iconBgColor = const Color(0xFFDBEAFE);
+        break;
+      case 'finance':
+        icon = Icons.account_balance_wallet_rounded;
+        iconColor = const Color(0xFFD97706);
+        iconBgColor = const Color(0xFFFEF3C7);
+        break;
+      case 'career':
+      case 'placement':
+        icon = Icons.work_rounded;
+        iconColor = const Color(0xFF059669);
+        iconBgColor = const Color(0xFFD1FAE5);
+        break;
+      case 'events':
+      case 'hackathon':
+        icon = Icons.emoji_events_rounded;
+        iconColor = const Color(0xFF7C3AED);
+        iconBgColor = const Color(0xFFEDE9FE);
+        break;
+      case 'system':
+        icon = Icons.security_rounded;
+        iconColor = const Color(0xFF475569);
+        iconBgColor = const Color(0xFFF1F5F9);
+        break;
+      default:
+        icon = Icons.notifications_active_rounded;
+        iconColor = const Color(0xFF4F46E5);
+        iconBgColor = const Color(0xFFEEF2FF);
+    }
+
+    // Priority badge style
+    String badgeText = model.priority.toUpperCase();
+    Color badgeColor = const Color(0xFF94A3B8);
+    Color badgeTextColor = Colors.white;
+
+    if (model.priority == 'critical') {
+      badgeColor = const Color(0xFFEF4444);
+      badgeText = '🚨 CRITICAL';
+    } else if (model.priority == 'high') {
+      badgeColor = const Color(0xFFF59E0B);
+      badgeText = '⚠️ HIGH';
+    } else if (model.priority == 'medium') {
+      badgeColor = const Color(0xFF3B82F6);
+      badgeText = 'INFO';
+    } else {
+      badgeColor = const Color(0xFF6B7280);
+      badgeText = 'NOTICE';
+    }
+
+    final diff = DateTime.now().difference(model.createdAt);
+    String timeAgoStr;
+    if (diff.inMinutes < 1) {
+      timeAgoStr = 'Just now';
+    } else if (diff.inMinutes < 60) {
+      timeAgoStr = '${diff.inMinutes}m ago';
+    } else if (diff.inHours < 24) {
+      timeAgoStr = '${diff.inHours}h ago';
+    } else {
+      timeAgoStr = DateFormat('MMM d, h:mm a').format(model.createdAt);
+    }
+
+    return NotificationItem(
+      rawModel: model,
+      id: model.id,
+      title: model.title,
+      category: _normalizeCategory(model.category),
+      priority: model.priority,
+      type: model.type,
+      timeAgo: timeAgoStr,
+      summary: model.message,
+      fullDetails: model.message,
+      icon: icon,
+      iconColor: iconColor,
+      iconBgColor: iconBgColor,
+      badgeText: badgeText,
+      badgeColor: badgeColor,
+      badgeTextColor: badgeTextColor,
+      isUnread: !model.isRead,
+      featureId: model.relatedModule,
+      metadata: {
+        'related_module': model.relatedModule ?? '',
+        'related_record_id': model.relatedRecordId ?? '',
+        'sender_name': model.senderName ?? 'System',
+        'type': model.type,
+      },
+    );
+  }
+
+  static String _normalizeCategory(String cat) {
+    final c = cat.toLowerCase();
+    if (c.contains('att')) return 'Attendance';
+    if (c.contains('acad') || c.contains('exam') || c.contains('assign')) return 'Academic';
+    if (c.contains('fin') || c.contains('fee')) return 'Finance';
+    if (c.contains('car') || c.contains('place')) return 'Career';
+    if (c.contains('event') || c.contains('hack')) return 'Events';
+    if (c.contains('sys') || c.contains('sec')) return 'System';
+    return 'General';
+  }
+
   NotificationItem copyWith({bool? isUnread}) {
     return NotificationItem(
+      rawModel: rawModel.copyWith(isRead: !(isUnread ?? this.isUnread)),
       id: id,
       title: title,
       category: category,
+      priority: priority,
+      type: type,
       timeAgo: timeAgo,
       summary: summary,
       fullDetails: fullDetails,
@@ -61,11 +197,15 @@ class NotificationState {
   final List<NotificationItem> items;
   final String selectedCategory;
   final String searchQuery;
+  final String filterType; // 'All', 'automated', 'manual'
+  final String filterPriority; // 'All', 'critical', 'high', 'medium', 'low'
 
   NotificationState({
     required this.items,
     this.selectedCategory = 'All',
     this.searchQuery = '',
+    this.filterType = 'All',
+    this.filterPriority = 'All',
   });
 
   int get unreadCount => items.where((item) => item.isUnread).length;
@@ -73,12 +213,13 @@ class NotificationState {
   List<NotificationItem> get filteredItems {
     return items.where((item) {
       final matchesCategory = selectedCategory == 'All' || item.category == selectedCategory;
+      final matchesType = filterType == 'All' || item.type.toLowerCase() == filterType.toLowerCase();
+      final matchesPriority = filterPriority == 'All' || item.priority.toLowerCase() == filterPriority.toLowerCase();
       final matchesSearch = searchQuery.isEmpty ||
           item.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
           item.summary.toLowerCase().contains(searchQuery.toLowerCase()) ||
-          item.fullDetails.toLowerCase().contains(searchQuery.toLowerCase()) ||
           item.category.toLowerCase().contains(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesType && matchesPriority && matchesSearch;
     }).toList();
   }
 
@@ -86,212 +227,47 @@ class NotificationState {
     List<NotificationItem>? items,
     String? selectedCategory,
     String? searchQuery,
+    String? filterType,
+    String? filterPriority,
   }) {
     return NotificationState(
       items: items ?? this.items,
       selectedCategory: selectedCategory ?? this.selectedCategory,
       searchQuery: searchQuery ?? this.searchQuery,
+      filterType: filterType ?? this.filterType,
+      filterPriority: filterPriority ?? this.filterPriority,
     );
   }
 }
 
 class NotificationNotifier extends StateNotifier<NotificationState> {
-  NotificationNotifier() : super(NotificationState(items: _initialNotifications));
+  final NotificationRepository _repository;
+  final UserModel? _currentUser;
 
-  static final List<NotificationItem> _initialNotifications = [
-    NotificationItem(
-      id: 'notif_1',
-      title: 'SRM Unisphere National Hackathon 2026 Live',
-      category: 'Features',
-      timeAgo: '10m ago',
-      summary: 'Registration for SRM Unisphere Tech Fest 2026 is officially open!',
-      fullDetails:
-          'SRM Unisphere invites student developer teams to participate in the 2026 National Level Innovation Hackathon. Build AI, Mobile, and Web3 solutions to win cash prizes totaling ₹1,50,000, internship opportunities with top tech firms, and exclusive certificates of recognition.',
-      icon: Icons.emoji_events_rounded,
-      iconColor: const Color(0xFF7C3AED),
-      iconBgColor: const Color(0xFFF3E8FF),
-      badgeText: 'NEW FEATURE',
-      badgeColor: const Color(0xFF7C3AED),
-      badgeTextColor: Colors.white,
-      isUnread: true,
-      featureId: 'hackathons',
-      metadata: {
-        'Prize Pool': '₹1,50,000 Cash',
-        'Team Size': '2 - 4 Members',
-        'Deadline': 'August 25, 2026',
-        'Venue': 'Tech Park Auditorium',
-      },
-    ),
-    NotificationItem(
-      id: 'notif_2',
-      title: 'Mid-Semester Exam Seating & Timetable Published',
-      category: 'Academic',
-      timeAgo: '1h ago',
-      summary: 'Autumn 2026 mid-term timetable and seating arrangements are live.',
-      fullDetails:
-          'The Academic Controller\'s office has finalized the mid-semester examination timetable for all B.Tech and M.Tech branches. Students can check their subject-wise exam dates, assigned hall numbers, and seating slots directly in the Gradebook module.',
-      icon: Icons.calendar_month_rounded,
-      iconColor: const Color(0xFF059669),
-      iconBgColor: const Color(0xFFD1FAE5),
-      badgeText: 'ACTION REQUIRED',
-      badgeColor: const Color(0xFF059669),
-      badgeTextColor: Colors.white,
-      isUnread: true,
-      featureId: 'gradebook',
-      metadata: {
-        'Exam Dates': 'Sept 5 - Sept 15, 2026',
-        'Hall Ticket': 'Download Active',
-        'Seating Plan': 'Main Block Floor 2-4',
-      },
-    ),
-    NotificationItem(
-      id: 'notif_3',
-      title: 'Semester 5 Tuition Fee Payment Link Active',
-      category: 'Finance',
-      timeAgo: '3h ago',
-      summary: 'Pay tuition & hostel fees online with zero processing fee.',
-      fullDetails:
-          'The official online payment portal for Semester 5 tuition, laboratory, and library fees is now active on Unisphere. Flexible payment options include UPI, NetBanking, Credit/Debit cards, and 0% interest EMI options. E-Receipts are issued instantly.',
-      icon: Icons.account_balance_wallet_rounded,
-      iconColor: const Color(0xFFEA580C),
-      iconBgColor: const Color(0xFFFFEDD5),
-      badgeText: 'IMPORTANT',
-      badgeColor: const Color(0xFFEA580C),
-      badgeTextColor: Colors.white,
-      isUnread: true,
-      featureId: 'fees',
-      metadata: {
-        'Due Date': 'August 20, 2026',
-        'Late Charge': '₹500 / week post deadline',
-        'Portal': 'Unisphere Pay Instant',
-      },
-    ),
-    NotificationItem(
-      id: 'notif_4',
-      title: 'Attendance Alert: CS302 Data Structures',
-      category: 'Alerts',
-      timeAgo: '5h ago',
-      summary: 'Your attendance in CS302 is currently 78% (80% mandatory).',
-      fullDetails:
-          'Attendance Warning Notice: You have attended 25 out of 32 sessions in CS302 Data Structures & Algorithms. SRM University regulations mandate a minimum of 80% attendance to be eligible for end-semester examinations. You need to attend the next 4 consecutive lectures to reach safety.',
-      icon: Icons.warning_amber_rounded,
-      iconColor: const Color(0xFFDC2626),
-      iconBgColor: const Color(0xFFFEE2E2),
-      badgeText: 'URGENT',
-      badgeColor: const Color(0xFFDC2626),
-      badgeTextColor: Colors.white,
-      isUnread: true,
-      featureId: 'gradebook',
-      metadata: {
-        'Current Level': '78%',
-        'Required Level': '80% Mandatory',
-        'Classes Attended': '25 / 32 Sessions',
-        'Classes Needed': '4 Consecutive Classes',
-      },
-    ),
-    NotificationItem(
-      id: 'notif_5',
-      title: 'Subsidized AWS & GCP Certification Vouchers',
-      category: 'Features',
-      timeAgo: '1d ago',
-      summary: '80% discount vouchers for Cloud Certifications available.',
-      fullDetails:
-          'SRM Center of Excellence has partnered with AWS and Google Cloud to offer 80% subsidized certification vouchers for AWS Solutions Architect & GCP Digital Leader exams. Free practice test vouchers and learning paths are available in the Certifications tab.',
-      icon: Icons.card_membership_rounded,
-      iconColor: const Color(0xFF2563EB),
-      iconBgColor: const Color(0xFFEFF6FF),
-      badgeText: 'NEW FEATURE',
-      badgeColor: const Color(0xFF2563EB),
-      badgeTextColor: Colors.white,
-      isUnread: true,
-      featureId: 'certifications',
-      metadata: {
-        'Discount': '80% Off Vouchers',
-        'Vouchers Available': '120 Remaining',
-        'Providers': 'AWS & Google Cloud',
-      },
-    ),
-    NotificationItem(
-      id: 'notif_6',
-      title: 'Semester 4 Dean\'s Honor Roll Awarded',
-      category: 'Academic',
-      timeAgo: '2d ago',
-      summary: 'Dean\'s List badge and merit certificate issued to your profile.',
-      fullDetails:
-          'Congratulations! Based on your outstanding academic performance in Semester 4 (SGPA >= 9.00), you have been awarded the Dean\'s Honor Roll distinction. Your digital merit badge is now displayed on your student profile and achievements tab.',
-      icon: Icons.workspace_premium_rounded,
-      iconColor: const Color(0xFFD97706),
-      iconBgColor: const Color(0xFFFEF3C7),
-      badgeText: 'HONOR ROLL',
-      badgeColor: const Color(0xFFD97706),
-      badgeTextColor: Colors.white,
-      isUnread: false,
-      featureId: 'achievements',
-      metadata: {
-        'Semester': 'Semester 4 Autumn',
-        'Criteria': 'SGPA >= 9.00',
-        'Award': 'Dean\'s Merit Certificate',
-      },
-    ),
-    NotificationItem(
-      id: 'notif_7',
-      title: 'Annual Campus Tech Symposium \'Unisphere 2026\'',
-      category: 'Events',
-      timeAgo: '3d ago',
-      summary: '3-Day National Symposium event schedule & workshop registrations.',
-      fullDetails:
-          'SRM Campus is organizing Unisphere Fest 2026 featuring 40+ technical competitions, AI robotics showcases, esports tournaments, and keynote talks by industry leads. Register early to reserve workshop slots.',
-      icon: Icons.event_rounded,
-      iconColor: const Color(0xFF0891B2),
-      iconBgColor: const Color(0xFFCFFAFE),
-      badgeText: 'ANNOUNCEMENT',
-      badgeColor: const Color(0xFF0891B2),
-      badgeTextColor: Colors.white,
-      isUnread: false,
-      featureId: 'events',
-      metadata: {
-        'Event Dates': 'Sept 20 - Sept 22, 2026',
-        'Venue': 'SRM Main Campus',
-        'Registration': 'Open to All Branches',
-      },
-    ),
-  ];
-
-  void addNotification({
-    required String title,
-    required String category,
-    required String summary,
-    required String fullDetails,
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-    required String badgeText,
-    required Color badgeColor,
-    required Color badgeTextColor,
-    String? featureId,
-    Map<String, String>? metadata,
-  }) {
-    final newItem = NotificationItem(
-      id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
-      title: title,
-      category: category,
-      timeAgo: 'Just now',
-      summary: summary,
-      fullDetails: fullDetails,
-      icon: icon,
-      iconColor: iconColor,
-      iconBgColor: iconBgColor,
-      badgeText: badgeText,
-      badgeColor: badgeColor,
-      badgeTextColor: badgeTextColor,
-      isUnread: true,
-      featureId: featureId,
-      metadata: metadata,
-    );
-    state = state.copyWith(items: [newItem, ...state.items]);
+  NotificationNotifier(this._repository, this._currentUser)
+      : super(NotificationState(items: _initialNotifications)) {
+    _listenToNotifications();
   }
 
-  void setCategory(String category) {
+  void _listenToNotifications() {
+    final user = _currentUser;
+    final userId = user?.uid ?? 'DEMO-STU';
+    final userRole = user?.role.name ?? 'student';
+    final userDept = user?.metadata?['department'] ?? user?.metadata?['department_name'];
+
+    _repository.watchUserNotifications(
+      userId,
+      userRole: userRole,
+      department: userDept?.toString(),
+    ).listen((models) {
+      if (models.isNotEmpty) {
+        final items = models.map((m) => NotificationItem.fromModel(m)).toList();
+        state = state.copyWith(items: items);
+      }
+    });
+  }
+
+  void selectCategory(String category) {
     state = state.copyWith(selectedCategory: category);
   }
 
@@ -299,7 +275,47 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     state = state.copyWith(searchQuery: query);
   }
 
-  void markAsRead(String id) {
+  void setFilterType(String type) {
+    state = state.copyWith(filterType: type);
+  }
+
+  void setFilterPriority(String priority) {
+    state = state.copyWith(filterPriority: priority);
+  }
+
+  Future<void> addNotification({
+    NotificationItem? item,
+    String? title,
+    String? category,
+    String? summary,
+    String? fullDetails,
+    IconData? icon,
+    Color? iconColor,
+    Color? iconBgColor,
+    String? badgeText,
+    Color? badgeColor,
+    Color? badgeTextColor,
+    String? priority,
+    String? type,
+  }) async {
+    final newItem = item ??
+        NotificationItem.fromModel(
+          NotificationModel(
+            id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
+            title: title ?? 'Notification',
+            message: summary ?? fullDetails ?? '',
+            type: type ?? 'automated',
+            category: category ?? 'General',
+            priority: priority ?? 'medium',
+            createdAt: DateTime.now(),
+            recipientUserIds: [_currentUser?.uid ?? 'DEMO-STU'],
+          ),
+        );
+    state = state.copyWith(items: [newItem, ...state.items]);
+    await _repository.sendNotification(newItem.rawModel);
+  }
+
+  Future<void> markAsRead(String id) async {
     final updatedItems = state.items.map((item) {
       if (item.id == id) {
         return item.copyWith(isUnread: false);
@@ -307,14 +323,87 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
       return item;
     }).toList();
     state = state.copyWith(items: updatedItems);
+    await _repository.markAsRead(id, userId: _currentUser?.uid ?? 'DEMO-STU');
   }
 
-  void markAllAsRead() {
+  Future<void> markAllAsRead() async {
     final updatedItems = state.items.map((item) => item.copyWith(isUnread: false)).toList();
     state = state.copyWith(items: updatedItems);
+    await _repository.markAllAsRead(_currentUser?.uid ?? 'DEMO-STU');
   }
+
+  static List<NotificationItem> get _initialNotifications => [
+        NotificationItem.fromModel(NotificationModel(
+          id: 'notif-demo-1',
+          title: '🚨 CRITICAL: Low Attendance Alert',
+          message: 'Your overall attendance has fallen to 74.5%, which is below the required 75% minimum threshold.',
+          type: 'automated',
+          category: 'Attendance',
+          priority: 'critical',
+          senderId: 'system_rule_attendance',
+          senderName: 'System Automation Engine',
+          recipientType: 'user',
+          recipientUserIds: ['DEMO-STU'],
+          targetRoles: ['student'],
+          relatedModule: 'attendance',
+          createdAt: DateTime.now().subtract(const Duration(minutes: 25)),
+          isRead: false,
+        )),
+        NotificationItem.fromModel(NotificationModel(
+          id: 'notif-demo-2',
+          title: '⏰ Assignment Due Tomorrow',
+          message: 'Computer Networks Socket Programming assignment is due in 1 day (Tomorrow, 11:59 PM).',
+          type: 'automated',
+          category: 'Academic',
+          priority: 'high',
+          senderId: 'system_rule_assignments',
+          senderName: 'System Automation Engine',
+          recipientType: 'user',
+          recipientUserIds: ['DEMO-STU'],
+          targetRoles: ['student'],
+          relatedModule: 'assignment',
+          createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+          isRead: false,
+        )),
+        NotificationItem.fromModel(NotificationModel(
+          id: 'notif-demo-3',
+          title: '📢 Department Circular: End-Sem Exam Rules',
+          message: 'Dr. R. Kumar published end-semester examination guidelines for Computer Science Department.',
+          type: 'manual',
+          category: 'Academic',
+          priority: 'medium',
+          senderId: 'DEMO-HOD',
+          senderName: 'Dr. R. Kumar',
+          senderRole: 'HOD',
+          recipientType: 'department',
+          targetDepartment: 'Computer Science',
+          relatedModule: 'exam',
+          createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+          isRead: true,
+        )),
+        NotificationItem.fromModel(NotificationModel(
+          id: 'notif-demo-4',
+          title: '🎯 Placement Drive: Google SWE Campus Recruitment',
+          message: 'Applications are open for Google SWE On-Campus Recruitment Drive. Deadline: 24th August.',
+          type: 'manual',
+          category: 'Career',
+          priority: 'high',
+          senderId: 'DEMO-ADM',
+          senderName: 'Placement Office',
+          recipientType: 'role',
+          targetRoles: ['student'],
+          relatedModule: 'placement',
+          createdAt: DateTime.now().subtract(const Duration(days: 1)),
+          isRead: false,
+        )),
+      ];
 }
 
 final notificationProvider = StateNotifierProvider<NotificationNotifier, NotificationState>((ref) {
-  return NotificationNotifier();
+  // Ensure scheduler is triggered
+  ref.watch(notificationSchedulerProvider);
+
+  final repository = ref.watch(notificationRepositoryProvider);
+  final currentUser = ref.watch(authServiceProvider).currentUser;
+  return NotificationNotifier(repository, currentUser);
 });

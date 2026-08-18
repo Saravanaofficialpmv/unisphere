@@ -47,44 +47,44 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 0,
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.manrope(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      textTheme: GoogleFonts.poppinsTextTheme().copyWith(
-        displayLarge: GoogleFonts.poppins(
+      textTheme: GoogleFonts.manropeTextTheme().copyWith(
+        displayLarge: GoogleFonts.manrope(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        displayMedium: GoogleFonts.poppins(
+        displayMedium: GoogleFonts.manrope(
           fontSize: 28,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        titleLarge: GoogleFonts.poppins(
+        titleLarge: GoogleFonts.manrope(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        titleMedium: GoogleFonts.poppins(
+        titleMedium: GoogleFonts.manrope(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        bodyLarge: GoogleFonts.poppins(
+        bodyLarge: GoogleFonts.manrope(
           fontSize: 16,
           fontWeight: FontWeight.normal,
           color: AppColors.textPrimary,
         ),
-        bodyMedium: GoogleFonts.poppins(
+        bodyMedium: GoogleFonts.manrope(
           fontSize: 14,
           fontWeight: FontWeight.normal,
           color: AppColors.textSecondary,
         ),
-        labelLarge: GoogleFonts.poppins(
+        labelLarge: GoogleFonts.manrope(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: AppColors.textTertiary,

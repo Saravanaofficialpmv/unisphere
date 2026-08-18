@@ -18,23 +18,45 @@ import 'package:unisphere/screens/features/github_detail_screen.dart';
 
 import 'package:unisphere/widgets/common/custom_loader.dart';
 
+import 'dart:async';
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  late final StreamSubscription<dynamic> _subscription;
+
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
 final authStateProvider = StreamProvider<UserModel?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
 });
 
+final routerNotifierProvider = Provider<GoRouterRefreshStream>((ref) {
+  return GoRouterRefreshStream(ref.watch(authServiceProvider).authStateChanges);
+});
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+  final refreshListenable = ref.watch(routerNotifierProvider);
+  final authService = ref.watch(authServiceProvider);
 
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: refreshListenable,
     redirect: (context, state) {
-      final isLoading = authState.isLoading;
-      final user = authState.value;
+      final user = authService.currentUser;
       final isAuth = user != null;
 
-      debugPrint('Router: isLoading=$isLoading, isAuth=$isAuth, path=${state.matchedLocation}');
-
-      if (isLoading) return null;
+      debugPrint('Router: isAuth=$isAuth, path=${state.matchedLocation}');
 
       final isSplash = state.matchedLocation == '/splash';
       final isLogin = state.matchedLocation == '/login';
@@ -48,7 +70,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/onboarding';
       }
 
-      if (isAuth && (isLogin || isSplash || isOnboarding)) {
+      if (isAuth && (isLogin || isSignup || isSplash || isOnboarding)) {
         switch (user.role) {
           case UserRole.admin:
             return '/admin';

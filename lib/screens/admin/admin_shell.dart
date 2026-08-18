@@ -13,6 +13,8 @@ import 'package:unisphere/screens/admin/modules/department_management.dart';
 import 'package:unisphere/screens/admin/modules/attendance_management.dart';
 import 'package:unisphere/screens/admin/modules/report_management.dart';
 import 'package:unisphere/screens/admin/modules/role_management.dart';
+import 'package:unisphere/screens/admin/modules/admin_notification_settings_screen.dart';
+import 'package:unisphere/screens/common/manual_notification_composer_screen.dart';
 
 class AdminShell extends ConsumerStatefulWidget {
   const AdminShell({super.key});
@@ -30,6 +32,8 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     SidebarItem(label: 'Dashboard', icon: Icons.grid_view_rounded),
     SidebarItem(label: 'User Management', icon: Icons.people_outline_rounded),
     SidebarItem(label: 'Departments', icon: Icons.business_rounded, badge: 'New'),
+    SidebarItem(label: 'Manual Notifications', icon: Icons.send_rounded, badge: 'Composer'),
+    SidebarItem(label: 'Notification Rules', icon: Icons.notifications_active_rounded, badge: 'Auto'),
     SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
     SidebarItem(label: 'Institutional Academics', icon: Icons.school_outlined),
     SidebarItem(label: 'Marks Center', icon: Icons.star_outline_rounded),
@@ -45,14 +49,16 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     const AdminDashboard(), // 0: Dashboard
     const UserManagementModule(), // 1: Users
     const DepartmentManagementModule(), // 2: Departments
-    const AnnouncementManagementModule(), // 3: Announcements
-    const Center(child: Text('Institutional Academics')), // 4
-    const Center(child: Text('Marks Center')), // 5
-    const AttendanceManagementModule(), // 6: Attendance Monitoring
-    const ReportManagementModule(), // 7: Performance Intelligence
-    const RoleManagementModule(), // 8: Access & Governance
-    const Center(child: Text('Performance Analytics')), // 9
-    const Center(child: Text('General Settings')), // 10
+    const ManualNotificationComposerScreen(), // 3: Manual Notifications
+    const AdminNotificationSettingsScreen(), // 4: Automation Rules
+    const AnnouncementManagementModule(), // 5: Announcements
+    const Center(child: Text('Institutional Academics')), // 6
+    const Center(child: Text('Marks Center')), // 7
+    const AttendanceManagementModule(), // 8: Attendance Monitoring
+    const ReportManagementModule(), // 9: Performance Intelligence
+    const RoleManagementModule(), // 10: Access & Governance
+    const Center(child: Text('Performance Analytics')), // 11
+    const Center(child: Text('General Settings')), // 12
   ];
 
   @override

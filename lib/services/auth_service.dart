@@ -16,6 +16,8 @@ abstract class AuthService {
     String? phoneNumber,
     Map<String, dynamic>? metadata,
   });
+  Future<void> signInWithGoogle();
+  Future<void> signInWithApple();
   Future<void> updateUserProfile(UserModel updatedUser);
   Future<void> sendPasswordResetEmail(String email);
   Future<void> signOut();
@@ -100,7 +102,7 @@ class SupabaseAuthService implements AuthService {
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'saravanapmvofficial@gmail.com') {
+    if (lowerEmail == 'student@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: 'Demo Student', role: UserRole.student);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
@@ -156,6 +158,30 @@ class SupabaseAuthService implements AuthService {
       role: role,
       phoneNumber: phoneNumber,
       metadata: metadata,
+    );
+    _currentUser = _mockUser;
+    _stateController.add(_mockUser);
+  }
+
+  @override
+  Future<void> signInWithGoogle() async {
+    _mockUser = UserModel(
+      uid: 'DEMO-GGL-USER',
+      email: 'alex.google@unisphere.edu',
+      name: 'Alex Johnson (Google)',
+      role: UserRole.student,
+    );
+    _currentUser = _mockUser;
+    _stateController.add(_mockUser);
+  }
+
+  @override
+  Future<void> signInWithApple() async {
+    _mockUser = UserModel(
+      uid: 'DEMO-APL-USER',
+      email: 'alex.apple@unisphere.edu',
+      name: 'Alex Johnson (Apple)',
+      role: UserRole.student,
     );
     _currentUser = _mockUser;
     _stateController.add(_mockUser);

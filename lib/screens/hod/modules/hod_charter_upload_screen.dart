@@ -15,6 +15,16 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
   late TabController _tabController;
 
   // Controllers for Live Vision, Mission, PEOs & PSOs
+  final TextEditingController _instVisionController = TextEditingController(
+    text:
+        'We endeavor to impart futuristic technical education of the highest quality to the student community and to inculcate discipline in them to face the world with self-confidence and thus we prepare them for life as responsible citizens to uphold human values and to be of service at large. We strive to bring up the Institution as an Institution of academic excellence of international standard.',
+  );
+
+  final TextEditingController _instMissionController = TextEditingController(
+    text:
+        'We transform persons into personalities by the state-of-the-art infrastructure, time consciousness, quick response and the best academic practices through assessment and advice.',
+  );
+
   final TextEditingController _visionController = TextEditingController(
     text:
         'To emerge as a premier centre of excellence in Artificial Intelligence and Data Science by creating globally competent professionals, advancing impactful research, fostering innovation and entrepreneurship, and developing ethical, intelligent technologies for a sustainable and inclusive society.',
@@ -85,11 +95,26 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
     },
   ];
 
-  // CO-PO Mapping Matrix (5 COs x 12 POs)
+  // CO-PO Mapping Matrix (5 COs x 11 POs)
   final List<List<int>> _coPoMatrix = List.generate(
     5,
-    (coIndex) => List.generate(12, (poIndex) => (coIndex + poIndex) % 3 + 1),
+    (coIndex) => List.generate(11, (poIndex) => (coIndex + poIndex) % 3 + 1),
   );
+
+  // PO-PSO Correlation Matrix (11 POs x 3 PSOs)
+  final List<List<int>> _poPsoMatrix = [
+    [3, 3, 2], // PO1
+    [3, 3, 2], // PO2
+    [3, 3, 3], // PO3
+    [3, 3, 2], // PO4
+    [3, 3, 3], // PO5
+    [1, 2, 3], // PO6
+    [2, 2, 3], // PO7
+    [2, 2, 3], // PO8
+    [2, 2, 3], // PO9
+    [2, 3, 3], // PO10
+    [3, 3, 3], // PO11
+  ];
 
   bool _isUploading = false;
 
@@ -427,13 +452,41 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // Vision Section
+        // Institute Vision & Mission Section
+        _buildSectionTitle('🏛️ Institute Vision & Mission'),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _instVisionController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            labelText: 'Vision of the Institute',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _instMissionController,
+          maxLines: 2,
+          decoration: InputDecoration(
+            labelText: 'Mission of the Institute',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Department Vision Section
         _buildSectionTitle('🎯 Department Vision'),
         const SizedBox(height: 8),
         TextField(
           controller: _visionController,
           maxLines: 3,
           decoration: InputDecoration(
+            labelText: 'Vision of the Department',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             filled: true,
             fillColor: Colors.white,
@@ -443,7 +496,7 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
         const SizedBox(height: 24),
 
         // Mission Section
-        _buildSectionTitle('🚀 Department Mission (4 Pillars)'),
+        _buildSectionTitle('🚀 Department Mission (4 Pillars M1–M4)'),
         const SizedBox(height: 8),
         ...List.generate(_missionControllers.length, (i) {
           return Padding(
@@ -506,22 +559,11 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
     );
   }
 
-  // ── Tab 3: CO-PO Mapping Matrix ──────────────────────
+  // ── Tab 3: CO-PO & PO-PSO Mapping Matrix ──────────────────────
   Widget _buildCoPoMatrixTab() {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Text(
-          'Course Outcome (CO) to Program Outcome (PO) Mapping',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Set mapping correlation levels for each Course Outcome against Program Outcomes (1 = Low, 2 = Medium, 3 = High):',
-          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-        ),
-        const SizedBox(height: 16),
-
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Container(
@@ -534,13 +576,13 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
               columnSpacing: 16,
               columns: [
                 const DataColumn(label: Text('COs', style: TextStyle(fontWeight: FontWeight.bold))),
-                ...List.generate(12, (i) => DataColumn(label: Text('PO${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold)))),
+                ...List.generate(11, (i) => DataColumn(label: Text('PO${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold)))),
               ],
               rows: List.generate(5, (coIdx) {
                 return DataRow(
                   cells: [
                     DataCell(Text('CO ${coIdx + 1}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))),
-                    ...List.generate(12, (poIdx) {
+                    ...List.generate(11, (poIdx) {
                       final val = _coPoMatrix[coIdx][poIdx];
                       return DataCell(
                         DropdownButton<int>(
@@ -555,6 +597,56 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
                             if (newVal != null) {
                               setState(() {
                                 _coPoMatrix[coIdx][poIdx] = newVal;
+                              });
+                            }
+                          },
+                        ),
+                      );
+                    }),
+                  ],
+                );
+              }),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: DataTable(
+              columnSpacing: 24,
+              columns: const [
+                DataColumn(label: Text('Program Outcomes', style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('PSO 1 (AI Systems)', style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('PSO 2 (Analytics)', style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('PSO 3 (Intell. MLOps)', style: TextStyle(fontWeight: FontWeight.bold))),
+              ],
+              rows: List.generate(11, (poIdx) {
+                return DataRow(
+                  cells: [
+                    DataCell(Text('PO ${poIdx + 1}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))),
+                    ...List.generate(3, (psoIdx) {
+                      final val = _poPsoMatrix[poIdx][psoIdx];
+                      return DataCell(
+                        DropdownButton<int>(
+                          value: val,
+                          underline: const SizedBox(),
+                          items: const [
+                            DropdownMenuItem(value: 1, child: Text('1 (Low)')),
+                            DropdownMenuItem(value: 2, child: Text('2 (Med)')),
+                            DropdownMenuItem(value: 3, child: Text('3 (High)')),
+                          ],
+                          onChanged: (newVal) {
+                            if (newVal != null) {
+                              setState(() {
+                                _poPsoMatrix[poIdx][psoIdx] = newVal;
                               });
                             }
                           },

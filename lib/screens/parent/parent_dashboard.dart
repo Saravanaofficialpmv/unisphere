@@ -8,6 +8,7 @@ import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/screens/features/fees_screen.dart';
+import 'package:unisphere/screens/profile/profile_screen.dart';
 
 class StudentWard {
   final String id;
@@ -72,7 +73,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
       ParentAttendanceDetailTab(onNavigateToTab: _handleNavigation),
       ParentAcademicPerformanceTab(onNavigateToTab: _handleNavigation),
       const Center(child: Text('Primary Institution Alerts')),
-      const Center(child: Text('Account Profile Settings')),
+      ProfileScreen(onBack: () => _handleNavigation(0)),
       FeesScreen(onBack: () => _handleNavigation(0)),
       const Center(child: Text('School Transport Map')),
     ];
@@ -148,7 +149,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
               const SizedBox(width: 10),
               Text(
                 'PARENT PORTAL',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.manrope(
                   fontWeight: FontWeight.w800,
                   fontSize: 15,
                   letterSpacing: 1.1,
@@ -353,7 +354,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                         child: Center(
                           child: Text(
                             'RK',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               fontSize: 16,
@@ -369,7 +370,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                           children: [
                             Text(
                               'Rajesh Kumar',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.manrope(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -379,7 +380,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                             ),
                             Text(
                               'Parent',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.manrope(
                                 fontSize: 12,
                                 color: Colors.white.withValues(alpha: 0.8),
                                 fontWeight: FontWeight.w400,
@@ -440,7 +441,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                         children: [
                           Text(
                             'Active Student',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                               color: AppColors.textSecondary,
@@ -454,7 +455,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                             children: [
                               Text(
                                 _selectedWard.name,
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.manrope(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textPrimary,
@@ -468,7 +469,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                                 ),
                                 child: Text(
                                   'Active',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.manrope(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF15803D),
@@ -528,7 +529,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                   constraints: const BoxConstraints(minWidth: 15, minHeight: 15),
                   child: Text(
                     '$badgeCount',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.manrope(
                       fontSize: 8,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -558,7 +559,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
           children: [
             Text(
               'Select Active Student Ward',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.manrope(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -567,7 +568,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
             const SizedBox(height: 4),
             Text(
               'Switch profile view to monitor another student ward',
-              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
+              style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 16),
             ..._wards.map((ward) {
@@ -595,11 +596,11 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                   ),
                   title: Text(
                     ward.name,
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   subtitle: Text(
                     '${ward.department} • ${ward.yearSection}',
-                    style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
+                    style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary),
                   ),
                   trailing: isSelected
                       ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
@@ -653,7 +654,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 child: Center(
                   child: Text(
                     _selectedWard.avatarInitials,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.manrope(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -671,7 +672,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                         Expanded(
                           child: Text(
                             _selectedWard.name,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -687,7 +688,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                           ),
                           child: Text(
                             _selectedWard.academicStatus,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               color: Colors.white,
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -699,7 +700,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Reg. No: ${_selectedWard.regNo}',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.manrope(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -754,14 +755,14 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
               children: [
                 Text(
                   label,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.manrope(
                     fontSize: 10,
                     color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
                 Text(
                   value,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.manrope(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -879,7 +880,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 children: [
                   Text(
                     label,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.manrope(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textSecondary,
@@ -900,7 +901,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 children: [
                   Text(
                     value,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.manrope(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -913,7 +914,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                       Expanded(
                         child: Text(
                           subtitle,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.manrope(
                             fontSize: 10,
                             color: AppColors.textTertiary,
                           ),
@@ -1014,7 +1015,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 ),
                 child: Text(
                   '4/4 Attended',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.manrope(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF059669),
@@ -1054,7 +1055,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                       children: [
                         Text(
                           '${c['code']} • ${c['name']}',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.manrope(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -1062,7 +1063,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                         ),
                         Text(
                           '${c['time']}  (${c['room']})',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.manrope(
                             fontSize: 11,
                             color: AppColors.textSecondary,
                           ),
@@ -1078,7 +1079,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                     ),
                     child: Text(
                       c['status']!,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.manrope(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: isPresent ? const Color(0xFF059669) : const Color(0xFFD97706),
@@ -1125,7 +1126,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 },
                 child: Text(
                   'Full Breakdown',
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                  style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
                 ),
               ),
             ],
@@ -1143,7 +1144,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                       children: [
                         Text(
                           sub['name'],
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.manrope(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
@@ -1151,7 +1152,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                         ),
                         Text(
                           '${sub['score']} (${sub['grade']})',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.manrope(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: sub['color'],
@@ -1201,7 +1202,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 ),
                 child: Text(
                   'PAID & VERIFIED',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.manrope(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF059669),
@@ -1234,7 +1235,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
               icon: const Icon(Icons.receipt_long_rounded, size: 18),
               label: Text(
                 'View Detailed Fee Structure & E-Receipts',
-                style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold),
+                style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold),
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
@@ -1263,14 +1264,14 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
         children: [
           Text(
             title,
-            style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textSecondary),
+            style: GoogleFonts.manrope(fontSize: 10, color: AppColors.textSecondary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
             amount,
-            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: color),
+            style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: color),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1354,7 +1355,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                                 ),
                                 child: Text(
                                   ann['tag']!,
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.manrope(
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -1364,14 +1365,14 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                               const SizedBox(width: 8),
                               Text(
                                 ann['date']!,
-                                style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textTertiary),
+                                style: GoogleFonts.manrope(fontSize: 10, color: AppColors.textTertiary),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Text(
                             ann['title']!,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -1380,7 +1381,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                           const SizedBox(height: 2),
                           Text(
                             ann['desc']!,
-                            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary),
+                            style: GoogleFonts.manrope(fontSize: 11, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
@@ -1450,7 +1451,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                         children: [
                           Text(
                             f['name']!,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -1458,7 +1459,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                           ),
                           Text(
                             '${f['role']} • ${f['dept']}',
-                            style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textSecondary),
+                            style: GoogleFonts.manrope(fontSize: 10, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
@@ -1545,7 +1546,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                         children: [
                           Text(
                             ach['title']!,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -1554,7 +1555,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                           const SizedBox(height: 2),
                           Text(
                             '${ach['category']} • ${ach['date']}',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               fontSize: 11,
                               color: const Color(0xFFB45309),
                             ),
@@ -1576,7 +1577,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.poppins(
+      style: GoogleFonts.manrope(
         fontSize: 16,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
@@ -1616,7 +1617,7 @@ class ParentAttendanceDetailTab extends StatelessWidget {
               ),
               Text(
                 'Complete Attendance Log',
-                style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
             ],
           ),
@@ -1642,7 +1643,7 @@ class ParentAttendanceDetailTab extends StatelessWidget {
                   radius: 40.0,
                   lineWidth: 8.0,
                   percent: 0.885,
-                  center: Text('88.5%', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+                  center: Text('88.5%', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
                   progressColor: Colors.white,
                   backgroundColor: Colors.white24,
                 ),
@@ -1651,10 +1652,10 @@ class ParentAttendanceDetailTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('OVERALL ATTENDANCE', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.bold)),
-                      Text('Alex Johnson • B.Tech CSE', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text('OVERALL ATTENDANCE', style: GoogleFonts.manrope(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.bold)),
+                      Text('Alex Johnson • B.Tech CSE', style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                       const SizedBox(height: 4),
-                      Text('131 / 147 Total Classes Attended (8.5% above cutoff)', style: GoogleFonts.poppins(fontSize: 12, color: Colors.white.withValues(alpha: 0.9))),
+                      Text('131 / 147 Total Classes Attended (8.5% above cutoff)', style: GoogleFonts.manrope(fontSize: 12, color: Colors.white.withValues(alpha: 0.9))),
                     ],
                   ),
                 ),
@@ -1663,7 +1664,7 @@ class ParentAttendanceDetailTab extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
-          Text('Subject-wise Attendance', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          Text('Subject-wise Attendance', style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           const SizedBox(height: 12),
 
           Column(
@@ -1683,7 +1684,7 @@ class ParentAttendanceDetailTab extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text('${s['code']} - ${s['name']}', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 14)),
+                          child: Text('${s['code']} - ${s['name']}', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -1691,7 +1692,7 @@ class ParentAttendanceDetailTab extends StatelessWidget {
                             color: const Color(0xFFD1FAE5),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(s['status'], style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF059669))),
+                          child: Text(s['status'], style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF059669))),
                         ),
                       ],
                     ),
@@ -1699,8 +1700,8 @@ class ParentAttendanceDetailTab extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${s['attended']} attended out of ${s['total']} classes', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
-                        Text('${(p * 100).toStringAsFixed(1)}%', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF059669))),
+                        Text('${s['attended']} attended out of ${s['total']} classes', style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary)),
+                        Text('${(p * 100).toStringAsFixed(1)}%', style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF059669))),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -1745,7 +1746,7 @@ class ParentAcademicPerformanceTab extends StatelessWidget {
               ),
               Text(
                 'Academic Performance Marks',
-                style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
             ],
           ),
@@ -1770,8 +1771,8 @@ class ParentAcademicPerformanceTab extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('CUMULATIVE GRADE POINT AVERAGE', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.bold)),
-                    Text('8.92', style: GoogleFonts.poppins(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white)),
+                    Text('CUMULATIVE GRADE POINT AVERAGE', style: GoogleFonts.manrope(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.bold)),
+                    Text('8.92', style: GoogleFonts.manrope(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white)),
                   ],
                 ),
                 const Spacer(),
@@ -1781,10 +1782,10 @@ class ParentAcademicPerformanceTab extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(14)),
-                      child: Text('Rank: #12 in Dept', style: GoogleFonts.poppins(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                      child: Text('Rank: #12 in Dept', style: GoogleFonts.manrope(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 6),
-                    Text('48 / 160 Credits Earned', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11)),
+                    Text('48 / 160 Credits Earned', style: GoogleFonts.manrope(color: Colors.white70, fontSize: 11)),
                   ],
                 ),
               ],
@@ -1792,7 +1793,7 @@ class ParentAcademicPerformanceTab extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
-          Text('Semester Grades & SGPA Summary', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          Text('Semester Grades & SGPA Summary', style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           const SizedBox(height: 12),
 
           _buildSemesterCard('Semester 4 (Autumn 2025)', '9.12', 'O Grade', [
@@ -1825,8 +1826,8 @@ class ParentAcademicPerformanceTab extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 14)),
-              Text('SGPA: $sgpa', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary)),
+              Text(title, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text('SGPA: $sgpa', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary)),
             ],
           ),
           const Divider(height: 20),
@@ -1835,8 +1836,8 @@ class ParentAcademicPerformanceTab extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(s['subject']!, style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
-                    Text('${s['marks']} (${s['grade']})', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(s['subject']!, style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary)),
+                    Text('${s['marks']} (${s['grade']})', style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
               )),
@@ -1964,8 +1965,8 @@ class MiniStatCard extends StatelessWidget {
               child: Icon(icon, color: iconColor, size: 14),
             ),
             const SizedBox(height: 4),
-            Text(val, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
-            Text(label, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 9, color: const Color(0xFF64748B))),
+            Text(val, style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+            Text(label, textAlign: TextAlign.center, style: GoogleFonts.manrope(fontSize: 9, color: const Color(0xFF64748B))),
           ],
         ),
       ),
@@ -2029,13 +2030,13 @@ class AttendanceSubjectCard extends StatelessWidget {
                   children: [
                     Text(
                       '$code $name',
-                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                      style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       faculty,
-                      style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B)),
+                      style: GoogleFonts.manrope(fontSize: 11, color: const Color(0xFF64748B)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -2048,12 +2049,12 @@ class AttendanceSubjectCard extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(ratio, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
+                      Text(ratio, style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
-                        child: Text(percentStr, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
+                        child: Text(percentStr, style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
                       ),
                       const SizedBox(width: 4),
                       const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFF94A3B8)),
@@ -2065,7 +2066,7 @@ class AttendanceSubjectCard extends StatelessWidget {
                     children: [
                       Container(width: 6, height: 6, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
                       const SizedBox(width: 4),
-                      Text(status, style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF64748B))),
+                      Text(status, style: GoogleFonts.manrope(fontSize: 10, color: const Color(0xFF64748B))),
                     ],
                   ),
                 ],
@@ -2130,11 +2131,11 @@ class AttendanceOverviewDialog extends StatelessWidget {
                       children: [
                         Text(
                           'Attendance Overview',
-                          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                          style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                         ),
                         Text(
                           '$studentName ($registerNum)',
-                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF64748B)),
+                          style: GoogleFonts.manrope(fontSize: 13, color: const Color(0xFF64748B)),
                         ),
                         const SizedBox(height: 8),
                         Wrap(
@@ -2154,7 +2155,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     'Good Standing',
-                                    style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF15803D)),
+                                    style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF15803D)),
                                   ),
                                 ],
                               ),
@@ -2172,7 +2173,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     'Semester: Jan – May 2025',
-                                    style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF2563EB)),
+                                    style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF2563EB)),
                                   ),
                                 ],
                               ),
@@ -2217,12 +2218,12 @@ class AttendanceOverviewDialog extends StatelessWidget {
                         children: [
                           Text(
                             '88.5%',
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.w800, fontSize: 18, color: const Color(0xFF0F172A)),
+                            style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 18, color: const Color(0xFF0F172A)),
                           ),
                           Text(
                             'Overall\nAttendance',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(fontSize: 9, color: const Color(0xFF64748B), height: 1.1),
+                            style: GoogleFonts.manrope(fontSize: 9, color: const Color(0xFF64748B), height: 1.1),
                           ),
                         ],
                       ),
@@ -2247,7 +2248,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(
                                   'SAFE • ABOVE 80%',
-                                  style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF15803D)),
+                                  style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF15803D)),
                                 ),
                               ],
                             ),
@@ -2255,7 +2256,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             'You\'re maintaining excellent attendance!',
-                            style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B)),
+                            style: GoogleFonts.manrope(fontSize: 11, color: const Color(0xFF64748B)),
                           ),
                           const SizedBox(height: 12),
                           const Row(
@@ -2316,7 +2317,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Great job! Keep your attendance above 80% to maintain your academic standing.',
-                        style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF3730A3), fontWeight: FontWeight.w500),
+                        style: GoogleFonts.manrope(fontSize: 11, color: const Color(0xFF3730A3), fontWeight: FontWeight.w500),
                       ),
                     ),
                     const Icon(Icons.close_rounded, color: Color(0xFF6366F1), size: 16),
@@ -2333,7 +2334,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Subject Breakdown',
-                      style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                      style: GoogleFonts.manrope(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -2351,7 +2352,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                       children: [
                         Text(
                           'Sort by: Percentage',
-                          style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
+                          style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
                         ),
                         const SizedBox(width: 4),
                         const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Color(0xFF475569)),
@@ -2464,12 +2465,12 @@ class AttendanceOverviewDialog extends StatelessWidget {
                             children: [
                               Text(
                                 'Keep It Up!',
-                                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF6D28D9)),
+                                style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF6D28D9)),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 'You\'re doing great! Your attendance is above the required 80% threshold.',
-                                style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF7C3AED), height: 1.2),
+                                style: GoogleFonts.manrope(fontSize: 11, color: const Color(0xFF7C3AED), height: 1.2),
                               ),
                             ],
                           ),
@@ -2489,7 +2490,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                             radius: 18.0,
                             lineWidth: 4.0,
                             percent: 0.885,
-                            center: Text('88.5%', style: GoogleFonts.poppins(fontSize: 8, fontWeight: FontWeight.bold, color: const Color(0xFF6D28D9))),
+                            center: Text('88.5%', style: GoogleFonts.manrope(fontSize: 8, fontWeight: FontWeight.bold, color: const Color(0xFF6D28D9))),
                             progressColor: const Color(0xFF7C3AED),
                             backgroundColor: const Color(0xFFDDD6FE),
                           ),
@@ -2498,8 +2499,8 @@ class AttendanceOverviewDialog extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Target Goal: 90%', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF6D28D9))),
-                                Text('Attend 16 more classes to reach 90% target', style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF7C3AED))),
+                                Text('Target Goal: 90%', style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF6D28D9))),
+                                Text('Attend 16 more classes to reach 90% target', style: GoogleFonts.manrope(fontSize: 10, color: const Color(0xFF7C3AED))),
                               ],
                             ),
                           ),
@@ -2519,7 +2520,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () {},
                       icon: const Icon(Icons.download_rounded, size: 18),
-                      label: Text('Download Report', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13)),
+                      label: Text('Download Report', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF1E293B),
                         side: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -2552,7 +2553,7 @@ class AttendanceOverviewDialog extends StatelessWidget {
                           }
                         },
                         icon: const Icon(Icons.calendar_month_rounded, size: 18),
-                        label: Text('Open Complete Attendance Log', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 11)),
+                        label: Text('Open Complete Attendance Log', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 11)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
@@ -2616,11 +2617,11 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                       children: [
                         Text(
                           'CGPA & Grade Analytics',
-                          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                          style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                         ),
                         Text(
                           '$studentName ($registerNum)',
-                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF64748B)),
+                          style: GoogleFonts.manrope(fontSize: 13, color: const Color(0xFF64748B)),
                         ),
                         const SizedBox(height: 8),
                         Wrap(
@@ -2640,7 +2641,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     'Top 10% Rank',
-                                    style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF15803D)),
+                                    style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF15803D)),
                                   ),
                                 ],
                               ),
@@ -2658,7 +2659,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     'Semester 5 Active',
-                                    style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF2563EB)),
+                                    style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF2563EB)),
                                   ),
                                 ],
                               ),
@@ -2702,12 +2703,12 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                         children: [
                           Text(
                             '8.92',
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.w800, fontSize: 20, color: const Color(0xFF0F172A)),
+                            style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 20, color: const Color(0xFF0F172A)),
                           ),
                           Text(
                             'Overall\nCGPA',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(fontSize: 9, color: const Color(0xFF64748B), height: 1.1),
+                            style: GoogleFonts.manrope(fontSize: 9, color: const Color(0xFF64748B), height: 1.1),
                           ),
                         ],
                       ),
@@ -2732,7 +2733,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(
                                   'EXCELLENT • CLASS FIRST',
-                                  style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF15803D)),
+                                  style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF15803D)),
                                 ),
                               ],
                             ),
@@ -2740,7 +2741,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             'Consistently maintaining Grade A+ & O across technical courses.',
-                            style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B)),
+                            style: GoogleFonts.manrope(fontSize: 11, color: const Color(0xFF64748B)),
                           ),
                           const SizedBox(height: 12),
                           const Row(
@@ -2800,7 +2801,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Outstanding performance! CGPA >= 8.50 qualifies for Institutional Merit Scholarship.',
-                        style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF6D28D9), fontWeight: FontWeight.w500),
+                        style: GoogleFonts.manrope(fontSize: 11, color: const Color(0xFF6D28D9), fontWeight: FontWeight.w500),
                       ),
                     ),
                     const Icon(Icons.close_rounded, color: Color(0xFF8B5CF6), size: 16),
@@ -2816,7 +2817,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Semester 5 Internal Marks',
-                      style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                      style: GoogleFonts.manrope(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -2834,7 +2835,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                       children: [
                         Text(
                           'Sort by: Score',
-                          style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
+                          style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
                         ),
                         const SizedBox(width: 4),
                         const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Color(0xFF475569)),
@@ -2928,12 +2929,12 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                         children: [
                           Text(
                             'Target 9.0+ CGPA Milestone',
-                            style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF1E40AF)),
+                            style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF1E40AF)),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Maintaining current 9.12 SGPA pace will comfortably elevate cumulative CGPA past 9.00 threshold.',
-                            style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF1D4ED8), height: 1.2),
+                            style: GoogleFonts.manrope(fontSize: 11, color: const Color(0xFF1D4ED8), height: 1.2),
                           ),
                         ],
                       ),
@@ -2950,7 +2951,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () {},
                       icon: const Icon(Icons.download_rounded, size: 18),
-                      label: Text('Download Marksheet', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 12)),
+                      label: Text('Download Marksheet', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 12)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF1E293B),
                         side: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -2983,7 +2984,7 @@ class CgpaAnalyticsDialog extends StatelessWidget {
                           }
                         },
                         icon: const Icon(Icons.bar_chart_rounded, size: 18),
-                        label: Text('Open Full Grade History', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 11)),
+                        label: Text('Open Full Grade History', style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 11)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
@@ -3050,13 +3051,13 @@ class FeeDetailsDialog extends StatelessWidget {
                             children: [
                               Text(
                                 'Fee Structure & Payments',
-                                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 '$studentName • Academic Year 2025 – 2026',
-                                style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
+                                style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -3143,7 +3144,7 @@ class FeeDetailsDialog extends StatelessWidget {
                   children: [
                     Text(
                       'NET TOTAL ANNUAL FEE',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.manrope(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textSecondary,
@@ -3152,7 +3153,7 @@ class FeeDetailsDialog extends StatelessWidget {
                     ),
                     Text(
                       '₹1,10,000',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.manrope(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF2563EB),
@@ -3166,7 +3167,7 @@ class FeeDetailsDialog extends StatelessWidget {
 
               Text(
                 'Semester Installment Schedule',
-                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 10),
               Container(
@@ -3193,11 +3194,11 @@ class FeeDetailsDialog extends StatelessWidget {
                         children: [
                           Text(
                             'Semester 5 Fee Installment',
-                            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                           ),
                           Text(
                             'Paid on 15 Jun 2025',
-                            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary),
+                            style: GoogleFonts.manrope(fontSize: 11, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
@@ -3207,7 +3208,7 @@ class FeeDetailsDialog extends StatelessWidget {
                       children: [
                         Text(
                           '₹62,500',
-                          style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -3217,7 +3218,7 @@ class FeeDetailsDialog extends StatelessWidget {
                           ),
                           child: Text(
                             'PAID',
-                            style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
+                            style: GoogleFonts.manrope(fontSize: 9, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
                           ),
                         ),
                       ],
@@ -3244,7 +3245,7 @@ class FeeDetailsDialog extends StatelessWidget {
                   icon: const Icon(Icons.receipt_long_rounded, size: 18),
                   label: Text(
                     'Open Full Fee Structure & E-Receipts',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -3295,7 +3296,7 @@ class FeeDetailsDialog extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                     ),
                     if (badgeText != null) ...[
@@ -3308,7 +3309,7 @@ class FeeDetailsDialog extends StatelessWidget {
                         ),
                         child: Text(
                           badgeText,
-                          style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.bold, color: const Color(0xFF166534)),
+                          style: GoogleFonts.manrope(fontSize: 9, fontWeight: FontWeight.bold, color: const Color(0xFF166534)),
                         ),
                       ),
                     ],
@@ -3317,7 +3318,7 @@ class FeeDetailsDialog extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   desc,
-                  style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+                  style: GoogleFonts.manrope(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
                 ),
               ],
             ),
@@ -3325,7 +3326,7 @@ class FeeDetailsDialog extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             amount,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.manrope(
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: isDiscount ? const Color(0xFF166534) : AppColors.textPrimary,
@@ -3385,13 +3386,13 @@ class AcademicStandingDialog extends StatelessWidget {
                             children: [
                               Text(
                                 'Academic Standing',
-                                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 studentName,
-                                style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
+                                style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -3425,7 +3426,7 @@ class AcademicStandingDialog extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text('Close Academic Profile', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text('Close Academic Profile', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -3461,12 +3462,12 @@ class AcademicStandingDialog extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.manrope(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   val,
-                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: valColor),
+                  style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: valColor),
                 ),
               ],
             ),

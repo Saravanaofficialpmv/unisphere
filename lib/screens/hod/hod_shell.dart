@@ -20,6 +20,7 @@ import 'modules/hod_reports_analytics.dart';
 import 'modules/hod_settings.dart';
 import 'modules/hod_charter_upload_screen.dart';
 import '../staff/modules/staff_nptel_verification_screen.dart';
+import '../common/manual_notification_composer_screen.dart';
 
 class HodShell extends ConsumerStatefulWidget {
   const HodShell({super.key});
@@ -35,6 +36,7 @@ class _HodShellState extends ConsumerState<HodShell> {
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
+    SidebarItem(label: 'Dept Notifications', icon: Icons.send_rounded, badge: 'HOD'),
     SidebarItem(label: 'Staff Management', icon: Icons.badge_outlined),
     SidebarItem(label: 'Student Management', icon: Icons.school_outlined),
     SidebarItem(label: 'NPTEL Cert. Verification', icon: Icons.verified_user_outlined, badge: 'NPTEL'),
@@ -57,6 +59,7 @@ class _HodShellState extends ConsumerState<HodShell> {
     super.initState();
     _screens = [
       HodHomeDashboard(onNavigate: _handleNavigation),
+      const ManualNotificationComposerScreen(),
       const HodStaffManagement(),
       const HodStudentManagement(),
       const StaffNptelVerificationScreen(),

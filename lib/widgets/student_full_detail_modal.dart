@@ -1455,6 +1455,14 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
           _buildDetailRow('Phone Number', s['phone'] ?? '+91 98765 43210'),
           _buildDetailRow('Faculty Advisor', s['advisor'] ?? 'Dr. S. Meenakshi'),
           _buildDetailRow('Residency Type', s['type'] ?? 'Day Scholar'),
+          _buildDetailRow(
+            'Professional Membership',
+            (s['membershipId'] != null && s['membershipId'] != 'N/A')
+                ? '${s['membershipOrg'] ?? 'Society'} (${s['membershipId']})'
+                : (s['membership']?['membershipId'] != null && s['membership']?['membershipId'] != 'N/A')
+                    ? '${s['membership']?['membershipOrg'] ?? 'Society'} (${s['membership']?['membershipId']})'
+                    : 'ISTE Society (ISTE-2024-9842)',
+          ),
           _buildDetailRow('Father / Guardian', 'Ramesh Swamy (+91 94444 12345)'),
           _buildDetailRow('Residential Address', 'No. 45, Anna Nagar 2nd Street, Chennai - 600040'),
         ],

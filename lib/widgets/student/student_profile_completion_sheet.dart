@@ -37,7 +37,7 @@ class _StudentProfileCompletionSheetState
   String? _dob;
   String? _gender;
   String? _bloodGroup;
-  String _nationality = 'Indian';
+  final String _nationality = 'Indian';
   String? _religion;
   String? _community;
   final _casteController = TextEditingController();
@@ -147,9 +147,9 @@ class _StudentProfileCompletionSheetState
   final _pickupTimeController = TextEditingController();
   String? _vehicleType;
   final _vehicleRegNoController = TextEditingController();
-  String _driverType = 'Student';
+  final String _driverType = 'Student';
   bool _parkingPermission = true;
-  bool _licenceAvailable = true;
+  final bool _licenceAvailable = true;
   final _distanceController = TextEditingController(text: '12 km');
   final _travelTimeController = TextEditingController(text: '30 mins');
   final _arrivalTimeController = TextEditingController(text: '08:25 AM');
@@ -191,6 +191,13 @@ class _StudentProfileCompletionSheetState
         if (draft['dob'] != null) _dob = draft['dob'];
         if (draft['primaryMobile'] != null) _primaryMobileController.text = draft['primaryMobile'];
         if (draft['permLine1'] != null) _permLine1Controller.text = draft['permLine1'];
+        if (draft['permCity'] != null) _permCityController.text = draft['permCity'];
+        if (draft['permState'] != null) _permStateController.text = draft['permState'];
+        if (draft['permPincode'] != null) _permPincodeController.text = draft['permPincode'];
+        if (draft['currLine1'] != null) _currLine1Controller.text = draft['currLine1'];
+        if (draft['currCity'] != null) _currCityController.text = draft['currCity'];
+        if (draft['currState'] != null) _currStateController.text = draft['currState'];
+        if (draft['currPincode'] != null) _currPincodeController.text = draft['currPincode'];
         if (draft['fatherName'] != null) _fatherNameController.text = draft['fatherName'];
         if (draft['fatherPhone'] != null) _fatherPhoneController.text = draft['fatherPhone'];
         if (draft['motherName'] != null) _motherNameController.text = draft['motherName'];
@@ -221,6 +228,13 @@ class _StudentProfileCompletionSheetState
       'dob': _dob,
       'primaryMobile': _primaryMobileController.text,
       'permLine1': _permLine1Controller.text,
+      'permCity': _permCityController.text,
+      'permState': _permStateController.text,
+      'permPincode': _permPincodeController.text,
+      'currLine1': _currLine1Controller.text,
+      'currCity': _currCityController.text,
+      'currState': _currStateController.text,
+      'currPincode': _currPincodeController.text,
       'fatherName': _fatherNameController.text,
       'fatherPhone': _fatherPhoneController.text,
       'motherName': _motherNameController.text,
@@ -563,6 +577,7 @@ class _StudentProfileCompletionSheetState
 
     final profileMap = profile.toMap();
     profileMap['verificationStatus'] = 'pending_hod';
+    profileMap['completionPercentage'] = _progressPercentage;
 
     await ref.read(firebaseFirestoreServiceProvider).submitFullStudentProfile(profileMap);
 
@@ -1007,7 +1022,7 @@ class _StudentProfileCompletionSheetState
           title: const Text('First Graduate in Family?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
           value: _isFirstGraduate,
           onChanged: (val) => setState(() => _isFirstGraduate = val),
-          activeColor: const Color(0xFF2563EB),
+          activeThumbColor: const Color(0xFF2563EB),
         ),
         SwitchListTile(
           title: const Text('Differently Abled?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -1078,9 +1093,11 @@ class _StudentProfileCompletionSheetState
           children: [
             Expanded(child: _buildTextField(_permCityController, 'City / Town', 'Karur')),
             const SizedBox(width: 12),
-            Expanded(child: _buildTextField(_permPincodeController, 'Pincode', '639001')),
+            Expanded(child: _buildTextField(_permPincodeController, 'Pincode', '639002')),
           ],
         ),
+        const SizedBox(height: 8),
+        _buildTextField(_permStateController, 'State', 'Tamil Nadu'),
         const SizedBox(height: 16),
 
         Row(
@@ -1100,11 +1117,13 @@ class _StudentProfileCompletionSheetState
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _buildTextField(_currCityController, 'City', 'Karur')),
+              Expanded(child: _buildTextField(_currCityController, 'City / Town', 'Karur')),
               const SizedBox(width: 12),
-              Expanded(child: _buildTextField(_currPincodeController, 'Pincode', '639001')),
+              Expanded(child: _buildTextField(_currPincodeController, 'Pincode', '639002')),
             ],
           ),
+          const SizedBox(height: 8),
+          _buildTextField(_currStateController, 'State', 'Tamil Nadu'),
         ],
       ],
     );
@@ -1485,7 +1504,7 @@ class _StudentProfileCompletionSheetState
         const SizedBox(height: 12),
         _buildSummaryCard('Contact & Address', [
           'Mobile: ${_primaryMobileController.text}',
-          'Permanent: ${_permLine1Controller.text}, ${_permCityController.text}',
+          'Permanent: ${_permLine1Controller.text}, ${_permCityController.text}, ${_permStateController.text} - ${_permPincodeController.text}',
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Parents Details', [

@@ -12,6 +12,7 @@ import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:unisphere/core/constants/app_departments.dart';
 import 'package:unisphere/widgets/student/student_profile_edit_request_modal.dart';
+import 'package:unisphere/widgets/student/student_membership_modal.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -171,6 +172,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
+                            useRootNavigator: true,
                             backgroundColor: Colors.transparent,
                             builder: (_) => const StudentProfileEditRequestModal(),
                           );
@@ -392,6 +394,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
           _buildInfoRow('Register / ID No.', regNo),
         ]),
 
+        if (currentUser?.role == UserRole.student) _buildMembershipSectionCard(currentUser),
+
         const SizedBox(height: 20),
         _buildSectionHeader('📞 Contact Details'),
         _buildCard([
@@ -504,6 +508,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
           ),
         ]),
         const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  Widget _buildMembershipSectionCard(UserModel? currentUser) {
+    final meta = currentUser?.metadata ?? {};
+    final hasMembership = meta['hasMembership'];
+    final org = meta['membershipOrg']?.toString() ?? 'None';
+    final memId = meta['membershipId']?.toString() ?? 'N/A';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        _buildSectionHeader('🏅 Technical & Professional Society Membership'),
+        _buildCard([
+          _buildInfoRow(
+            'Has Membership?',
+            hasMembership == true ? 'Yes' : (hasMembership == false ? 'No' : 'Unrecorded'),
+            isBadge: true,
+            badgeColor: hasMembership == true ? Colors.green.shade100 : Colors.amber.shade100,
+            badgeTextColor: hasMembership == true ? Colors.green.shade900 : Colors.amber.shade900,
+          ),
+          _buildInfoRow('Society / Body', org),
+          _buildInfoRow('Membership ID', memId),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => StudentMembershipModal.show(context),
+                icon: const Icon(Icons.verified_user_outlined, size: 16),
+                label: Text(hasMembership != null ? 'Update Membership Details' : 'Record Society Membership'),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  side: const BorderSide(color: AppColors.primary),
+                ),
+              ),
+            ),
+          ),
+        ]),
       ],
     );
   }
@@ -1511,22 +1556,89 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
           IconButton(
             icon: const Icon(Icons.remove_red_eye_outlined, color: AppColors.primary, size: 20),
             tooltip: 'View Document',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Viewing $title')),
-              );
-            },
+            onPressed: () => _showDocumentPreviewModal(context, title, subtitle),
           ),
           IconButton(
             icon: const Icon(Icons.download_outlined, color: AppColors.textSecondary, size: 20),
             tooltip: 'Download',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Downloading $title...')),
+                SnackBar(content: Text('Downloading $title...'), backgroundColor: AppColors.primary),
               );
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDocumentPreviewModal(BuildContext context, String title, String subtitle) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          width: 380,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const Divider(),
+              const SizedBox(height: 12),
+              Container(
+                height: 160,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.picture_as_pdf_rounded, size: 44, color: Colors.blue.shade700),
+                    const SizedBox(height: 8),
+                    Text('OFFICIAL VERIFIED DOCUMENT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.blue.shade900)),
+                    const SizedBox(height: 4),
+                    Text(subtitle, style: TextStyle(fontSize: 11, color: Colors.blue.shade700)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.green.shade700, borderRadius: BorderRadius.circular(12)),
+                      child: const Text('SEALED BY REGISTRAR OFFICE ✓', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Downloading official $title PDF...'), backgroundColor: AppColors.primary),
+                  );
+                },
+                icon: const Icon(Icons.download_rounded, size: 18),
+                label: const Text('Download Official PDF Document'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1769,13 +1881,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.phone_in_talk_outlined, size: 14, color: Colors.red.shade700),
-                  const SizedBox(width: 4),
-                  Text('Emergency Hotline: +91 44 2250 0100', style: TextStyle(fontSize: 11, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
-                ],
+              InkWell(
+                onTap: () async {
+                  final uri = Uri.parse('tel:+914422500100');
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri);
+                  }
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.phone_in_talk_outlined, size: 14, color: Colors.red.shade700),
+                      const SizedBox(width: 4),
+                      Text('Emergency Hotline: +91 44 2250 0100 📞', style: TextStyle(fontSize: 11, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

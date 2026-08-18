@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
-import 'package:unisphere/core/features/feature_registry.dart';
 import 'package:unisphere/providers/notification_provider.dart';
-import 'package:unisphere/screens/features/feature_hub_screen.dart';
 
 void showNotificationSheet(
   BuildContext context, {
@@ -44,7 +42,7 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
     final unreadCount = state.unreadCount;
     final items = state.filteredItems;
 
-    final categories = ['All', 'Features', 'Academic', 'Finance', 'Alerts', 'Events'];
+    final categories = ['All', 'Academic', 'Attendance', 'Finance', 'Career', 'Events', 'System'];
 
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
@@ -102,8 +100,8 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                             runSpacing: 2,
                             children: [
                               Text(
-                                'Notifications',
-                                style: GoogleFonts.poppins(
+                                'Notification Center',
+                                style: GoogleFonts.manrope(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textPrimary,
@@ -118,7 +116,7 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                                   ),
                                   child: Text(
                                     '$unreadCount NEW',
-                                    style: GoogleFonts.poppins(
+                                    style: GoogleFonts.manrope(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
@@ -128,10 +126,10 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                             ],
                           ),
                           Text(
-                            'Feature releases, updates & notices',
+                            'Automated alerts, system rules & notices',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                               fontSize: 12,
                               color: AppColors.textSecondary,
                             ),
@@ -153,7 +151,7 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Search Bar
               Padding(
@@ -162,8 +160,8 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                   controller: _searchController,
                   onChanged: (val) => notifier.setSearchQuery(val),
                   decoration: InputDecoration(
-                    hintText: 'Search notification feature details...',
-                    hintStyle: GoogleFonts.poppins(fontSize: 13, color: AppColors.textTertiary),
+                    hintText: 'Search notifications by title or category...',
+                    hintStyle: GoogleFonts.manrope(fontSize: 13, color: AppColors.textTertiary),
                     prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.textSecondary),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
@@ -195,7 +193,7 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
 
               const SizedBox(height: 12),
 
-              // Filter Category Chips
+              // Category Filter Chips
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -207,7 +205,7 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                       child: FilterChip(
                         selected: isSelected,
                         label: Text(cat),
-                        labelStyle: GoogleFonts.poppins(
+                        labelStyle: GoogleFonts.manrope(
                           fontSize: 12,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                           color: isSelected ? Colors.white : AppColors.textPrimary,
@@ -222,14 +220,14 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        onSelected: (_) => notifier.setCategory(cat),
+                        onSelected: (_) => notifier.selectCategory(cat),
                       ),
                     );
                   }).toList(),
                 ),
               ),
 
-              const Divider(height: 24, thickness: 1, color: AppColors.border),
+              const Divider(height: 20, thickness: 1, color: AppColors.border),
 
               // Notification List
               Expanded(
@@ -242,18 +240,10 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                             const SizedBox(height: 12),
                             Text(
                               'No notifications found',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.manrope(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Try adjusting your search or category filter',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: AppColors.textTertiary,
                               ),
                             ),
                           ],
@@ -263,10 +253,10 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
                         controller: scrollController,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         itemCount: items.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final item = items[index];
-                          return _buildNotificationCard(context, item, ref);
+                          return _buildNotificationCard(context, item, notifier);
                         },
                       ),
               ),
@@ -277,417 +267,174 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
     );
   }
 
-  Widget _buildNotificationCard(BuildContext context, NotificationItem item, WidgetRef ref) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _showFeatureDetailsModal(context, item, ref),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: item.isUnread ? item.iconBgColor.withValues(alpha: 0.25) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: item.isUnread ? item.iconColor.withValues(alpha: 0.4) : AppColors.border,
-              width: item.isUnread ? 1.5 : 1.0,
-            ),
-            boxShadow: [
+  Widget _buildNotificationCard(BuildContext context, NotificationItem item, NotificationNotifier notifier) {
+    return InkWell(
+      onTap: () {
+        notifier.markAsRead(item.id);
+        _handleNotificationNavigation(context, item);
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: item.isUnread ? const Color(0xFFEFF6FF) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: item.isUnread ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border,
+            width: item.isUnread ? 1.5 : 1,
+          ),
+          boxShadow: [
+            if (item.isUnread)
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: AppColors.primary.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Icon Container
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: item.iconBgColor,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(item.icon, color: item.iconColor, size: 24),
-              ),
-              const SizedBox(width: 14),
-
-              // Content Area
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.title,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: item.isUnread ? FontWeight.bold : FontWeight.w600,
-                              color: AppColors.textPrimary,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                        if (item.isUnread) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 9,
-                            height: 9,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Badge Tag + Category + Time Row
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: item.badgeColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            item.badgeText,
-                            style: GoogleFonts.poppins(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: item.badgeTextColor,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '•  ${item.category}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          '•  ${item.timeAgo}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: AppColors.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Summary preview
-                    Text(
-                      item.summary,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        height: 1.4,
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // Action hint line
-                    Row(
-                      children: [
-                        Text(
-                          'Tap to view feature details',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: item.iconColor,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_rounded, size: 14, color: item.iconColor),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          ],
         ),
-      ),
-    );
-  }
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Category Icon
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: item.iconBgColor,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(item.icon, color: item.iconColor, size: 22),
+            ),
+            const SizedBox(width: 14),
 
-  void _showFeatureDetailsModal(BuildContext context, NotificationItem item, WidgetRef ref) {
-    // Mark notification as read upon opening feature details
-    ref.read(notificationProvider.notifier).markAsRead(item.id);
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 540),
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header Banner
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: item.iconBgColor,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(item.icon, color: item.iconColor, size: 30),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: item.badgeColor,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              item.badgeText,
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: item.badgeTextColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            item.title,
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                              height: 1.25,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${item.category}  •  ${item.timeAgo}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-                const Divider(height: 1, thickness: 1, color: AppColors.border),
-                const SizedBox(height: 20),
-
-                // Feature Full Details Section
-                Text(
-                  'Feature Description & Details',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Text(
-                    item.fullDetails,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-
-                // Key Metadata Grid (if available)
-                if (item.metadata != null && item.metadata!.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  Text(
-                    'Key Feature Information',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: item.metadata!.entries.map((entry) {
-                      return Container(
-                        width: (MediaQuery.of(dialogContext).size.width > 500 ? 230 : 140),
-                        padding: const EdgeInsets.all(12),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      // Priority Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              entry.key.toUpperCase(),
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textTertiary,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              entry.value,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-
-                const SizedBox(height: 24),
-
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(dialogContext).pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          side: const BorderSide(color: AppColors.border),
+                          color: item.badgeColor,
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Close',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                          item.badgeText,
+                          style: GoogleFonts.manrope(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: item.badgeTextColor,
                           ),
                         ),
                       ),
-                    ),
-                    if (item.featureId != null) ...[
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.of(dialogContext).pop(); // close feature details dialog
-                            Navigator.of(context).pop(); // close notification sheet
+                      const SizedBox(width: 6),
 
-                            _launchFeature(context, item.featureId!);
-                          },
-                          icon: const Icon(Icons.rocket_launch_rounded, size: 18),
-                          label: Text(
-                            'Open Feature',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
+                      // Source Badge (Automated vs Manual)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: item.type == 'automated' ? const Color(0xFFF3E8FF) : const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          item.type == 'automated' ? '⚙️ AUTOMATED' : '👤 MANUAL',
+                          style: GoogleFonts.manrope(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: item.type == 'automated' ? const Color(0xFF7E22CE) : const Color(0xFF0369A1),
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: item.iconColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
+                        ),
+                      ),
+                      const Spacer(),
+
+                      // Time Ago
+                      Text(
+                        item.timeAgo,
+                        style: GoogleFonts.manrope(
+                          fontSize: 11,
+                          color: AppColors.textTertiary,
                         ),
                       ),
                     ],
-                  ],
-                ),
-              ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Title
+                  Text(
+                    item.title,
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
+                      fontWeight: item.isUnread ? FontWeight.bold : FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // Summary
+                  Text(
+                    item.summary,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Action Footer
+                  Row(
+                    children: [
+                      Text(
+                        'Category: ${item.category}',
+                        style: GoogleFonts.manrope(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'Tap to view module ➔',
+                        style: GoogleFonts.manrope(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  void _launchFeature(BuildContext context, String featureId) {
-    if (featureId == 'gradebook') {
-      if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(4); // Gradebook tab
-        return;
-      }
-    } else if (featureId == 'timetable') {
-      if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(1); // Timetable tab
-        return;
-      }
-    } else if (featureId == 'attendance') {
-      if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(3); // Attendance tab
-        return;
-      }
-    }
+  void _handleNotificationNavigation(BuildContext context, NotificationItem item) {
+    final module = item.metadata?['related_module']?.toLowerCase() ?? item.category.toLowerCase();
+    Navigator.of(context).pop(); // Close sheet
 
-    final allFeatures = FeatureRegistry.getAllFeatures();
-    final match = allFeatures.where((f) => f.id == featureId);
-
-    if (match.isNotEmpty) {
-      final feature = match.first;
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (ctx) => feature.routeBuilder(ctx),
-        ),
-      );
-    } else {
-      // Fallback to Feature Hub Screen
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (ctx) => FeatureHubScreen(
-            onNavigateToTab: widget.onNavigateToTab,
-          ),
-        ),
-      );
+    if (widget.onNavigateToTab != null) {
+      if (module.contains('att')) {
+        widget.onNavigateToTab!(1); // Attendance tab
+      } else if (module.contains('assign') || module.contains('acad')) {
+        widget.onNavigateToTab!(2); // Academics tab
+      } else if (module.contains('exam')) {
+        widget.onNavigateToTab!(3); // Exams tab
+      } else if (module.contains('fee') || module.contains('fin')) {
+        widget.onNavigateToTab!(4); // Finance tab
+      } else if (module.contains('place') || module.contains('car')) {
+        widget.onNavigateToTab!(5); // Placement tab
+      }
     }
   }
 }

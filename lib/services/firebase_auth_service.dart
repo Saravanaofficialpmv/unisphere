@@ -140,11 +140,12 @@ class FirebaseAuthService implements AuthService {
   }
 
   @override
+  @override
   Future<void> signInWithEmail(String email, String password) async {
     final lowerEmail = email.toLowerCase().trim();
 
-    // DEMO BYPASS ACCOUNTS (Only for exact designated demo emails)
-    if (lowerEmail == 'hod.cse@unisphere.edu') {
+    // DEMO BYPASS ACCOUNTS (Only for designated exact demo accounts)
+    if (lowerEmail == 'hod.cse@unisphere.edu' || lowerEmail == 'hod@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-HOD', email: email, name: 'Dr. R. Kumar', role: UserRole.hod);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
@@ -156,26 +157,28 @@ class FirebaseAuthService implements AuthService {
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'staff@unisphere.edu') {
+    if (lowerEmail == 'staff@unisphere.edu' || lowerEmail == 'faculty@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-STF', email: email, name: 'Demo Staff', role: UserRole.staff);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
-    if (lowerEmail == 'saravanapmvofficial@gmail.com') {
-      _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: 'Demo Student', role: UserRole.student);
+    if (lowerEmail == 'student@unisphere.edu') {
+      _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: 'Student Demo', role: UserRole.student);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'parent@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-PRT', email: email, name: 'Demo Parent', role: UserRole.parent);
+      _mockUser = UserModel(uid: 'DEMO-PRT', email: email, name: 'Rajesh Kumar', role: UserRole.parent);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
 
-    // REAL FIREBASE SIGN IN WITH REALTIME HANDLER
+    // REAL USER SIGN IN: Clear mock user state first!
+    _mockUser = null;
+
     final auth = _auth ?? FirebaseAuth.instance;
     try {
       final credential = await auth.signInWithEmailAndPassword(
@@ -188,9 +191,66 @@ class FirebaseAuthService implements AuthService {
       }
     } on FirebaseAuthException catch (e) {
       debugPrint('Firebase Auth Sign In Error: ${e.code} - ${e.message}');
+      // If user does not exist in Firebase Auth yet, automatically register them in Firebase Console!
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        try {
+          final newCred = await auth.createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: password,
+          );
+          if (newCred.user != null) {
+            final name = email.contains('@') ? email.split('@').first : email;
+            final newUser = UserModel(
+              uid: newCred.user!.uid,
+              email: email.trim(),
+              name: name,
+              role: UserRole.student,
+            );
+            await saveUserData(newUser);
+            _handleFirebaseUserChange(newCred.user);
+            return;
+          }
+        } catch (regErr) {
+          debugPrint('Firebase auto-registration notice: $regErr');
+        }
+      }
       throw e.message ?? e.code;
     } catch (e) {
-      debugPrint('Firebase Auth sign in attempt notice: $e');
+      debugPrint('Firebase Auth sign in error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> signInWithGoogle() async {
+    _mockUser = null;
+    final auth = _auth ?? FirebaseAuth.instance;
+    try {
+      final googleProvider = GoogleAuthProvider();
+      final credential = await auth.signInWithProvider(googleProvider);
+      if (credential.user != null) {
+        _handleFirebaseUserChange(credential.user);
+        return;
+      }
+    } catch (e) {
+      debugPrint('Firebase Google Sign-In notice: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> signInWithApple() async {
+    _mockUser = null;
+    final auth = _auth ?? FirebaseAuth.instance;
+    try {
+      final appleProvider = OAuthProvider('apple.com');
+      final credential = await auth.signInWithProvider(appleProvider);
+      if (credential.user != null) {
+        _handleFirebaseUserChange(credential.user);
+        return;
+      }
+    } catch (e) {
+      debugPrint('Firebase Apple Sign-In notice: $e');
       rethrow;
     }
   }
@@ -205,12 +265,15 @@ class FirebaseAuthService implements AuthService {
     Map<String, dynamic>? metadata,
   }) async {
     final lowerEmail = email.toLowerCase().trim();
-    if (lowerEmail == 'saravanapmvofficial@gmail.com') {
+    if (lowerEmail == 'student@unisphere.edu') {
       _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: name, role: UserRole.student);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
+
+    // REAL USER REGISTRATION: Clear mock user state first!
+    _mockUser = null;
 
     final auth = _auth ?? FirebaseAuth.instance;
     try {
@@ -237,6 +300,16 @@ class FirebaseAuthService implements AuthService {
       }
     } on FirebaseAuthException catch (e) {
       debugPrint('Firebase Registration Error: ${e.code} - ${e.message}');
+      if (e.code == 'email-already-in-use') {
+        final cred = await auth.signInWithEmailAndPassword(
+          email: email.trim(),
+          password: password,
+        );
+        if (cred.user != null) {
+          _handleFirebaseUserChange(cred.user);
+          return;
+        }
+      }
       throw e.message ?? e.code;
     } catch (e) {
       debugPrint('Firebase Registration Exception: $e');

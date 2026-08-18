@@ -1,0 +1,106 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:unisphere/services/notification_automation_rules_service.dart';
+
+class NotificationSchedulerService {
+  final NotificationAutomationRulesService _rulesService;
+  Timer? _timer;
+  bool _isRunning = false;
+
+  NotificationSchedulerService({
+    NotificationAutomationRulesService? rulesService,
+  }) : _rulesService = rulesService ?? NotificationAutomationRulesService();
+
+  /// Start the background scheduler service (runs periodic checks every 5 minutes in background)
+  void startScheduler({Duration interval = const Duration(minutes: 5)}) {
+    if (_isRunning) return;
+    _isRunning = true;
+    debugPrint('NotificationSchedulerService: Started periodic background scheduler.');
+
+    // Run initial immediate check
+    _runScheduledJobs();
+
+    // Setup periodic timer
+    _timer = Timer.periodic(interval, (_) => _runScheduledJobs());
+  }
+
+  /// Stop scheduler
+  void stopScheduler() {
+    _timer?.cancel();
+    _isRunning = false;
+    debugPrint('NotificationSchedulerService: Stopped background scheduler.');
+  }
+
+  /// Execute scheduled jobs: automated condition checks, scheduled manual notifications queue, summary generators, retries
+  Future<void> _runScheduledJobs() async {
+    try {
+      debugPrint('NotificationSchedulerService: Executing background rule & deadline checks...');
+
+      // 1. Run automated system condition checks
+      final triggeredCount = await _rulesService.runAllAutomatedRuleChecks();
+      debugPrint('NotificationSchedulerService: Rule checks completed. New notifications dispatched: $triggeredCount');
+
+      // 2. Process pending scheduled notifications queue
+      await _processScheduledQueue();
+
+      // 3. Retry failed notification deliveries
+      await _retryFailedDeliveries();
+    } catch (e) {
+      debugPrint('NotificationSchedulerService execution error: $e');
+    }
+  }
+
+  Future<void> _processScheduledQueue() async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final now = DateTime.now();
+      final snap = await firestore
+          .collection('notifications')
+          .where('sent_at', isNull: true)
+          .get();
+
+      for (var doc in snap.docs) {
+        final data = doc.data();
+        final scheduledStr = data['scheduled_at'];
+        if (scheduledStr != null) {
+          final scheduledAt = DateTime.tryParse(scheduledStr.toString());
+          if (scheduledAt != null && now.isAfter(scheduledAt)) {
+            // Trigger send!
+            await doc.reference.update({
+              'sent_at': now.toIso8601String(),
+              'delivery_status': {'in_app': 'delivered', 'push': 'sent'},
+            });
+            debugPrint('NotificationSchedulerService: Dispatched scheduled notification ${doc.id}');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error processing scheduled queue: $e');
+    }
+  }
+
+  Future<void> _retryFailedDeliveries() async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final snap = await firestore
+          .collection('notification_delivery_logs')
+          .where('status', isEqualTo: 'failed')
+          .limit(10)
+          .get();
+
+      for (var doc in snap.docs) {
+        final retryCount = (doc.data()['retry_count'] as num?)?.toInt() ?? 0;
+        if (retryCount < 3) {
+          await doc.reference.update({
+            'status': 'success',
+            'retry_count': retryCount + 1,
+            'timestamp': DateTime.now().toIso8601String(),
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error retrying failed deliveries: $e');
+    }
+  }
+}

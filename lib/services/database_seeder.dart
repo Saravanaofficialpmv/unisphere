@@ -12,6 +12,7 @@ import 'package:unisphere/models/hackathon_model.dart';
 import 'package:unisphere/models/hackathon_registration_model.dart';
 import 'package:unisphere/models/mark_model.dart';
 import 'package:unisphere/models/notification_model.dart';
+import 'package:unisphere/models/notification_rule_model.dart';
 import 'package:unisphere/models/project_model.dart';
 import 'package:unisphere/models/student_model.dart';
 import 'package:unisphere/models/submission_model.dart';
@@ -39,6 +40,9 @@ class DatabaseSeeder {
             'semester': 'Semester VI',
             'section': 'Sec B',
             'verificationStatus': 'verified',
+            'hasMembership': true,
+            'membershipOrg': 'ISTE',
+            'membershipId': 'ISTE-2024-9842',
           },
         ),
         UserModel(
@@ -99,9 +103,13 @@ class DatabaseSeeder {
 
       for (var u in users) {
         await _firestore.collection('users').doc(u.uid).set(u.toMap(), SetOptions(merge: true));
+        final regNo = u.metadata?['registerNumber']?.toString();
+        if (regNo != null && regNo.isNotEmpty) {
+          await _firestore.collection('users').doc(regNo).set(u.toMap(), SetOptions(merge: true));
+        }
       }
 
-      // 2. Seed Student Profiles
+      // 2. Seed Student Profiles (Stored under unique Register Number & Student UID)
       final students = [
         StudentModel(
           studentId: 'STU-101',
@@ -116,6 +124,9 @@ class DatabaseSeeder {
           admissionYear: 2022,
           cgpa: '8.92',
           attendancePercent: '88.5',
+          hasMembership: true,
+          membershipOrg: 'ISTE',
+          membershipId: 'ISTE-2024-9842',
         ),
         StudentModel(
           studentId: 'STU-102',
@@ -130,11 +141,42 @@ class DatabaseSeeder {
           admissionYear: 2022,
           cgpa: '9.15',
           attendancePercent: '92.0',
+          hasMembership: true,
+          membershipOrg: 'CSI',
+          membershipId: 'CSI-2024-5519',
         ),
       ];
 
       for (var st in students) {
+        // Save under student ID and under unique Register Number doc ID
         await _firestore.collection('students').doc(st.studentId).set(st.toMap(), SetOptions(merge: true));
+        await _firestore.collection('students').doc(st.registerNumber).set(st.toMap(), SetOptions(merge: true));
+
+        // Also seed complete 360° profile under unique Register Number doc ID in student_profiles
+        final profileDoc = {
+          'studentUid': st.userId,
+          'registerNumber': st.registerNumber,
+          'completionStatus': 'completed',
+          'completionPercentage': 100,
+          'personal': {
+            'fullName': 'Alex Johnson',
+            'registerNumber': st.registerNumber,
+            'department': st.departmentName,
+            'collegeEmail': 'saravanapmvofficial@gmail.com',
+            'gender': 'Male',
+            'bloodGroup': 'O+',
+          },
+          'hasMembership': st.hasMembership,
+          'membershipOrg': st.membershipOrg,
+          'membershipId': st.membershipId,
+          'membership': {
+            'hasMembership': st.hasMembership,
+            'membershipOrg': st.membershipOrg,
+            'membershipId': st.membershipId,
+          },
+        };
+        await _firestore.collection('student_profiles').doc(st.registerNumber).set(profileDoc, SetOptions(merge: true));
+        await _firestore.collection('student_profiles').doc(st.userId).set(profileDoc, SetOptions(merge: true));
       }
 
       // 3. Seed Faculty Members
@@ -666,39 +708,105 @@ class DatabaseSeeder {
         await _firestore.collection('submissions').doc(sub.id).set(sub.toMap(), SetOptions(merge: true));
       }
 
-      // 15. Seed Notifications
+      // 15. Seed Notifications & Notification Automation Rules
       final notifications = [
         NotificationModel(
           id: 'notif-1',
-          targetUserId: 'DEMO-STU',
-          title: '🎉 NPTEL Certificate Verified',
-          message: 'Your Cloud Computing NPTEL certificate has been verified by HOD Dr. R. Kumar.',
-          type: 'Certification',
+          title: '🚨 CRITICAL: Low Attendance Alert',
+          message: 'Your overall attendance has fallen to 74.5%, which is below the required 75% minimum threshold.',
+          type: 'automated',
+          category: 'Attendance',
+          priority: 'critical',
+          senderId: 'system_rule_attendance',
+          senderName: 'System Automation Engine',
+          recipientType: 'user',
+          recipientUserIds: ['DEMO-STU'],
+          targetRoles: ['student'],
+          relatedModule: 'attendance',
+          createdAt: DateTime.now().subtract(const Duration(minutes: 25)),
           isRead: false,
-          createdAt: DateTime.now().subtract(const Duration(hours: 1)),
         ),
         NotificationModel(
           id: 'notif-2',
-          targetUserId: 'ALL',
           title: '📅 End-Semester Examination Schedule Released',
           message: 'The final timetable for Semester VI examinations is now available on your portal.',
-          type: 'Exam',
-          isRead: true,
+          type: 'manual',
+          category: 'Academic',
+          priority: 'high',
+          senderId: 'DEMO-HOD',
+          senderName: 'Dr. R. Kumar',
+          senderRole: 'HOD',
+          recipientType: 'department',
+          targetDepartment: 'Computer Science',
+          recipientUserIds: ['DEMO-STU', 'DEMO-STF'],
+          targetRoles: ['student', 'staff'],
+          relatedModule: 'exam',
           createdAt: DateTime.now().subtract(const Duration(days: 1)),
+          isRead: true,
         ),
         NotificationModel(
           id: 'notif-3',
-          targetUserId: 'DEMO-STU',
           title: '📝 Grade Updated: Computer Networks Socket Programming',
           message: 'Dr. Robert Vance graded your assignment with 95/100.',
-          type: 'Assignment',
-          isRead: false,
+          type: 'automated',
+          category: 'Academic',
+          priority: 'medium',
+          senderId: 'system_rule_assignments',
+          senderName: 'System Automation Engine',
+          recipientType: 'user',
+          recipientUserIds: ['DEMO-STU'],
+          targetRoles: ['student'],
+          relatedModule: 'assignment',
           createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+          isRead: false,
         ),
       ];
 
       for (var n in notifications) {
         await _firestore.collection('notifications').doc(n.id).set(n.toMap(), SetOptions(merge: true));
+      }
+
+      final defaultRules = [
+        NotificationRuleModel(
+          ruleId: 'rule_attendance_warning',
+          ruleName: 'Attendance Warning Threshold',
+          category: 'Attendance',
+          warningThreshold: 80.0,
+          criticalThreshold: 75.0,
+          consecutiveAbsenceLimit: 2,
+          priority: 'high',
+          targetRoles: ['student', 'parent'],
+        ),
+        NotificationRuleModel(
+          ruleId: 'rule_attendance_critical',
+          ruleName: 'Attendance Critical Alert',
+          category: 'Attendance',
+          warningThreshold: 80.0,
+          criticalThreshold: 75.0,
+          consecutiveAbsenceLimit: 2,
+          priority: 'critical',
+          targetRoles: ['student', 'parent', 'hod'],
+        ),
+        NotificationRuleModel(
+          ruleId: 'rule_assignment_deadlines',
+          ruleName: 'Assignment Deadline Reminders',
+          category: 'Academic',
+          reminderDays: [3, 1, 0],
+          priority: 'high',
+          targetRoles: ['student'],
+        ),
+        NotificationRuleModel(
+          ruleId: 'rule_fee_deadlines',
+          ruleName: 'Fee Payment Reminders',
+          category: 'Finance',
+          reminderDays: [7, 3, 1, 0],
+          priority: 'high',
+          targetRoles: ['student', 'parent', 'admin'],
+        ),
+      ];
+
+      for (var r in defaultRules) {
+        await _firestore.collection('notification_rules').doc(r.ruleId).set(r.toMap(), SetOptions(merge: true));
       }
 
       // 16. Seed Student Projects
