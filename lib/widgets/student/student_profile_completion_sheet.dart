@@ -116,32 +116,47 @@ class _StudentProfileCompletionSheetState
   final _tenthSchoolController = TextEditingController();
   String? _tenthBoard;
   String _tenthMedium = 'English';
+  final _tenthOtherMediumController = TextEditingController();
   final _tenthRegNoController = TextEditingController();
   final _tenthYearController = TextEditingController();
   final _tenthTotalController = TextEditingController(text: '500');
   final _tenthObtainedController = TextEditingController();
   double _tenthPercentage = 0.0;
 
+  String get _effectiveTenthMedium => _tenthMedium == 'Other'
+      ? (_tenthOtherMediumController.text.trim().isNotEmpty ? _tenthOtherMediumController.text.trim() : 'Other')
+      : _tenthMedium;
+
   // 12th / Diploma
   final _twelfthSchoolController = TextEditingController();
   String? _twelfthBoard;
   String _twelfthMedium = 'English';
+  final _twelfthOtherMediumController = TextEditingController();
   final _twelfthRegNoController = TextEditingController();
   final _twelfthYearController = TextEditingController();
   final _twelfthTotalController = TextEditingController(text: '600');
   final _twelfthObtainedController = TextEditingController();
   double _twelfthPercentage = 0.0;
 
+  String get _effectiveTwelfthMedium => _twelfthMedium == 'Other'
+      ? (_twelfthOtherMediumController.text.trim().isNotEmpty ? _twelfthOtherMediumController.text.trim() : 'Other')
+      : _twelfthMedium;
+
   // Diploma / Polytechnic
   String _diplomaEvalMode = 'Percentage'; // 'Percentage' or 'Grade'
   String _selectedDiplomaGrade = 'A+';
   String _diplomaMedium = 'English';
+  final _diplomaOtherMediumController = TextEditingController();
   final _diplomaCollegeController = TextEditingController();
   final _diplomaBranchController = TextEditingController();
   final _diplomaYearController = TextEditingController();
   final _diplomaTotalController = TextEditingController(text: '100');
   final _diplomaObtainedController = TextEditingController();
   double _diplomaPercentage = 0.0;
+
+  String get _effectiveDiplomaMedium => _diplomaMedium == 'Other'
+      ? (_diplomaOtherMediumController.text.trim().isNotEmpty ? _diplomaOtherMediumController.text.trim() : 'Other')
+      : _diplomaMedium;
 
   // ── Step 5: Living & Accommodation ──
   LivingType? _selectedLivingType;
@@ -225,6 +240,9 @@ class _StudentProfileCompletionSheetState
         if (draft['tenthMedium'] != null) _tenthMedium = draft['tenthMedium'];
         if (draft['twelfthMedium'] != null) _twelfthMedium = draft['twelfthMedium'];
         if (draft['diplomaMedium'] != null) _diplomaMedium = draft['diplomaMedium'];
+        if (draft['tenthOtherMedium'] != null) _tenthOtherMediumController.text = draft['tenthOtherMedium'];
+        if (draft['twelfthOtherMedium'] != null) _twelfthOtherMediumController.text = draft['twelfthOtherMedium'];
+        if (draft['diplomaOtherMedium'] != null) _diplomaOtherMediumController.text = draft['diplomaOtherMedium'];
         if (draft['has12th'] != null) _has12th = draft['has12th'];
         if (draft['hasDiploma'] != null) _hasDiploma = draft['hasDiploma'];
         if (draft['diplomaEvalMode'] != null) _diplomaEvalMode = draft['diplomaEvalMode'];
@@ -304,6 +322,9 @@ class _StudentProfileCompletionSheetState
       'tenthMedium': _tenthMedium,
       'twelfthMedium': _twelfthMedium,
       'diplomaMedium': _diplomaMedium,
+      'tenthOtherMedium': _tenthOtherMediumController.text,
+      'twelfthOtherMedium': _twelfthOtherMediumController.text,
+      'diplomaOtherMedium': _diplomaOtherMediumController.text,
       'has12th': _has12th,
       'hasDiploma': _hasDiploma,
       'diplomaEvalMode': _diplomaEvalMode,
@@ -601,7 +622,7 @@ class _StudentProfileCompletionSheetState
         tenth: EducationRecord(
           institutionName: _tenthSchoolController.text.trim(),
           boardOrUniversity: _tenthBoard ?? 'State Board',
-          medium: _tenthMedium,
+          medium: _effectiveTenthMedium,
           registerNumber: _tenthRegNoController.text.trim(),
           passingYear: _tenthYearController.text.trim(),
           totalMarks: double.tryParse(_tenthTotalController.text) ?? 500,
@@ -611,7 +632,7 @@ class _StudentProfileCompletionSheetState
         twelfthOrDiploma: EducationRecord(
           institutionName: _twelfthSchoolController.text.trim(),
           boardOrUniversity: _twelfthBoard ?? 'State Board',
-          medium: _twelfthMedium,
+          medium: _effectiveTwelfthMedium,
           registerNumber: _twelfthRegNoController.text.trim(),
           passingYear: _twelfthYearController.text.trim(),
           totalMarks: double.tryParse(_twelfthTotalController.text) ?? 600,
@@ -623,7 +644,7 @@ class _StudentProfileCompletionSheetState
             ? EducationRecord(
                 institutionName: _diplomaCollegeController.text.trim(),
                 boardOrUniversity: 'DOTE / Polytechnic Board',
-                medium: _diplomaMedium,
+                medium: _effectiveDiplomaMedium,
                 registerNumber: _diplomaBranchController.text.trim(),
                 passingYear: _diplomaYearController.text.trim(),
                 totalMarks: double.tryParse(_diplomaTotalController.text) ?? 100,
@@ -1385,7 +1406,7 @@ class _StudentProfileCompletionSheetState
               const SizedBox(height: 12),
               _buildTextField(_tenthSchoolController, 'School Name *', 'Government / Private Higher Sec School'),
               const SizedBox(height: 8),
-              _buildMediumSelector(_tenthMedium, (val) => setState(() => _tenthMedium = val)),
+              _buildMediumSelector(_tenthMedium, _tenthOtherMediumController, (val) => setState(() => _tenthMedium = val)),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -1433,7 +1454,7 @@ class _StudentProfileCompletionSheetState
                     children: [
                       _buildTextField(_twelfthSchoolController, 'Higher Sec School Name *', 'VSB Higher Sec School'),
                       const SizedBox(height: 8),
-                      _buildMediumSelector(_twelfthMedium, (val) => setState(() => _twelfthMedium = val)),
+                      _buildMediumSelector(_twelfthMedium, _twelfthOtherMediumController, (val) => setState(() => _twelfthMedium = val)),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -1487,7 +1508,7 @@ class _StudentProfileCompletionSheetState
                       const SizedBox(height: 8),
                       _buildTextField(_diplomaBranchController, 'Diploma Branch / Specialization *', 'e.g. Diploma in Computer Engineering'),
                       const SizedBox(height: 8),
-                      _buildMediumSelector(_diplomaMedium, (val) => setState(() => _diplomaMedium = val)),
+                      _buildMediumSelector(_diplomaMedium, _diplomaOtherMediumController, (val) => setState(() => _diplomaMedium = val)),
                       const SizedBox(height: 12),
 
                       // Evaluation Mode Selector (Percentage vs Grade)
@@ -1634,7 +1655,11 @@ class _StudentProfileCompletionSheetState
     );
   }
 
-  Widget _buildMediumSelector(String selectedMedium, ValueChanged<String> onChanged) {
+  Widget _buildMediumSelector(
+    String selectedMedium,
+    TextEditingController otherController,
+    ValueChanged<String> onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1664,6 +1689,15 @@ class _StudentProfileCompletionSheetState
             );
           }).toList(),
         ),
+        if (selectedMedium == 'Other') ...[
+          const SizedBox(height: 8),
+          _buildTextField(
+            otherController,
+            'Specify Medium of Instruction *',
+            'e.g. Hindi, Telugu, Malayalam, French',
+            onChanged: (_) => setState(() {}),
+          ),
+        ],
       ],
     );
   }
@@ -1989,11 +2023,11 @@ class _StudentProfileCompletionSheetState
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Previous Education', [
-          '10th Standard: ${_tenthSchoolController.text.isNotEmpty ? _tenthSchoolController.text : "Recorded"} (${_tenthObtainedController.text}/${_tenthTotalController.text}) - Medium: $_tenthMedium',
+          '10th Standard: ${_tenthSchoolController.text.isNotEmpty ? _tenthSchoolController.text : "Recorded"} (${_tenthObtainedController.text}/${_tenthTotalController.text}) - Medium: $_effectiveTenthMedium',
           if (_has12th)
-            '12th Standard: ${_twelfthSchoolController.text.isNotEmpty ? _twelfthSchoolController.text : "Recorded"} (${_twelfthObtainedController.text}/${_twelfthTotalController.text}) - Medium: $_twelfthMedium',
+            '12th Standard: ${_twelfthSchoolController.text.isNotEmpty ? _twelfthSchoolController.text : "Recorded"} (${_twelfthObtainedController.text}/${_twelfthTotalController.text}) - Medium: $_effectiveTwelfthMedium',
           if (_hasDiploma)
-            'Diploma / Polytechnic: ${_diplomaCollegeController.text.isNotEmpty ? _diplomaCollegeController.text : "Recorded"} (${_diplomaBranchController.text}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text} ($_diplomaEvalMode, Medium: $_diplomaMedium)',
+            'Diploma / Polytechnic: ${_diplomaCollegeController.text.isNotEmpty ? _diplomaCollegeController.text : "Recorded"} (${_diplomaBranchController.text}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text} ($_diplomaEvalMode, Medium: $_effectiveDiplomaMedium)',
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Living & Transport', [
