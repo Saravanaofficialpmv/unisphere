@@ -1823,6 +1823,8 @@ class _StudentProfileCompletionSheetState
           _buildTextField(_pgNameController, 'Name of PG / Private Hostel *', 'e.g. Sri Sai Men\'s PG'),
           const SizedBox(height: 8),
           _buildTextField(_pgAddressController, 'PG Address / Location *', 'e.g. Covai Road, Near VSB Campus, Karur'),
+          const SizedBox(height: 8),
+          _buildTextField(_roommatesController, 'Roommate Register Numbers (Optional)', 'e.g. 7378211CS101, 7378211CS105 or Single Room'),
         ],
 
         if (_selectedLivingType == LivingType.rentedHouse) ...[
@@ -2194,6 +2196,7 @@ class _StudentProfileCompletionSheetState
           if (_selectedLivingType == LivingType.pgHostel) ...[
             'PG Name: ${_pgNameController.text.isNotEmpty ? _pgNameController.text : "Not specified"}',
             'PG Location: ${_pgAddressController.text.isNotEmpty ? _pgAddressController.text : "Not specified"}',
+            if (_roommatesController.text.isNotEmpty) 'Roommates: ${_roommatesController.text}',
           ],
           if (_selectedLivingType == LivingType.rentedHouse) ...[
             'Rented Address: ${_rentedAddressController.text.isNotEmpty ? _rentedAddressController.text : "Not specified"}',
