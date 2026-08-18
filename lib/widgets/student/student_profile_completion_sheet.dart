@@ -1968,18 +1968,22 @@ class _StudentProfileCompletionSheetState
 
   Widget _buildSummaryCard(String title, List<String> items) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
-          const SizedBox(height: 6),
-          ...items.map((it) => Text('• $it', style: const TextStyle(fontSize: 12, color: Color(0xFF475569)))),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFF0F172A))),
+          const SizedBox(height: 8),
+          ...items.map((it) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text('• $it', style: const TextStyle(fontSize: 12.5, color: Color(0xFF475569), height: 1.3)),
+              )),
         ],
       ),
     );
