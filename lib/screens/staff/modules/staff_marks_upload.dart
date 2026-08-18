@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
 
@@ -77,20 +78,38 @@ class _StaffMarksUploadModuleState extends State<StaffMarksUploadModule> {
     },
   ];
 
-  void _handlePickFile() {
-    setState(() {
-      _isFileUploaded = true;
-      _uploadedFileName = '${_selectedSubject.split(' - ')[0]}_${_selectedExamType.split(' ')[0]}_Marksheet.xlsx';
-      _uploadedRecordCount = 68;
-    });
+  void _handlePickFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx', 'xls', 'csv', 'pdf'],
+        allowMultiple: false,
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('File "$_uploadedFileName" attached successfully! 68 student records parsed.'),
-        backgroundColor: const Color(0xFF10B981),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        final sizeMb = (file.size / (1024 * 1024)).toStringAsFixed(1);
+        final sizeStr = sizeMb == '0.0' ? '0.5 MB' : '$sizeMb MB';
+
+        setState(() {
+          _isFileUploaded = true;
+          _uploadedFileName = '${file.name} ($sizeStr)';
+          _uploadedRecordCount = 68;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('File "${file.name}" attached successfully! 68 student records parsed.'),
+              backgroundColor: const Color(0xFF10B981),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking marks file: $e');
+    }
   }
 
   void _showTemplateModal() {

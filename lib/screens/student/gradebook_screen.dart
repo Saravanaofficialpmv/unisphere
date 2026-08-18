@@ -341,6 +341,64 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
       },
     ];
 
+    // Merge live published internal marks from Firestore stream
+    for (var asgDoc in dbAssignments) {
+      final subjectStr = asgDoc['subject']?.toString() ?? '';
+      final examTypeStr = asgDoc['examType']?.toString() ?? '';
+      final studentRecords = (asgDoc['studentRecords'] as List?) ?? [];
+
+      for (var r in studentRecords) {
+        if (r is Map) {
+          final rRegNo = r['regNo']?.toString().trim();
+          if (rRegNo == activeRegNo || rRegNo == currentUser?.uid || activeRegNo.isEmpty) {
+            for (var sub in internalSubjectData) {
+              if (subjectStr.contains(sub['code']!) || subjectStr.contains(sub['name']!)) {
+                final initialMark = r['initial']?.toString() ?? '';
+                final retestMark = r['retest']?.toString() ?? '';
+                final convMark = r['conv']?.toString() ?? '';
+                final statusStr = r['status']?.toString() ?? '';
+
+                if (examTypeStr.contains('IA-1') || examTypeStr.contains('1')) {
+                  if (initialMark.isNotEmpty) sub['ia1Initial'] = initialMark;
+                  if (retestMark.isNotEmpty && retestMark != 'N/A') {
+                    sub['ia1Retest'] = retestMark;
+                    sub['ia1RetestStatus'] = statusStr;
+                    sub['hasIa1Retest'] = 'true';
+                    sub['ia1'] = retestMark;
+                  } else if (initialMark.isNotEmpty) {
+                    sub['ia1'] = initialMark;
+                  }
+                  if (convMark.isNotEmpty) sub['ia1Conv'] = convMark;
+                } else if (examTypeStr.contains('IA-2') || examTypeStr.contains('2')) {
+                  if (initialMark.isNotEmpty) sub['ia2Initial'] = initialMark;
+                  if (retestMark.isNotEmpty && retestMark != 'N/A') {
+                    sub['ia2Retest'] = retestMark;
+                    sub['ia2RetestStatus'] = statusStr;
+                    sub['hasIa2Retest'] = 'true';
+                    sub['ia2'] = retestMark;
+                  } else if (initialMark.isNotEmpty) {
+                    sub['ia2'] = initialMark;
+                  }
+                  if (convMark.isNotEmpty) sub['ia2Conv'] = convMark;
+                } else if (examTypeStr.contains('Model')) {
+                  if (initialMark.isNotEmpty) sub['modelInitial'] = initialMark;
+                  if (retestMark.isNotEmpty && retestMark != 'N/A') {
+                    sub['modelRetest'] = retestMark;
+                    sub['modelRetestStatus'] = statusStr;
+                    sub['hasModelRetest'] = 'true';
+                    sub['modelExam'] = retestMark;
+                  } else if (initialMark.isNotEmpty) {
+                    sub['modelExam'] = initialMark;
+                  }
+                  if (convMark.isNotEmpty) sub['modelConv'] = convMark;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(

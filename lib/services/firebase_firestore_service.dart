@@ -383,6 +383,8 @@ class FirebaseFirestoreService implements SupabaseService {
   }) async {
     try {
       final docId = 'assign_${subject.replaceAll(' ', '_')}_${examType.replaceAll(' ', '_')}'.toLowerCase();
+      final nowStr = DateTime.now().toIso8601String();
+
       await _firestore.collection('assignments').doc(docId).set({
         'title': title,
         'subject': subject,
@@ -393,6 +395,29 @@ class FirebaseFirestoreService implements SupabaseService {
         'uploadedBy': 'Faculty Staff',
         'studentRecords': studentRecords,
       }, SetOptions(merge: true));
+
+      // Also update individual 'marks' collection documents for student real-time streaming
+      for (var record in studentRecords) {
+        final regNo = record['regNo'] ?? '';
+        if (regNo.isNotEmpty) {
+          final markDocId = 'mark_${regNo}_$docId'.toLowerCase();
+          final rawObtained = double.tryParse(record['initial']?.split('/')[0].trim() ?? '0') ?? 0;
+          final rawTotal = double.tryParse(record['initial']?.split('/')[1].split(' ')[0].trim() ?? '50') ?? 50;
+
+          await _firestore.collection('marks').doc(markDocId).set({
+            'student_uid': regNo,
+            'register_number': regNo,
+            'subject_name': subject,
+            'obtained_marks': rawObtained.toInt(),
+            'total_marks': rawTotal.toInt(),
+            'exam_type': examType,
+            'retest_mark': record['retest'],
+            'converted_mark': record['conv'],
+            'status': record['status'],
+            'updated_at': nowStr,
+          }, SetOptions(merge: true));
+        }
+      }
     } catch (e) {
       debugPrint('Firestore saveAssignmentMarks error: $e');
     }
