@@ -6,8 +6,6 @@ import 'package:unisphere/models/student_profile_model.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
 
-enum ScoreType { marks, percentage, cgpa }
-
 class StudentProfileCompletionSheet extends ConsumerStatefulWidget {
   const StudentProfileCompletionSheet({super.key});
 
@@ -22,12 +20,9 @@ class _StudentProfileCompletionSheetState
   bool _isSavingDraft = false;
   bool _isSubmitting = false;
 
-  // Education Toggles & Score Formats
+  // Education Toggles
   bool _has12th = true;
   bool _hasDiploma = false;
-  ScoreType _tenthScoreType = ScoreType.marks;
-  ScoreType _twelfthScoreType = ScoreType.marks;
-  ScoreType _diplomaScoreType = ScoreType.percentage;
 
   // Validation Error State Flags
   bool _dobError = false;
@@ -136,6 +131,7 @@ class _StudentProfileCompletionSheetState
   double _twelfthPercentage = 0.0;
 
   // Diploma / Polytechnic
+  String _diplomaEvalMode = 'Percentage'; // 'Percentage' or 'CGPA'
   final _diplomaCollegeController = TextEditingController();
   final _diplomaBranchController = TextEditingController();
   final _diplomaYearController = TextEditingController();
@@ -224,15 +220,7 @@ class _StudentProfileCompletionSheetState
         if (draft['twelfthObtained'] != null) _twelfthObtainedController.text = draft['twelfthObtained'];
         if (draft['has12th'] != null) _has12th = draft['has12th'];
         if (draft['hasDiploma'] != null) _hasDiploma = draft['hasDiploma'];
-        if (draft['tenthScoreType'] != null) {
-          _tenthScoreType = ScoreType.values.firstWhere((e) => e.name == draft['tenthScoreType'], orElse: () => ScoreType.marks);
-        }
-        if (draft['twelfthScoreType'] != null) {
-          _twelfthScoreType = ScoreType.values.firstWhere((e) => e.name == draft['twelfthScoreType'], orElse: () => ScoreType.marks);
-        }
-        if (draft['diplomaScoreType'] != null) {
-          _diplomaScoreType = ScoreType.values.firstWhere((e) => e.name == draft['diplomaScoreType'], orElse: () => ScoreType.percentage);
-        }
+        if (draft['diplomaEvalMode'] != null) _diplomaEvalMode = draft['diplomaEvalMode'];
         if (draft['diplomaCollege'] != null) _diplomaCollegeController.text = draft['diplomaCollege'];
         if (draft['diplomaBranch'] != null) _diplomaBranchController.text = draft['diplomaBranch'];
         if (draft['diplomaObtained'] != null) _diplomaObtainedController.text = draft['diplomaObtained'];
@@ -244,27 +232,18 @@ class _StudentProfileCompletionSheetState
   }
 
   void _calculateEducationPercentages() {
-    // 10th
-    if (_tenthScoreType == ScoreType.percentage) {
-      _tenthPercentage = double.tryParse(_tenthObtainedController.text) ?? 0;
-    } else {
-      final tTotal = double.tryParse(_tenthTotalController.text) ?? 500;
-      final tObtained = double.tryParse(_tenthObtainedController.text) ?? 0;
-      if (tTotal > 0) _tenthPercentage = (tObtained / tTotal) * 100;
-    }
+    final tTotal = double.tryParse(_tenthTotalController.text) ?? 500;
+    final tObtained = double.tryParse(_tenthObtainedController.text) ?? 0;
+    if (tTotal > 0) _tenthPercentage = (tObtained / tTotal) * 100;
 
-    // 12th
-    if (_twelfthScoreType == ScoreType.percentage) {
-      _twelfthPercentage = double.tryParse(_twelfthObtainedController.text) ?? 0;
-    } else {
-      final twTotal = double.tryParse(_twelfthTotalController.text) ?? 600;
-      final twObtained = double.tryParse(_twelfthObtainedController.text) ?? 0;
-      if (twTotal > 0) _twelfthPercentage = (twObtained / twTotal) * 100;
-    }
+    final twTotal = double.tryParse(_twelfthTotalController.text) ?? 600;
+    final twObtained = double.tryParse(_twelfthObtainedController.text) ?? 0;
+    if (twTotal > 0) _twelfthPercentage = (twObtained / twTotal) * 100;
 
-    // Diploma
-    if (_diplomaScoreType == ScoreType.percentage) {
-      _diplomaPercentage = double.tryParse(_diplomaObtainedController.text) ?? 0;
+    if (_diplomaEvalMode == 'CGPA') {
+      final maxCgpa = double.tryParse(_diplomaTotalController.text) ?? 10.0;
+      final cgpa = double.tryParse(_diplomaObtainedController.text) ?? 0.0;
+      if (maxCgpa > 0) _diplomaPercentage = (cgpa / maxCgpa) * 100;
     } else {
       final dTotal = double.tryParse(_diplomaTotalController.text) ?? 100;
       final dObtained = double.tryParse(_diplomaObtainedController.text) ?? 0;
@@ -296,9 +275,7 @@ class _StudentProfileCompletionSheetState
       'twelfthObtained': _twelfthObtainedController.text,
       'has12th': _has12th,
       'hasDiploma': _hasDiploma,
-      'tenthScoreType': _tenthScoreType.name,
-      'twelfthScoreType': _twelfthScoreType.name,
-      'diplomaScoreType': _diplomaScoreType.name,
+      'diplomaEvalMode': _diplomaEvalMode,
       'diplomaCollege': _diplomaCollegeController.text,
       'diplomaBranch': _diplomaBranchController.text,
       'diplomaObtained': _diplomaObtainedController.text,
@@ -1349,7 +1326,7 @@ class _StudentProfileCompletionSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStepHeader('Step 4: Previous Education', 'Enter your 10th records and enable 12th or Diploma details.'),
+        _buildStepHeader('Step 4: Previous Education', 'Enter your compulsory 10th records and enable 12th or Diploma details.'),
         const SizedBox(height: 16),
 
         // 10th Standard Records (Compulsory for ALL students)
@@ -1376,44 +1353,12 @@ class _StudentProfileCompletionSheetState
               ),
               const SizedBox(height: 12),
               _buildTextField(_tenthSchoolController, 'School Name *', 'Government / Private Higher Sec School'),
-              const SizedBox(height: 12),
-
-              // 10th Score Type Selector
-              _buildScoreTypeSelector(
-                selectedType: _tenthScoreType,
-                onChanged: (type) => setState(() {
-                  _tenthScoreType = type;
-                  _calculateEducationPercentages();
-                }),
-              ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(
-                    child: _buildTextField(
-                      _tenthObtainedController,
-                      _tenthScoreType == ScoreType.marks
-                          ? 'Marks Obtained *'
-                          : _tenthScoreType == ScoreType.percentage
-                              ? 'Percentage (%) *'
-                              : 'CGPA / Grade *',
-                      _tenthScoreType == ScoreType.marks ? '450' : _tenthScoreType == ScoreType.percentage ? '90.0' : '9.0',
-                      onChanged: (_) => setState(_calculateEducationPercentages),
-                    ),
-                  ),
+                  Expanded(child: _buildTextField(_tenthObtainedController, 'Marks Obtained *', '450', onChanged: (_) => setState(_calculateEducationPercentages))),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildTextField(
-                      _tenthTotalController,
-                      _tenthScoreType == ScoreType.marks
-                          ? 'Total Marks *'
-                          : _tenthScoreType == ScoreType.percentage
-                              ? 'Max %'
-                              : 'Max CGPA *',
-                      _tenthScoreType == ScoreType.marks ? '500' : _tenthScoreType == ScoreType.percentage ? '100' : '10.0',
-                      onChanged: (_) => setState(_calculateEducationPercentages),
-                    ),
-                  ),
+                  Expanded(child: _buildTextField(_tenthTotalController, 'Total Marks *', '500', onChanged: (_) => setState(_calculateEducationPercentages))),
                 ],
               ),
             ],
@@ -1436,6 +1381,7 @@ class _StudentProfileCompletionSheetState
                 value: _has12th,
                 onChanged: (val) {
                   if (!val && !_hasDiploma) {
+                    // Ensure at least one post-10th option remains active
                     setState(() {
                       _has12th = false;
                       _hasDiploma = true;
@@ -1452,44 +1398,12 @@ class _StudentProfileCompletionSheetState
                   child: Column(
                     children: [
                       _buildTextField(_twelfthSchoolController, 'Higher Sec School Name *', 'VSB Higher Sec School'),
-                      const SizedBox(height: 12),
-
-                      // 12th Score Type Selector
-                      _buildScoreTypeSelector(
-                        selectedType: _twelfthScoreType,
-                        onChanged: (type) => setState(() {
-                          _twelfthScoreType = type;
-                          _calculateEducationPercentages();
-                        }),
-                      ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
-                          Expanded(
-                            child: _buildTextField(
-                              _twelfthObtainedController,
-                              _twelfthScoreType == ScoreType.marks
-                                  ? 'Marks Obtained *'
-                                  : _twelfthScoreType == ScoreType.percentage
-                                      ? 'Percentage (%) *'
-                                      : 'CGPA / Grade *',
-                              _twelfthScoreType == ScoreType.marks ? '540' : _twelfthScoreType == ScoreType.percentage ? '90.0' : '9.0',
-                              onChanged: (_) => setState(_calculateEducationPercentages),
-                            ),
-                          ),
+                          Expanded(child: _buildTextField(_twelfthObtainedController, 'Marks Obtained *', '540', onChanged: (_) => setState(_calculateEducationPercentages))),
                           const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildTextField(
-                              _twelfthTotalController,
-                              _twelfthScoreType == ScoreType.marks
-                                  ? 'Total Marks *'
-                                  : _twelfthScoreType == ScoreType.percentage
-                                      ? 'Max %'
-                                      : 'Max CGPA *',
-                              _twelfthScoreType == ScoreType.marks ? '600' : _twelfthScoreType == ScoreType.percentage ? '100' : '10.0',
-                              onChanged: (_) => setState(_calculateEducationPercentages),
-                            ),
-                          ),
+                          Expanded(child: _buildTextField(_twelfthTotalController, 'Total Marks *', '600', onChanged: (_) => setState(_calculateEducationPercentages))),
                         ],
                       ),
                     ],
@@ -1516,6 +1430,7 @@ class _StudentProfileCompletionSheetState
                 value: _hasDiploma,
                 onChanged: (val) {
                   if (!val && !_has12th) {
+                    // Ensure at least one post-10th option remains active
                     setState(() {
                       _hasDiploma = false;
                       _has12th = true;
@@ -1530,19 +1445,65 @@ class _StudentProfileCompletionSheetState
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildTextField(_diplomaCollegeController, 'Polytechnic College Name *', 'e.g. VSB Polytechnic College'),
                       const SizedBox(height: 8),
                       _buildTextField(_diplomaBranchController, 'Diploma Branch / Specialization *', 'e.g. Diploma in Computer Engineering'),
                       const SizedBox(height: 12),
 
-                      // Diploma Score Type Selector (Marks / Percentage / CGPA)
-                      _buildScoreTypeSelector(
-                        selectedType: _diplomaScoreType,
-                        onChanged: (type) => setState(() {
-                          _diplomaScoreType = type;
-                          _calculateEducationPercentages();
-                        }),
+                      // Evaluation Mode Selector (Percentage vs CGPA)
+                      const Text(
+                        'Diploma Evaluation Mode *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF1E40AF)),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          ChoiceChip(
+                            label: const Text('Percentage (%)'),
+                            selected: _diplomaEvalMode == 'Percentage',
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _diplomaEvalMode = 'Percentage';
+                                  if (_diplomaTotalController.text == '10.0' || _diplomaTotalController.text == '10') {
+                                    _diplomaTotalController.text = '100';
+                                  }
+                                  _calculateEducationPercentages();
+                                });
+                              }
+                            },
+                            selectedColor: const Color(0xFF2563EB),
+                            labelStyle: TextStyle(
+                              color: _diplomaEvalMode == 'Percentage' ? Colors.white : const Color(0xFF0F172A),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ChoiceChip(
+                            label: const Text('CGPA / Grade Points'),
+                            selected: _diplomaEvalMode == 'CGPA',
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _diplomaEvalMode = 'CGPA';
+                                  if (_diplomaTotalController.text == '100') {
+                                    _diplomaTotalController.text = '10.0';
+                                  }
+                                  _calculateEducationPercentages();
+                                });
+                              }
+                            },
+                            selectedColor: const Color(0xFF2563EB),
+                            labelStyle: TextStyle(
+                              color: _diplomaEvalMode == 'CGPA' ? Colors.white : const Color(0xFF0F172A),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -1550,12 +1511,8 @@ class _StudentProfileCompletionSheetState
                           Expanded(
                             child: _buildTextField(
                               _diplomaObtainedController,
-                              _diplomaScoreType == ScoreType.marks
-                                  ? 'Marks Obtained *'
-                                  : _diplomaScoreType == ScoreType.percentage
-                                      ? 'Percentage (%) *'
-                                      : 'CGPA / Grade *',
-                              _diplomaScoreType == ScoreType.marks ? '450' : _diplomaScoreType == ScoreType.percentage ? '88.5' : '8.85',
+                              _diplomaEvalMode == 'CGPA' ? 'CGPA / Grade Obtained *' : 'Percentage / Marks Obtained *',
+                              _diplomaEvalMode == 'CGPA' ? '8.85' : '88.5',
                               onChanged: (_) => setState(_calculateEducationPercentages),
                             ),
                           ),
@@ -1563,12 +1520,8 @@ class _StudentProfileCompletionSheetState
                           Expanded(
                             child: _buildTextField(
                               _diplomaTotalController,
-                              _diplomaScoreType == ScoreType.marks
-                                  ? 'Total Marks *'
-                                  : _diplomaScoreType == ScoreType.percentage
-                                      ? 'Max %'
-                                      : 'Max CGPA *',
-                              _diplomaScoreType == ScoreType.marks ? '500' : _diplomaScoreType == ScoreType.percentage ? '100' : '10.0',
+                              _diplomaEvalMode == 'CGPA' ? 'Max CGPA Scale *' : 'Total Marks / Out of *',
+                              _diplomaEvalMode == 'CGPA' ? '10.0' : '100',
                               onChanged: (_) => setState(_calculateEducationPercentages),
                             ),
                           ),
@@ -1584,64 +1537,6 @@ class _StudentProfileCompletionSheetState
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildScoreTypeSelector({
-    required ScoreType selectedType,
-    required ValueChanged<ScoreType> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Evaluation Format *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B))),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            _buildScoreChip('Marks', ScoreType.marks, selectedType, onChanged),
-            const SizedBox(width: 8),
-            _buildScoreChip('Percentage (%)', ScoreType.percentage, selectedType, onChanged),
-            const SizedBox(width: 8),
-            _buildScoreChip('CGPA / Grade', ScoreType.cgpa, selectedType, onChanged),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildScoreChip(
-    String label,
-    ScoreType type,
-    ScoreType currentType,
-    ValueChanged<ScoreType> onChanged,
-  ) {
-    final isSelected = currentType == type;
-    return Expanded(
-      child: InkWell(
-        onTap: () => onChanged(type),
-        borderRadius: BorderRadius.circular(8),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
-            ),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.white : const Color(0xFF475569),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -1881,7 +1776,7 @@ class _StudentProfileCompletionSheetState
           if (_has12th)
             '12th Standard: ${_twelfthSchoolController.text.isNotEmpty ? _twelfthSchoolController.text : "Recorded"} (${_twelfthObtainedController.text}/${_twelfthTotalController.text})',
           if (_hasDiploma)
-            'Diploma / Polytechnic: ${_diplomaCollegeController.text.isNotEmpty ? _diplomaCollegeController.text : "Recorded"} (${_diplomaBranchController.text}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text}',
+            'Diploma / Polytechnic: ${_diplomaCollegeController.text.isNotEmpty ? _diplomaCollegeController.text : "Recorded"} (${_diplomaBranchController.text}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text} ($_diplomaEvalMode)',
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Living & Transport', [
