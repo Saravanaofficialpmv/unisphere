@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -1763,52 +1764,152 @@ class _StudentProfileCompletionSheetState
     );
   }
 
+  Future<void> _pickDocument(StudentDocument doc) async {
+    try {
+      final isPhoto = doc.id == 'doc_photo';
+      final allowedExts = isPhoto ? ['jpg', 'jpeg', 'png'] : ['pdf', 'jpg', 'jpeg', 'png'];
+
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: allowedExts,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        final sizeInMb = (file.size / (1024 * 1024)).toStringAsFixed(1);
+        final displaySize = sizeInMb == '0.0' ? '0.5 MB' : '$sizeInMb MB';
+        final fileNameWithSize = '${file.name} ($displaySize)';
+
+        setState(() {
+          final index = _uploadedDocuments.indexWhere((d) => d.id == doc.id);
+          if (index != -1) {
+            _uploadedDocuments[index] = StudentDocument(
+              id: doc.id,
+              name: doc.name,
+              isRequired: doc.isRequired,
+              fileName: fileNameWithSize,
+              fileUrl: file.path ?? 'https://unisphere.edu/docs/${file.name}',
+              status: 'uploaded',
+            );
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking file for ${doc.name}: $e');
+    }
+  }
+
+  void _removeDocument(StudentDocument doc) {
+    setState(() {
+      final index = _uploadedDocuments.indexWhere((d) => d.id == doc.id);
+      if (index != -1) {
+        _uploadedDocuments[index] = StudentDocument(
+          id: doc.id,
+          name: doc.name,
+          isRequired: doc.isRequired,
+          fileName: '',
+          fileUrl: '',
+        );
+      }
+    });
+  }
+
   // ── STEP 7: DOCUMENTS ──
   Widget _buildStep7Documents() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStepHeader('Step 7: Documents', 'Upload certificate scans for college verification.'),
+        _buildStepHeader('Step 7: Documents Upload', 'Upload clear PDF or image scans of required certificates for college verification.'),
         const SizedBox(height: 16),
 
-        ..._uploadedDocuments.map((doc) => Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+        ..._uploadedDocuments.map((doc) {
+          final isUploaded = doc.fileName.isNotEmpty;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isUploaded ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isUploaded ? const Color(0xFF86EFAC) : const Color(0xFFE2E8F0),
+                width: 1.2,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.description_rounded, color: Color(0xFF2563EB), size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(doc.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text(doc.fileName.isNotEmpty ? doc.fileName : 'Status: Pending Upload', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                      ],
-                    ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isUploaded ? const Color(0xFFDCFCE7) : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Uploaded ${doc.name}')),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      minimumSize: const Size(70, 32),
-                    ),
-                    child: const Text('Upload', style: TextStyle(fontSize: 11)),
+                  child: Icon(
+                    isUploaded ? Icons.task_alt_rounded : Icons.file_present_rounded,
+                    color: isUploaded ? const Color(0xFF16A34A) : const Color(0xFF2563EB),
+                    size: 22,
                   ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              doc.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (doc.isRequired) ...[
+                            const SizedBox(width: 4),
+                            const Text('*', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 13)),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        isUploaded ? '✅ ${doc.fileName}' : 'Status: Pending Upload (PDF/JPG)',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: isUploaded ? FontWeight.bold : FontWeight.normal,
+                          color: isUploaded ? const Color(0xFF15803D) : const Color(0xFF64748B),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (isUploaded) ...[
+                  IconButton(
+                    onPressed: () => _removeDocument(doc),
+                    icon: const Icon(Icons.cancel_rounded, color: Color(0xFF94A3B8), size: 20),
+                    tooltip: 'Remove file',
+                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero,
+                  ),
+                  const SizedBox(width: 8),
                 ],
-              ),
-            )),
+                ElevatedButton.icon(
+                  onPressed: () => _pickDocument(doc),
+                  icon: Icon(isUploaded ? Icons.swap_horiz_rounded : Icons.upload_file_rounded, size: 16),
+                  label: Text(isUploaded ? 'Change' : 'Upload', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isUploaded ? const Color(0xFF0F172A) : AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
       ],
     );
   }
