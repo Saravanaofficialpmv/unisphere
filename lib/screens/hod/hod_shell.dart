@@ -19,8 +19,13 @@ import 'modules/hod_announcements.dart';
 import 'modules/hod_reports_analytics.dart';
 import 'modules/hod_settings.dart';
 import 'modules/hod_charter_upload_screen.dart';
+import 'modules/hod_album_management_screen.dart';
+
 import '../staff/modules/staff_nptel_verification_screen.dart';
+import '../staff/modules/class_advisor_edit_requests_screen.dart';
+import '../gallery/full_photo_gallery_screen.dart';
 import '../common/manual_notification_composer_screen.dart';
+import 'modules/hod_academic_schedule_screen.dart';
 
 class HodShell extends ConsumerStatefulWidget {
   const HodShell({super.key});
@@ -37,8 +42,10 @@ class _HodShellState extends ConsumerState<HodShell> {
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
     SidebarItem(label: 'Dept Notifications', icon: Icons.send_rounded, badge: 'HOD'),
+    SidebarItem(label: 'Photo Albums Manager', icon: Icons.collections_outlined, badge: 'Gallery'),
     SidebarItem(label: 'Staff Management', icon: Icons.badge_outlined),
     SidebarItem(label: 'Student Management', icon: Icons.school_outlined),
+    SidebarItem(label: 'Profile Edit Requests', icon: Icons.edit_note_rounded, badge: 'Requests'),
     SidebarItem(label: 'NPTEL Cert. Verification', icon: Icons.verified_user_outlined, badge: 'NPTEL'),
     SidebarItem(label: 'Reports & Analytics', icon: Icons.insights_outlined),
     SidebarItem(label: 'Department Settings', icon: Icons.settings_outlined),
@@ -47,9 +54,11 @@ class _HodShellState extends ConsumerState<HodShell> {
     SidebarItem(label: 'Academic Administration', icon: Icons.menu_book_outlined),
     SidebarItem(label: 'Timetable Management', icon: Icons.calendar_month_outlined),
     SidebarItem(label: 'Examination & Marks', icon: Icons.assessment_outlined),
+    SidebarItem(label: 'Academic Schedule & Days', icon: Icons.event_note_rounded, badge: 'Official'),
     SidebarItem(label: 'Leave & OD Approvals', icon: Icons.pending_actions_outlined, badge: '5'),
     SidebarItem(label: 'CO / PO / PSO Uploads', icon: Icons.upload_file_rounded, badge: 'New'),
     SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
+    SidebarItem(label: 'Campus Photo Gallery', icon: Icons.collections_bookmark_outlined),
   ];
 
   late final List<Widget> _screens;
@@ -58,22 +67,28 @@ class _HodShellState extends ConsumerState<HodShell> {
   void initState() {
     super.initState();
     _screens = [
-      HodHomeDashboard(onNavigate: _handleNavigation),
-      const ManualNotificationComposerScreen(),
-      const HodStaffManagement(),
-      const HodStudentManagement(),
-      const StaffNptelVerificationScreen(),
-      const HodReportsAnalytics(),
-      const HodSettings(),
-      const HodAttendanceManagement(),
-      const HodAcademicManagement(),
-      const HodTimetableManagement(),
-      const HodExamManagement(),
-      const HodLeaveManagement(),
-      const HodCharterUploadScreen(),
-      const HodAnnouncements(),
+      HodHomeDashboard(onNavigate: _handleNavigation), // 0
+      const ManualNotificationComposerScreen(), // 1
+      const HodAlbumManagementScreen(), // 2
+      const HodStaffManagement(), // 3
+      const HodStudentManagement(), // 4
+      const ClassAdvisorEditRequestsScreen(), // 5
+      const StaffNptelVerificationScreen(), // 6
+      const HodReportsAnalytics(), // 7
+      const HodSettings(), // 8
+      const SizedBox.shrink(), // 9: Divider ACADEMIC MODULES
+      const HodAttendanceManagement(), // 10
+      const HodAcademicManagement(), // 11
+      const HodTimetableManagement(), // 12
+      const HodExamManagement(), // 13
+      const HodAcademicScheduleScreen(), // 14: Academic Schedule Manager
+      const HodLeaveManagement(), // 15
+      const HodCharterUploadScreen(), // 16
+      const HodAnnouncements(), // 17
+      const FullPhotoGalleryScreen(), // 18
     ];
   }
+
 
 
   void _handleNavigation(int index) {

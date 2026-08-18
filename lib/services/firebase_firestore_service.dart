@@ -29,6 +29,10 @@ final allAssignmentsStreamProvider = StreamProvider.autoDispose<List<Map<String,
   return ref.watch(firebaseFirestoreServiceProvider).getAllAssignmentsStream();
 });
 
+final allSubmissionsStreamProvider = StreamProvider.autoDispose<List<SubmissionModel>>((ref) {
+  return ref.watch(firebaseFirestoreServiceProvider).getAllSubmissions();
+});
+
 class FirebaseFirestoreService implements SupabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final MockSupabaseService _fallbackMock = MockSupabaseService();
@@ -113,7 +117,7 @@ class FirebaseFirestoreService implements SupabaseService {
   @override
   Future<void> submitAssignment(SubmissionModel submission) async {
     try {
-      await _firestore.collection('submissions').doc(submission.id).set(submission.toMap());
+      await _firestore.collection('submissions').doc(submission.id).set(submission.toMap(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore submitAssignment exception: $e');
     }
@@ -134,6 +138,45 @@ class FirebaseFirestoreService implements SupabaseService {
           .handleError((error) => _fallbackMock.getSubmissions(assignmentId));
     } catch (e) {
       return _fallbackMock.getSubmissions(assignmentId);
+    }
+  }
+
+  Stream<List<SubmissionModel>> getAllSubmissions() {
+    try {
+      return _firestore
+          .collection('submissions')
+          .snapshots()
+          .map((snapshot) => snapshot.docs.map((doc) {
+                final data = doc.data();
+                data['id'] = doc.id;
+                return SubmissionModel.fromMap(data);
+              }).toList())
+          .handleError((error) {
+        debugPrint('Firestore getAllSubmissions error: $error');
+        return <SubmissionModel>[];
+      });
+    } catch (e) {
+      return Stream.value(<SubmissionModel>[]);
+    }
+  }
+
+  Stream<List<SubmissionModel>> getStudentSubmissions(String studentUid) {
+    try {
+      return _firestore
+          .collection('submissions')
+          .where('student_uid', isEqualTo: studentUid)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.map((doc) {
+                final data = doc.data();
+                data['id'] = doc.id;
+                return SubmissionModel.fromMap(data);
+              }).toList())
+          .handleError((error) {
+        debugPrint('Firestore getStudentSubmissions error: $error');
+        return <SubmissionModel>[];
+      });
+    } catch (e) {
+      return Stream.value(<SubmissionModel>[]);
     }
   }
 

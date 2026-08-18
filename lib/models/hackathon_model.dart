@@ -10,18 +10,24 @@ class HackathonModel {
   final String bannerImage;
   final DateTime startDate;
   final DateTime endDate;
-  final bool registrationOpen;
+  final DateTime registrationStartDate;
   final DateTime registrationDeadline;
+  final bool registrationOpen;
   final String prizePool;
   final int registeredTeams;
   final int maxTeams;
+  final int maxTeamMembers; // Fixed requirement: max 6 team members
   final int teamSize;
   final String status; // 'upcoming', 'ongoing', 'ended'
   final String userRegistrationStatus; // 'registered', 'not_registered', 'pending'
   final String? registrationId;
+  final String? registrationLink;
+  final String? createdBy;
   final String location;
   final List<String> tags;
   final bool isFeatured;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   HackathonModel({
     required this.id,
@@ -33,51 +39,66 @@ class HackathonModel {
     required this.bannerImage,
     required this.startDate,
     required this.endDate,
-    required this.registrationOpen,
+    DateTime? registrationStartDate,
     required this.registrationDeadline,
+    required this.registrationOpen,
     required this.prizePool,
     required this.registeredTeams,
     required this.maxTeams,
+    this.maxTeamMembers = 6,
     required this.teamSize,
     required this.status,
     required this.userRegistrationStatus,
     this.registrationId,
+    this.registrationLink,
+    this.createdBy,
     required this.location,
     required this.tags,
     this.isFeatured = false,
-  });
+    this.createdAt,
+    this.updatedAt,
+  }) : registrationStartDate = registrationStartDate ?? startDate;
 
   bool get isRegistered => userRegistrationStatus.toLowerCase() == 'registered';
 
-  factory HackathonModel.fromMap(Map<String, dynamic> map) {
-    DateTime parseDate(dynamic val) {
-      if (val == null) return DateTime.now();
+  factory HackathonModel.fromMap(Map<String, dynamic> map, [String? docId]) {
+    DateTime parseDate(dynamic val, [DateTime? fallback]) {
+      if (val == null) return fallback ?? DateTime.now();
       if (val is DateTime) return val;
-      return DateTime.tryParse(val.toString()) ?? DateTime.now();
+      return DateTime.tryParse(val.toString()) ?? fallback ?? DateTime.now();
     }
 
+    final start = parseDate(map['startDate'] ?? map['start_date'] ?? map['eventStartDate'] ?? map['event_start_date']);
+    final end = parseDate(map['endDate'] ?? map['end_date'] ?? map['eventEndDate'] ?? map['event_end_date']);
+
     return HackathonModel(
-      id: map['id']?.toString() ?? '',
+      id: docId ?? map['id']?.toString() ?? '',
       title: map['title']?.toString() ?? '',
       description: map['description']?.toString() ?? '',
       category: map['category']?.toString() ?? 'General',
       organizer: map['organizer']?.toString() ?? 'Organizer',
       mode: map['mode']?.toString() ?? 'Online',
       bannerImage: map['bannerImage']?.toString() ?? map['banner_image']?.toString() ?? '',
-      startDate: parseDate(map['startDate'] ?? map['start_date']),
-      endDate: parseDate(map['endDate'] ?? map['end_date']),
-      registrationOpen: map['registrationOpen'] ?? map['registration_open'] ?? true,
+      startDate: start,
+      endDate: end,
+      registrationStartDate: parseDate(map['registrationStartDate'] ?? map['registration_start_date'], start),
       registrationDeadline: parseDate(map['registrationDeadline'] ?? map['registration_deadline']),
+      registrationOpen: map['registrationOpen'] ?? map['registration_open'] ?? true,
       prizePool: map['prizePool']?.toString() ?? map['prize_pool']?.toString() ?? '₹0',
       registeredTeams: (map['registeredTeams'] ?? map['registered_teams'] ?? 0) as int,
       maxTeams: (map['maxTeams'] ?? map['max_teams'] ?? 100) as int,
-      teamSize: (map['teamSize'] ?? map['team_size'] ?? 4) as int,
+      maxTeamMembers: (map['maxTeamMembers'] ?? map['max_team_members'] ?? 6) as int,
+      teamSize: (map['teamSize'] ?? map['team_size'] ?? 6) as int,
       status: map['status']?.toString() ?? 'upcoming',
       userRegistrationStatus: map['userRegistrationStatus']?.toString() ?? map['user_registration_status']?.toString() ?? 'not_registered',
       registrationId: map['registrationId']?.toString() ?? map['registration_id']?.toString(),
+      registrationLink: map['registrationLink']?.toString() ?? map['registration_link']?.toString(),
+      createdBy: map['createdBy']?.toString() ?? map['created_by']?.toString(),
       location: map['location']?.toString() ?? 'Online',
       tags: (map['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       isFeatured: map['isFeatured'] ?? map['is_featured'] ?? false,
+      createdAt: parseDate(map['createdAt'] ?? map['created_at']),
+      updatedAt: parseDate(map['updatedAt'] ?? map['updated_at']),
     );
   }
 
@@ -92,20 +113,48 @@ class HackathonModel {
       'organizer': organizer,
       'mode': mode,
       'bannerImage': bannerImage,
+      'banner_image': bannerImage,
       'startDate': startDate.toIso8601String(),
+      'start_date': startDate.toIso8601String(),
+      'eventStartDate': startDate.toIso8601String(),
+      'event_start_date': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
-      'registrationOpen': registrationOpen,
+      'end_date': endDate.toIso8601String(),
+      'eventEndDate': endDate.toIso8601String(),
+      'event_end_date': endDate.toIso8601String(),
+      'registrationStartDate': registrationStartDate.toIso8601String(),
+      'registration_start_date': registrationStartDate.toIso8601String(),
       'registrationDeadline': registrationDeadline.toIso8601String(),
+      'registration_deadline': registrationDeadline.toIso8601String(),
+      'registrationOpen': registrationOpen,
+      'registration_open': registrationOpen,
       'prizePool': prizePool,
+      'prize_pool': prizePool,
       'registeredTeams': registeredTeams,
+      'registered_teams': registeredTeams,
       'maxTeams': maxTeams,
+      'max_teams': maxTeams,
+      'maxTeamMembers': maxTeamMembers,
+      'max_team_members': maxTeamMembers,
       'teamSize': teamSize,
+      'team_size': teamSize,
       'status': status,
       'userRegistrationStatus': userRegistrationStatus,
+      'user_registration_status': userRegistrationStatus,
       'registrationId': registrationId,
+      'registration_id': registrationId,
+      'registrationLink': registrationLink,
+      'registration_link': registrationLink,
+      'createdBy': createdBy,
+      'created_by': createdBy,
       'location': location,
       'tags': tags,
       'isFeatured': isFeatured,
+      'is_featured': isFeatured,
+      'createdAt': createdAt?.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 
@@ -121,18 +170,24 @@ class HackathonModel {
     String? bannerImage,
     DateTime? startDate,
     DateTime? endDate,
-    bool? registrationOpen,
+    DateTime? registrationStartDate,
     DateTime? registrationDeadline,
+    bool? registrationOpen,
     String? prizePool,
     int? registeredTeams,
     int? maxTeams,
+    int? maxTeamMembers,
     int? teamSize,
     String? status,
     String? userRegistrationStatus,
     String? registrationId,
+    String? registrationLink,
+    String? createdBy,
     String? location,
     List<String>? tags,
     bool? isFeatured,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return HackathonModel(
       id: id ?? this.id,
@@ -144,18 +199,25 @@ class HackathonModel {
       bannerImage: bannerImage ?? this.bannerImage,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
-      registrationOpen: registrationOpen ?? this.registrationOpen,
+      registrationStartDate: registrationStartDate ?? this.registrationStartDate,
       registrationDeadline: registrationDeadline ?? this.registrationDeadline,
+      registrationOpen: registrationOpen ?? this.registrationOpen,
       prizePool: prizePool ?? this.prizePool,
       registeredTeams: registeredTeams ?? this.registeredTeams,
       maxTeams: maxTeams ?? this.maxTeams,
+      maxTeamMembers: maxTeamMembers ?? this.maxTeamMembers,
       teamSize: teamSize ?? this.teamSize,
       status: status ?? this.status,
       userRegistrationStatus: userRegistrationStatus ?? this.userRegistrationStatus,
       registrationId: registrationId ?? this.registrationId,
+      registrationLink: registrationLink ?? this.registrationLink,
+      createdBy: createdBy ?? this.createdBy,
       location: location ?? this.location,
       tags: tags ?? this.tags,
       isFeatured: isFeatured ?? this.isFeatured,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
+

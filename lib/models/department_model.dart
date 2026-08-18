@@ -1,43 +1,73 @@
 class DepartmentModel {
   final String departmentId;
-  final String departmentName;
-  final String departmentCode;
+  final String name;
+  final String code;
   final String? hodId;
   final String? hodName;
   final int totalStudents;
   final int totalFaculty;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   DepartmentModel({
     required this.departmentId,
-    required this.departmentName,
-    required this.departmentCode,
+    required this.name,
+    required this.code,
     this.hodId,
     this.hodName,
     this.totalStudents = 0,
     this.totalFaculty = 0,
+    this.createdAt,
+    this.updatedAt,
   });
 
+  String get departmentName => name;
+  String get departmentCode => code;
+
   factory DepartmentModel.fromMap(Map<String, dynamic> map, String id) {
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is DateTime) return val;
+      return DateTime.tryParse(val.toString());
+    }
+
+    final deptName = map['name'] ?? map['department_name'] ?? map['departmentName'] ?? '';
+    final deptCode = map['code'] ?? map['department_code'] ?? map['departmentCode'] ?? '';
+
     return DepartmentModel(
       departmentId: id,
-      departmentName: map['department_name'] ?? map['departmentName'] ?? '',
-      departmentCode: map['department_code'] ?? map['departmentCode'] ?? '',
-      hodId: map['hod_id'] ?? map['hodId'],
-      hodName: map['hod_name'] ?? map['hodName'],
-      totalStudents: (map['total_students'] ?? map['totalStudents'] ?? 0) as int,
-      totalFaculty: (map['total_faculty'] ?? map['totalFaculty'] ?? 0) as int,
+      name: deptName.toString(),
+      code: deptCode.toString(),
+      hodId: map['hodId'] ?? map['hod_id'],
+      hodName: map['hodName'] ?? map['hod_name'],
+      totalStudents: (map['totalStudents'] ?? map['total_students'] ?? 0) as int,
+      totalFaculty: (map['totalFaculty'] ?? map['total_faculty'] ?? 0) as int,
+      createdAt: parseDate(map['createdAt'] ?? map['created_at']),
+      updatedAt: parseDate(map['updatedAt'] ?? map['updated_at']),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'departmentId': departmentId,
       'department_id': departmentId,
-      'department_name': departmentName,
-      'department_code': departmentCode,
+      'name': name,
+      'department_name': name,
+      'departmentName': name,
+      'code': code,
+      'department_code': code,
+      'departmentCode': code,
+      'hodId': hodId,
       'hod_id': hodId,
+      'hodName': hodName,
       'hod_name': hodName,
+      'totalStudents': totalStudents,
       'total_students': totalStudents,
+      'totalFaculty': totalFaculty,
       'total_faculty': totalFaculty,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 }
+

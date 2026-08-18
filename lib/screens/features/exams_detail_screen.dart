@@ -221,12 +221,12 @@ class _ExamsDetailScreenState extends State<ExamsDetailScreen> with SingleTicker
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: option['bgColor'] as Color,
+                                          color: (option['bgColor'] as Color?) ?? const Color(0xFFEEF2FF),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Icon(
                                           option['icon'] as IconData,
-                                          color: option['color'] as Color,
+                                          color: (option['color'] as Color?) ?? const Color(0xFF4F46E5),
                                           size: 20,
                                         ),
                                       ),

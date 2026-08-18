@@ -9,6 +9,11 @@ import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/screens/features/fees_screen.dart';
 import 'package:unisphere/screens/profile/profile_screen.dart';
+import 'package:unisphere/widgets/common/recent_photos_section.dart';
+import 'package:unisphere/screens/gallery/full_photo_gallery_screen.dart';
+import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
+import 'package:unisphere/screens/features/events_screen.dart';
+
 
 class StudentWard {
   final String id;
@@ -58,8 +63,10 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
     SidebarItem(label: 'Performance Marks', icon: Icons.bar_chart_outlined),
     SidebarItem(label: 'Institutional Alerts', icon: Icons.campaign_outlined, badge: 'New'),
     SidebarItem(label: 'Parent Profile', icon: Icons.person_outline),
-    SidebarItem.divider('CHILD SERVICES'),
+    SidebarItem.divider('CAMPUS & CHILD SERVICES'),
     SidebarItem(label: 'Child Fee Status', icon: Icons.payments_outlined),
+    SidebarItem(label: 'Campus Photo Gallery', icon: Icons.collections_outlined, badge: 'Gallery'),
+    SidebarItem(label: 'Events & Fests', icon: Icons.event_outlined),
     SidebarItem(label: 'Transport Details', icon: Icons.bus_alert_outlined),
   ];
 
@@ -72,9 +79,12 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
       ParentHomeScreen(onNavigateToTab: _handleNavigation),
       ParentAttendanceDetailTab(onNavigateToTab: _handleNavigation),
       ParentAcademicPerformanceTab(onNavigateToTab: _handleNavigation),
-      const Center(child: Text('Primary Institution Alerts')),
+      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)),
       ProfileScreen(onBack: () => _handleNavigation(0)),
+      const SizedBox.shrink(), // Divider
       FeesScreen(onBack: () => _handleNavigation(0)),
+      FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)),
+      EventsScreen(onBack: () => _handleNavigation(0)),
       const Center(child: Text('School Transport Map')),
     ];
   }
@@ -310,11 +320,17 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
           // 9. Achievements
           _buildAchievementsSection(),
 
+          const SizedBox(height: 24),
+
+          // 10. Campus Recent Photo Gallery
+          const RecentPhotosSection(),
+
           const SizedBox(height: 32),
         ],
       ),
     );
   }
+
 
   // 1. HEADER SECTION
   Widget _buildHeaderSection(BuildContext context) {
@@ -3235,7 +3251,7 @@ class FeeDetailsDialog extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).pop();
                     if (onNavigateToTab != null) {
-                      onNavigateToTab!(5);
+                      onNavigateToTab!(6);
                     } else {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (context) => const FeesScreen()),

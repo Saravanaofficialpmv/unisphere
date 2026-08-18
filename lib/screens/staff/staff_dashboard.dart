@@ -18,6 +18,11 @@ import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/widgets/common/complete_profile_dialog.dart';
 import 'package:unisphere/screens/profile/profile_screen.dart';
+import 'package:unisphere/screens/gallery/full_photo_gallery_screen.dart';
+import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
+import 'package:unisphere/screens/student/modules/student_library_screen.dart';
+import 'package:unisphere/widgets/schedule/academic_schedule_card.dart';
+import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {
   const StaffDashboard({super.key});
@@ -44,12 +49,16 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     SidebarItem(label: 'Give Assignment', icon: Icons.add_task_outlined),
     SidebarItem(label: 'Review Submissions', icon: Icons.checklist_outlined, badge: '12'),
     SidebarItem(label: 'Student Directory & Portfolios', icon: Icons.people_alt_outlined),
-    SidebarItem(label: 'NPTEL Certificate Verif.', icon: Icons.verified_user_outlined, badge: 'NPTEL'),
-
+    SidebarItem(label: 'Profile Edit Requests', icon: Icons.edit_note_rounded, badge: 'Requests'),
+    SidebarItem(label: 'Student Verifications', icon: Icons.verified_user_rounded),
+    SidebarItem(label: 'NPTEL Certificate Verif.', icon: Icons.workspace_premium_outlined, badge: 'NPTEL'),
     SidebarItem(label: 'Upload Marks', icon: Icons.upload_file_outlined),
     SidebarItem(label: 'Staff Profile', icon: Icons.person_outline),
+    SidebarItem(label: 'Important Days & Schedule', icon: Icons.event_note_rounded, badge: 'Official'),
     SidebarItem.divider('FACULTY TOOLS'),
     SidebarItem(label: 'Take Attendance', icon: Icons.how_to_reg_outlined),
+    SidebarItem(label: 'Campus Photo Gallery', icon: Icons.collections_outlined, badge: 'Gallery'),
+    SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
     SidebarItem(label: 'Library Access', icon: Icons.local_library_outlined),
   ];
 
@@ -58,12 +67,17 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 2)),
     const StaffSubmissionReview(),
     const StaffStudentDirectory(),
+    const ClassAdvisorEditRequestsScreen(),
+    const HodStudentVerificationsScreen(),
     const StaffNptelVerificationScreen(),
-
     const StaffMarksUploadModule(),
     ProfileScreen(onBack: () => _handleNavigation(0)),
+    AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0)),
+    const SizedBox.shrink(), // Divider
     const StaffAttendanceMarkingModule(),
-    const Center(child: Text('Faculty Library Access')),
+    FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)),
+    StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)),
+    StudentLibraryScreen(onBack: () => _handleNavigation(0)),
   ];
 
   void _handleNavigation(int index) {
@@ -190,7 +204,11 @@ class StaffHomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(isMobile),
-          SizedBox(height: isMobile ? 32 : 48),
+          const SizedBox(height: 20),
+          AcademicScheduleCard(
+            onViewSchedule: () => onNavigate?.call(9),
+          ),
+          SizedBox(height: isMobile ? 24 : 36),
           _buildActionCards(context, isMobile),
           SizedBox(height: isMobile ? 32 : 48),
           _buildRecentActionsHeader(),
@@ -266,7 +284,7 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.campaign_rounded,
             const Color(0xFFE0E7FF),
             const Color(0xFF4338CA),
-            onTap: () => onNavigate?.call(1),
+            onTap: () => onNavigate?.call(13),
           ),
           _buildActionCard(
             'Upload Marks',
@@ -274,7 +292,7 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.upload_file_rounded,
             const Color(0xFFFEF3C7),
             const Color(0xFF92400E),
-            onTap: () => onNavigate?.call(4),
+            onTap: () => onNavigate?.call(7),
           ),
           _buildActionCard(
             'HOD Profile Verifications',
@@ -282,14 +300,7 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.verified_user_rounded,
             const Color(0xFFF0FDF4),
             const Color(0xFF16A34A),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const HodStudentVerificationsScreen(),
-                ),
-              );
-            },
+            onTap: () => onNavigate?.call(5),
           ),
           _buildActionCard(
             'Profile Edit Requests',
@@ -297,14 +308,7 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.edit_note_rounded,
             const Color(0xFFEFF6FF),
             const Color(0xFF2563EB),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ClassAdvisorEditRequestsScreen(),
-                ),
-              );
-            },
+            onTap: () => onNavigate?.call(4),
           ),
           _buildActionCard(
             'Review Submissions',

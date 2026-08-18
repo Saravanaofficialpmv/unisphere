@@ -85,31 +85,31 @@ class SupabaseAuthService implements AuthService {
 
     // DEMO BYPASS
     if (lowerEmail == 'hod.cse@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-HOD', email: email, name: 'Dr. R. Kumar', role: UserRole.hod);
+      _mockUser = UserModel(uid: 'DEMO-HOD', email: email, fullName: 'Dr. R. Kumar', role: UserRole.hod);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'admin@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-ADM', email: email, name: 'Demo Admin', role: UserRole.admin);
+      _mockUser = UserModel(uid: 'DEMO-ADM', email: email, fullName: 'Demo Admin', role: UserRole.admin);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'staff@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-STF', email: email, name: 'Demo Staff', role: UserRole.staff);
+      _mockUser = UserModel(uid: 'DEMO-STF', email: email, fullName: 'Demo Staff', role: UserRole.staff);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'student@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: 'Demo Student', role: UserRole.student);
+      _mockUser = UserModel(uid: 'DEMO-STU', email: email, fullName: 'Demo Student', role: UserRole.student);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'parent@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-PRT', email: email, name: 'Demo Parent', role: UserRole.parent);
+      _mockUser = UserModel(uid: 'DEMO-PRT', email: email, fullName: 'Demo Parent', role: UserRole.parent);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
@@ -134,7 +134,7 @@ class SupabaseAuthService implements AuthService {
       _mockUser = UserModel(
         uid: 'DEMO-OFFLINE',
         email: email,
-        name: email.contains('@') ? email.split('@').first : email,
+        fullName: email.contains('@') ? email.split('@').first : email,
         role: fallbackRole,
       );
       _currentUser = _mockUser;
@@ -154,9 +154,9 @@ class SupabaseAuthService implements AuthService {
     _mockUser = UserModel(
       uid: 'DEMO-REG-${DateTime.now().millisecondsSinceEpoch}',
       email: email,
-      name: name,
+      fullName: name,
       role: role,
-      phoneNumber: phoneNumber,
+      phone: phoneNumber,
       metadata: metadata,
     );
     _currentUser = _mockUser;
@@ -168,7 +168,7 @@ class SupabaseAuthService implements AuthService {
     _mockUser = UserModel(
       uid: 'DEMO-GGL-USER',
       email: 'alex.google@unisphere.edu',
-      name: 'Alex Johnson (Google)',
+      fullName: 'Alex Johnson (Google)',
       role: UserRole.student,
     );
     _currentUser = _mockUser;
@@ -180,9 +180,10 @@ class SupabaseAuthService implements AuthService {
     _mockUser = UserModel(
       uid: 'DEMO-APL-USER',
       email: 'alex.apple@unisphere.edu',
-      name: 'Alex Johnson (Apple)',
+      fullName: 'Alex Johnson (Apple)',
       role: UserRole.student,
     );
+
     _currentUser = _mockUser;
     _stateController.add(_mockUser);
   }

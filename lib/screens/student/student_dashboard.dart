@@ -35,6 +35,13 @@ import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/widgets/student/student_membership_modal.dart';
 
+import 'package:unisphere/widgets/common/recent_photos_section.dart';
+import 'package:unisphere/screens/gallery/full_photo_gallery_screen.dart';
+import 'package:unisphere/screens/student/cgpa_details_screen.dart';
+import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart';
+
+
+
 
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -59,26 +66,24 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
     SidebarItem(label: 'Timetable', icon: Icons.calendar_month_outlined),
     SidebarItem(label: 'Upcoming Tasks', icon: Icons.task_alt_outlined),
-    SidebarItem(label: 'Attendance', icon: Icons.calendar_today_outlined),
+    SidebarItem(label: 'Attendance Tracker', icon: Icons.calendar_today_outlined),
     SidebarItem(label: 'Academic Marks', icon: Icons.bar_chart_outlined),
+    SidebarItem(label: 'Examinations & Hall Ticket', icon: Icons.badge_outlined, badge: 'Exams'),
+    SidebarItem(label: 'Important Days & Schedule', icon: Icons.event_note_rounded, badge: 'Official'),
+    SidebarItem(label: 'CGPA & Target Planner', icon: Icons.calculate_outlined),
     SidebarItem(label: 'Fees & Payments', icon: Icons.payments_outlined),
-    SidebarItem.divider('CAMPUS & CAREER'),
-    SidebarItem(
-      label: 'Hackathons',
-      icon: Icons.sports_score_outlined,
-      badge: 'Live',
-    ),
-    SidebarItem(
-      label: 'Certifications',
-      icon: Icons.workspace_premium_outlined,
-      badge: 'Verified',
-    ),
-    SidebarItem(label: 'Achievements', icon: Icons.emoji_events_outlined),
-    SidebarItem(label: 'Campus Events', icon: Icons.event_outlined),
-    SidebarItem(label: 'Feature Hub', icon: Icons.grid_view_rounded),
+    SidebarItem.divider('CAREER & SKILLS'),
+    SidebarItem(label: 'Hackathons', icon: Icons.sports_score_outlined, badge: 'Live'),
+    SidebarItem(label: 'Certifications', icon: Icons.workspace_premium_outlined, badge: 'Verified'),
+    SidebarItem(label: 'LeetCode Tracker', icon: Icons.code_rounded, badge: 'DSA'),
+    SidebarItem(label: 'GitHub Dev Portfolio', icon: Icons.terminal_rounded, badge: 'Git'),
+    SidebarItem(label: 'Achievements & Badges', icon: Icons.emoji_events_outlined),
+    SidebarItem(label: 'Campus Events & Fests', icon: Icons.event_outlined),
+    SidebarItem(label: 'Feature Hub & Tools', icon: Icons.grid_view_rounded),
     SidebarItem.divider('CAMPUS LIFE'),
-    SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
-    SidebarItem(label: 'Library Status', icon: Icons.local_library_outlined),
+    SidebarItem(label: 'Campus Photo Gallery', icon: Icons.collections_outlined, badge: 'New'),
+    SidebarItem(label: 'Official Announcements', icon: Icons.campaign_outlined),
+    SidebarItem(label: 'Digital Library', icon: Icons.local_library_outlined),
     SidebarItem.divider('ACCOUNT'),
     SidebarItem(label: 'My Profile', icon: Icons.person_outline),
   ];
@@ -88,34 +93,41 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       StudentHomeScreen(
         onNavigateToTab: _handleNavigation,
         onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
-      ), // 0
-      InteractiveTimetableScreen(onBack: () => _handleNavigation(0)), // 1
-      StudentUpcomingTasksScreen(onBack: () => _handleNavigation(0)), // 2
-      StudentAttendanceScreen(onBack: () => _handleNavigation(0)), // 3
+      ), // 0: Home
+      InteractiveTimetableScreen(onBack: () => _handleNavigation(0)), // 1: Timetable
+      StudentUpcomingTasksScreen(onBack: () => _handleNavigation(0)), // 2: Upcoming Tasks
+      StudentAttendanceScreen(onBack: () => _handleNavigation(0)), // 3: Attendance
       GradebookScreen(
-        // 4
+        // 4: Academic Marks
         key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
         initialShowPlanner: _openGpaPlannerInGradebook,
         onBack: () => _handleNavigation(0),
       ),
-      FeesScreen(onBack: () => _handleNavigation(0)), // 5
-      const SizedBox.shrink(), // 6: Divider
-      HackathonsScreen(onBack: () => _handleNavigation(0)), // 7
-      CertificationsScreen(onBack: () => _handleNavigation(0)), // 8
-      AchievementsScreen(onBack: () => _handleNavigation(0)), // 9
-      EventsScreen(onBack: () => _handleNavigation(0)), // 10
+      ExamsDetailScreen(onBack: () => _handleNavigation(0)), // 5: Examinations & Hall Ticket
+      AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0)), // 6: Important Days & Schedule
+      CgpaDetailsScreen(onBack: () => _handleNavigation(0)), // 7: CGPA & Target Planner
+      FeesScreen(onBack: () => _handleNavigation(0)), // 8: Fees & Payments
+      const SizedBox.shrink(), // 9: Divider CAREER & SKILLS
+      HackathonsScreen(onBack: () => _handleNavigation(0)), // 10: Hackathons
+      CertificationsScreen(onBack: () => _handleNavigation(0)), // 11: Certifications
+      LeetCodeDetailScreen(onBack: () => _handleNavigation(0)), // 12: LeetCode Tracker
+      GitHubDetailScreen(onBack: () => _handleNavigation(0)), // 13: GitHub Dev Portfolio
+      AchievementsScreen(onBack: () => _handleNavigation(0)), // 14: Achievements
+      EventsScreen(onBack: () => _handleNavigation(0)), // 15: Campus Events
       FeatureHubScreen(
-        // 11
+        // 16: Feature Hub
         onNavigateToTab: _handleNavigation,
         onBack: () => _handleNavigation(0),
       ),
-      const SizedBox.shrink(), // 12: Divider
-      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 13
-      StudentLibraryScreen(onBack: () => _handleNavigation(0)), // 14
-      const SizedBox.shrink(), // 15: Divider
-      ProfileScreen(onBack: () => _handleNavigation(0)), // 16
+      const SizedBox.shrink(), // 17: Divider CAMPUS LIFE
+      FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)), // 18: Photo Gallery
+      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 19: Announcements
+      StudentLibraryScreen(onBack: () => _handleNavigation(0)), // 20: Library Status
+      const SizedBox.shrink(), // 21: Divider ACCOUNT
+      ProfileScreen(onBack: () => _handleNavigation(0)), // 22: My Profile
     ];
   }
+
 
   void _handleNavigation(int index, {bool openCalculator = false}) {
     if (_innerNavigatorKey.currentState?.canPop() ?? false) {
@@ -394,38 +406,51 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
         children: [
           Column(
             children: [
-              // Home Top Header Bar (Redesigned with Profile Greeting & Notification Bell)
+              // Home Top Header Bar & Search Bar (Pinned & Stable on scroll - Seamless background)
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
                 color: Colors.white,
-                child: Row(
-                  children: [
-                    // Profile Avatar + Greetings & Student Details
-                    Expanded(
-                      child: _buildWelcomeSection(),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 960),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            // Profile Avatar + Greetings & Student Details
+                            Expanded(
+                              child: _buildWelcomeSection(),
+                            ),
+                            // Department Vision & Outcomes Button
+                            IconButton(
+                              icon: const Icon(
+                                Icons.school_rounded,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                              tooltip: 'Department Vision & Outcomes',
+                              onPressed: () => showDepartmentVisionSheet(context),
+                            ),
+                            const SizedBox(width: 4),
+                            // Notification Bell Action Icon
+                            NotificationBellButton(
+                              unreadCount: unreadCount,
+                              onTap: () {
+                                showNotificationSheet(
+                                  context,
+                                  onNavigateToTab: widget.onNavigateToTab,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        // 1. Universal Search Bar (Pill Gradient Design - Fixed & Stable)
+                        _buildSearchBar(context),
+                      ],
                     ),
-                    // Department Vision & Outcomes Button
-                    IconButton(
-                      icon: const Icon(
-                        Icons.school_rounded,
-                        color: AppColors.primary,
-                        size: 24,
-                      ),
-                      tooltip: 'Department Vision & Outcomes',
-                      onPressed: () => showDepartmentVisionSheet(context),
-                    ),
-                    const SizedBox(width: 4),
-                    // Notification Bell Action Icon
-                    NotificationBellButton(
-                      unreadCount: unreadCount,
-                      onTap: () {
-                        showNotificationSheet(
-                          context,
-                          onNavigateToTab: widget.onNavigateToTab,
-                        );
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ),
               Expanded(
@@ -434,14 +459,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 960),
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                       child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 1. Universal Search Bar (Pill Gradient Design)
-                      _buildSearchBar(context),
-                      const SizedBox(height: 16),
-
                       // Profile Verification Banner (Prompt to complete profile & submit to HOD)
                       _buildProfileCompletionBanner(),
                       _buildMembershipReminderBanner(),
@@ -504,7 +525,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       ),
                       const SizedBox(height: 16),
                       _buildProfileConnectionBanner(context),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       _buildQuickActions(),
 
                       const SizedBox(height: 24),
@@ -514,10 +535,13 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       ),
                       const SizedBox(height: 12),
                       _buildTodaysClasses(),
+                      const SizedBox(height: 24),
+                      const RecentPhotosSection(),
                     ],
                   ),
                 ),
               ),
+
             ),
           ),
         ],
@@ -1084,15 +1108,22 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     String query = '';
     final List<Map<String, dynamic>> allSearchItems = [
       {'title': 'Timetable & Class Schedule', 'subtitle': 'Daily periods & lab rooms', 'icon': Icons.calendar_today_rounded, 'color': const Color(0xFF5C6BC0), 'tabIndex': 1},
-      {'title': 'Assignments Portal', 'subtitle': 'Posted questions & PDF uploads', 'icon': Icons.assignment_turned_in_rounded, 'color': const Color(0xFF26A69A), 'tabIndex': 2},
+      {'title': 'Upcoming Tasks & Coursework', 'subtitle': 'Pending deadlines, homework & lab submissions', 'icon': Icons.task_alt_rounded, 'color': const Color(0xFF0D9488), 'tabIndex': 2},
       {'title': 'Attendance Tracker', 'subtitle': '86% attendance & working days', 'icon': Icons.pie_chart_rounded, 'color': const Color(0xFF3F51B5), 'tabIndex': 3},
       {'title': 'Internal & University Marks', 'subtitle': 'Faculty internal & COE university results', 'icon': Icons.grade_rounded, 'color': const Color(0xFFEF5350), 'tabIndex': 4},
-      {'title': 'Fees & Dues Payment', 'subtitle': 'Tuition & hostel fee receipts', 'icon': Icons.school_rounded, 'color': const Color(0xFFFFA726), 'tabIndex': 5},
-      {'title': 'Hackathons & Coding', 'subtitle': 'Inter-college hackathons & wins', 'icon': Icons.code_rounded, 'color': const Color(0xFF8B5CF6), 'tabIndex': 7},
-      {'title': 'Certifications & Badges', 'subtitle': 'NPTEL, Coursera & AWS certificates', 'icon': Icons.workspace_premium_rounded, 'color': const Color(0xFF10B981), 'tabIndex': 8},
-      {'title': 'Achievements & Honors', 'subtitle': 'Academic & sports trophies', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 9},
-      {'title': 'Campus Events & Symposia', 'subtitle': 'Department fests & cultural events', 'icon': Icons.event_rounded, 'color': const Color(0xFFEC4899), 'tabIndex': 10},
-      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 13},
+      {'title': 'Examinations & Hall Ticket', 'subtitle': 'IA schedule, university dates & seating', 'icon': Icons.badge_outlined, 'color': const Color(0xFF4F46E5), 'tabIndex': 5},
+      {'title': 'Important Days & Schedule', 'subtitle': 'Official academic calendar, CAT dates & holidays', 'icon': Icons.event_note_rounded, 'color': const Color(0xFF1E40AF), 'tabIndex': 6},
+      {'title': 'CGPA & Target Planner', 'subtitle': 'Semester GPA forecasting & targets', 'icon': Icons.calculate_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 7},
+      {'title': 'Fees & Dues Payment', 'subtitle': 'Tuition & hostel fee receipts', 'icon': Icons.school_rounded, 'color': const Color(0xFFFFA726), 'tabIndex': 8},
+      {'title': 'Hackathons & Coding', 'subtitle': 'Inter-college hackathons & wins', 'icon': Icons.code_rounded, 'color': const Color(0xFF8B5CF6), 'tabIndex': 10},
+      {'title': 'Certifications & Badges', 'subtitle': 'NPTEL, Coursera & AWS certificates', 'icon': Icons.workspace_premium_rounded, 'color': const Color(0xFF10B981), 'tabIndex': 11},
+      {'title': 'LeetCode Coding Tracker', 'subtitle': 'DSA solved count & contest rank', 'icon': Icons.code_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 12},
+      {'title': 'GitHub Dev Portfolio', 'subtitle': 'Repositories & commit contributions', 'icon': Icons.terminal_rounded, 'color': const Color(0xFF0F172A), 'tabIndex': 13},
+      {'title': 'Achievements & Honors', 'subtitle': 'Academic & sports trophies', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 14},
+      {'title': 'Campus Events & Symposia', 'subtitle': 'Department fests & cultural events', 'icon': Icons.event_rounded, 'color': const Color(0xFFEC4899), 'tabIndex': 15},
+      {'title': 'Campus Photo Gallery', 'subtitle': 'Event photos & fest highlights', 'icon': Icons.collections_rounded, 'color': const Color(0xFF0284C7), 'tabIndex': 18},
+      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 19},
+      {'title': 'Digital Library Status', 'subtitle': 'Issued books, catalogs & renewals', 'icon': Icons.local_library_rounded, 'color': const Color(0xFF059669), 'tabIndex': 20},
     ];
 
     showModalBottomSheet(
@@ -1170,10 +1201,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                 leading: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: (item['color'] as Color).withValues(alpha: 0.1),
+                                    color: ((item['color'] as Color?) ?? const Color(0xFF2563EB)).withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 20),
+                                  child: Icon(item['icon'] as IconData, color: (item['color'] as Color?) ?? const Color(0xFF2563EB), size: 20),
                                 ),
                                 title: Text(item['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                 subtitle: Text(item['subtitle'] as String, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
@@ -1539,7 +1570,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     // ── Slide 1: Attendance & Current CGPA ──
                     Row(
                       children: [
-                        // Metric 1: Attendance (Semester-Wise & HOD Working Days) -> Opens Attendance screen (Tab 3)
+                        // Metric 1: Attendance (Semester-Wise & HOD Working Days) -> Opens Attendance screen (Tab 4)
                         Expanded(
                           flex: 5,
                           child: InkWell(
@@ -1659,7 +1690,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 10),
                           color: Colors.black.withValues(alpha: 0.08),
                         ),
-                        // Metric 2: CGPA -> Opens Gradebook (Tab 4)
+                        // Metric 2: CGPA -> Opens Gradebook (Tab 5)
                         Expanded(
                           flex: 4,
                           child: InkWell(
@@ -2078,9 +2109,9 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
       },
       {
         'image': 'assets/assignment.png',
-        'label': 'Assignments',
-        'color': const Color(0xFF26A69A),
-        'type': 'assignments',
+        'label': 'Upcoming Tasks',
+        'color': const Color(0xFF0D9488),
+        'type': 'tasks',
       },
       {
         'image': 'assets/student.png',
@@ -2118,7 +2149,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
       {
         'icon': Icons.grid_view_rounded,
         'label': 'More',
-        'color': const Color(0xFFFF7043),
+        'iconBg': const Color(0xFFF1F5F9),
+        'iconColor': const Color(0xFF475569),
         'type': 'more',
       },
     ];
@@ -2145,6 +2177,9 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   Widget _buildQuickActionButton(Map<String, dynamic> action) {
     final label = action['label'] as String;
     final type = action['type'] as String;
+    final Color mainColor = (action['color'] as Color?) ?? (action['iconColor'] as Color?) ?? const Color(0xFF2563EB);
+    final Color bgColor = (action['iconBg'] as Color?) ?? mainColor.withValues(alpha: 0.1);
+    final Color borderColor = mainColor.withValues(alpha: 0.2);
 
     return Material(
       color: Colors.transparent,
@@ -2154,22 +2189,20 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             showDepartmentVisionSheet(context);
           } else if (type == 'timetable') {
             widget.onNavigateToTab(1);
-          } else if (type == 'assignments') {
+          } else if (type == 'tasks' || type == 'assignments' || type == 'upcoming_tasks') {
             widget.onNavigateToTab(2);
           } else if (type == 'grades') {
             widget.onNavigateToTab(4);
           } else if (type == 'fees') {
-            widget.onNavigateToTab(5);
-          } else if (type == 'certifications') {
             widget.onNavigateToTab(8);
-          } else if (type == 'announcement') {
-            widget.onNavigateToTab(13);
-          } else if (type == 'exams') {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ExamsDetailScreen()),
-            );
-          } else if (type == 'more') {
+          } else if (type == 'certifications') {
             widget.onNavigateToTab(11);
+          } else if (type == 'announcement') {
+            widget.onNavigateToTab(19);
+          } else if (type == 'exams') {
+            widget.onNavigateToTab(5);
+          } else if (type == 'more') {
+            widget.onNavigateToTab(16);
           }
         },
         borderRadius: BorderRadius.circular(16),
@@ -2184,16 +2217,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: action.containsKey('color')
-                          ? (action['color'] as Color).withValues(alpha: 0.1)
-                          : (action['iconBg'] as Color),
+                      color: bgColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: action.containsKey('color')
-                            ? (action['color'] as Color).withValues(alpha: 0.2)
-                            : (action['iconColor'] as Color).withValues(
-                                alpha: 0.2,
-                              ),
+                        color: borderColor,
                       ),
                     ),
                     alignment: Alignment.center,
@@ -2208,12 +2235,12 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                         : action.containsKey('icon')
                         ? Icon(
                             action['icon'] as IconData,
-                            color: action['color'] as Color,
+                            color: mainColor,
                             size: 26,
                           )
                         : _renderSuggestedIcon(
                             type,
-                            action['iconColor'] as Color,
+                            mainColor,
                           ),
                   ),
                   if (type == 'announcement')

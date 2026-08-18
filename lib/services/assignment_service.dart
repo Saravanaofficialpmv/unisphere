@@ -9,6 +9,7 @@ class AssignmentService extends ChangeNotifier {
   factory AssignmentService() => _instance;
 
   StreamSubscription<List<AssignmentModel>>? _subscription;
+  StreamSubscription<List<SubmissionModel>>? _submissionsSubscription;
 
   AssignmentService._internal() {
     _initSeedData();
@@ -34,6 +35,25 @@ class AssignmentService extends ChangeNotifier {
         },
         onError: (e) {
           debugPrint('AssignmentService stream error: $e');
+        },
+      );
+
+      _submissionsSubscription = firestoreService.getAllSubmissions().listen(
+        (list) {
+          if (list.isNotEmpty) {
+            for (var incoming in list) {
+              final idx = _submissions.indexWhere((s) => s.id == incoming.id || (s.assignmentId == incoming.assignmentId && s.studentUid == incoming.studentUid));
+              if (idx != -1) {
+                _submissions[idx] = incoming;
+              } else {
+                _submissions.add(incoming);
+              }
+            }
+            notifyListeners();
+          }
+        },
+        onError: (e) {
+          debugPrint('AssignmentService submissions stream error: $e');
         },
       );
     } catch (e) {
@@ -145,6 +165,8 @@ class AssignmentService extends ChangeNotifier {
     required String fileName,
     required String fileType,
     required int fileSizeBytes,
+    String? fileUrl,
+    String? submissionNotes,
     required bool isFinalSubmit,
   }) {
     final index = _submissions.indexWhere(
@@ -155,10 +177,12 @@ class AssignmentService extends ChangeNotifier {
     if (index != -1) {
       final updated = _submissions[index].copyWith(
         fileName: fileName,
+        fileUrl: fileUrl ?? _submissions[index].fileUrl,
         fileType: fileType,
         fileSizeBytes: fileSizeBytes,
         submittedAt: DateTime.now(),
         status: status,
+        submissionNotes: submissionNotes ?? _submissions[index].submissionNotes,
       );
       _submissions[index] = updated;
       notifyListeners();
@@ -171,11 +195,13 @@ class AssignmentService extends ChangeNotifier {
         studentName: studentName,
         registerNumber: registerNumber,
         fileName: fileName,
+        fileUrl: fileUrl,
         fileType: fileType,
         fileSizeBytes: fileSizeBytes,
         submittedAt: DateTime.now(),
         status: status,
         isGraded: false,
+        submissionNotes: submissionNotes,
       );
       _submissions.add(newSub);
       notifyListeners();
@@ -208,6 +234,7 @@ class AssignmentService extends ChangeNotifier {
   @override
   void dispose() {
     _subscription?.cancel();
+    _submissionsSubscription?.cancel();
     super.dispose();
   }
 }

@@ -703,7 +703,7 @@ class _FeesScreenState extends State<FeesScreen> {
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final item = installments[index];
-        final color = item['color'] as Color;
+        final color = (item['color'] as Color?) ?? const Color(0xFF2563EB);
 
         return Container(
           padding: const EdgeInsets.all(16),

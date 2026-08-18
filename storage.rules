@@ -1,0 +1,61 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Student Photos: student-photos/{uid}/profile
+    match /student-photos/{uid}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(uid) || isAuthenticated();
+    }
+
+    // Parent Photos: parent-photos/{studentId}/father or mother
+    match /parent-photos/{studentId}/{parentType} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Staff Photos: staff-photos/{uid}/profile
+    match /staff-photos/{uid}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(uid) || isAuthenticated();
+    }
+
+    // Certificates: certificates/{studentId}/{certificateId}
+    match /certificates/{studentId}/{certificateId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Hackathon Documents: hackathons/{hackathonId}/documents/{fileName}
+    match /hackathons/{hackathonId}/documents/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Gallery Photos: gallery-photos/{albumId}/{fileName}
+    match /gallery-photos/{albumId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+
+    // Assignments & Submissions
+    match /assignments/{assignmentId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    match /submissions/{submissionId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+  }
+}

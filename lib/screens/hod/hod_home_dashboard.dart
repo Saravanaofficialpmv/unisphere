@@ -374,13 +374,14 @@ class HodHomeDashboard extends StatelessWidget {
 
   Widget _buildQuickActionButtons(BuildContext context) {
     final actions = [
-      {'label': 'Manage Staff', 'icon': Icons.badge_outlined, 'index': 1},
-      {'label': 'Students', 'icon': Icons.school_outlined, 'index': 2},
-      {'label': 'Attendance', 'icon': Icons.fact_check_outlined, 'index': 4},
-      {'label': 'Timetable', 'icon': Icons.calendar_month_outlined, 'index': 6},
-      {'label': 'Reports', 'icon': Icons.insights_outlined, 'index': 3},
-      {'label': 'Upload CO/PO/PSO', 'icon': Icons.upload_file_rounded, 'index': 9},
-      {'label': 'Announcements', 'icon': Icons.campaign_outlined, 'index': 10},
+      {'label': 'Manage Staff', 'icon': Icons.badge_outlined, 'index': 3},
+      {'label': 'Students', 'icon': Icons.school_outlined, 'index': 4},
+      {'label': 'Attendance', 'icon': Icons.fact_check_outlined, 'index': 10},
+      {'label': 'Timetable', 'icon': Icons.calendar_month_outlined, 'index': 12},
+      {'label': 'Academic Schedule', 'icon': Icons.event_note_rounded, 'index': 14},
+      {'label': 'Reports', 'icon': Icons.insights_outlined, 'index': 7},
+      {'label': 'Upload CO/PO/PSO', 'icon': Icons.upload_file_rounded, 'index': 16},
+      {'label': 'Announcements', 'icon': Icons.campaign_outlined, 'index': 17},
     ];
 
     return Column(

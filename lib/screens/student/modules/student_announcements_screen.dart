@@ -288,12 +288,12 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: option['bgColor'] as Color,
+                                          color: (option['bgColor'] as Color?) ?? const Color(0xFFFEF3C7),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Icon(
                                           option['icon'] as IconData,
-                                          color: option['color'] as Color,
+                                          color: (option['color'] as Color?) ?? const Color(0xFFF97316),
                                           size: 20,
                                         ),
                                       ),

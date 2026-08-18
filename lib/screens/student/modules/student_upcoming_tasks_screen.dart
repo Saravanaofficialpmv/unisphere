@@ -1,10 +1,14 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/models/submission_model.dart';
+import 'package:unisphere/services/assignment_service.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
-import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/widgets/common/custom_loader.dart';
+import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 
 class StudentUpcomingTasksScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -18,87 +22,107 @@ class StudentUpcomingTasksScreen extends ConsumerStatefulWidget {
   ConsumerState<StudentUpcomingTasksScreen> createState() => _StudentUpcomingTasksScreenState();
 }
 
-class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTasksScreen> with SingleTickerProviderStateMixin {
+class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTasksScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTabIndex = 0;
+  final AssignmentService _assignmentService = AssignmentService();
 
-  // Mock list of posted assignment questions for students
-  final List<Map<String, dynamic>> _assignments = [
+  // Local fallback assignments if Firestore has not seeded yet
+  final List<Map<String, dynamic>> _fallbackAssignments = [
     {
-      'id': 'asg_1',
-      'courseCode': 'CS302',
-      'subjectName': 'Database Systems',
-      'title': 'SQL Query Optimization & Indexing Assignment',
-      'facultyName': 'Prof. Sarah Jenkins',
-      'postedDate': '10 Aug 2026',
-      'dueDate': '13 Aug 2026 • 11:59 PM',
-      'isDueSoon': true,
-      'maxMarks': 100,
-      'status': 'Pending', // Pending, Submitted, Graded
-      'allowedFormats': 'PDF Document (.pdf)',
-      'questionPrompt':
-          'Write optimized SQL queries for complex multi-table JOINs, indexing strategies, and normalized schema design for a university portal database.',
-      'submittedFile': null,
-      'submittedDate': null,
-      'obtainedMarks': null,
-      'feedback': null,
-    },
-    {
-      'id': 'asg_2',
+      'id': 'asg-1',
       'courseCode': 'CS301',
       'subjectName': 'Computer Networks',
-      'title': 'Subnetting & TCP/IP Protocol Analysis Report',
+      'title': 'Socket Programming & TCP Stream Pipeline',
       'facultyName': 'Dr. Robert Vance',
-      'postedDate': '08 Aug 2026',
-      'dueDate': '15 Aug 2026 • 05:00 PM',
+      'postedDate': '12 Aug 2026',
+      'dueDate': '22 Aug 2026 • 11:59 PM',
+      'dueDateTime': DateTime.now().add(const Duration(days: 4)),
       'isDueSoon': false,
-      'maxMarks': 50,
+      'maxMarks': 100,
       'status': 'Pending',
       'allowedFormats': 'PDF Document (.pdf)',
       'questionPrompt':
-          'Analyze Wireshark packet capture logs for TCP 3-way handshake and compute CIDR subnet masks for a class B network distribution.',
+          'Implement a multi-threaded TCP Client-Server socket application handling asynchronous message streaming, packet serialization, and connection keep-alive.',
+      'submissionInstructions':
+          'Upload a clean PDF containing code listings, execution screenshots, and Wireshark trace analysis.',
       'submittedFile': null,
       'submittedDate': null,
       'obtainedMarks': null,
       'feedback': null,
+      'notes': null,
+      'fileSizeBytes': null,
     },
     {
-      'id': 'asg_3',
+      'id': 'asg-2',
+      'courseCode': 'CS302',
+      'subjectName': 'Database Systems',
+      'title': 'SQL Query Optimization & B-Tree Indexing Benchmark',
+      'facultyName': 'Prof. Sarah Jenkins',
+      'postedDate': '10 Aug 2026',
+      'dueDate': '19 Aug 2026 • 11:59 PM',
+      'dueDateTime': DateTime.now().add(const Duration(days: 1)),
+      'isDueSoon': true,
+      'maxMarks': 100,
+      'status': 'Pending',
+      'allowedFormats': 'PDF Document (.pdf)',
+      'questionPrompt':
+          'Design complex multi-table SQL queries, execute query explain plans, and optimize indexing strategies on a 100,000 row dataset.',
+      'submissionInstructions':
+          'Submit a PDF report with SQL queries, execution time comparisons, and index tree diagrams.',
+      'submittedFile': null,
+      'submittedDate': null,
+      'obtainedMarks': null,
+      'feedback': null,
+      'notes': null,
+      'fileSizeBytes': null,
+    },
+    {
+      'id': 'asg-3',
       'courseCode': 'CS304',
       'subjectName': 'Software Engineering',
       'title': 'UML Class & Sequence Diagram Modeling',
       'facultyName': 'Prof. Michael Scott',
       'postedDate': '04 Aug 2026',
       'dueDate': '11 Aug 2026 • 11:59 PM',
+      'dueDateTime': DateTime.now().subtract(const Duration(days: 7)),
       'isDueSoon': false,
       'maxMarks': 100,
       'status': 'Submitted',
       'allowedFormats': 'PDF Document (.pdf)',
       'questionPrompt':
           'Design comprehensive UML Structural and Behavioral diagrams for an e-commerce order management subsystem.',
+      'submissionInstructions': 'Export diagrams as high-resolution PDF with explanatory case notes.',
       'submittedFile': 'Alex_Johnson_SoftwareEng_UML_Assignment.pdf',
       'submittedDate': '10 Aug 2026 • 09:30 PM',
       'obtainedMarks': null,
       'feedback': null,
+      'notes': 'Completed all 5 class diagrams and scenario sequences.',
+      'fileSizeBytes': 1845000,
     },
     {
-      'id': 'asg_4',
+      'id': 'asg-4',
       'courseCode': 'CS305',
       'subjectName': 'AI & Machine Learning',
       'title': 'Supervised Linear Regression Lab Notebook',
       'facultyName': 'Dr. Grace Hopper',
       'postedDate': '01 Aug 2026',
       'dueDate': '07 Aug 2026 • 11:59 PM',
+      'dueDateTime': DateTime.now().subtract(const Duration(days: 11)),
       'isDueSoon': false,
       'maxMarks': 100,
       'status': 'Graded',
       'allowedFormats': 'PDF Document (.pdf)',
       'questionPrompt':
           'Implement Linear & Polynomial Regression using NumPy & Scikit-Learn to predict house prices based on multi-variate features.',
+      'submissionInstructions': 'Submit Jupyter Notebook export in PDF format with loss curve graphs.',
       'submittedFile': 'Alex_Johnson_ML_LinearRegression.pdf',
       'submittedDate': '06 Aug 2026 • 04:15 PM',
       'obtainedMarks': 94,
-      'feedback': 'Excellent implementation! Clean code structure and detailed plot visualizations.',
+      'feedback': 'Excellent implementation! Clean code structure and detailed loss plot visualizations.',
+      'notes': 'Tuned alpha learning rate to 0.001 with 500 epochs.',
+      'fileSizeBytes': 2620000,
     },
   ];
 
@@ -113,12 +137,18 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
         });
       }
     });
+    _assignmentService.addListener(_onServiceUpdate);
   }
 
   @override
   void dispose() {
+    _assignmentService.removeListener(_onServiceUpdate);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onServiceUpdate() {
+    if (mounted) setState(() {});
   }
 
   void _handleBack() {
@@ -130,208 +160,523 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
     }
   }
 
+  String _formatFileSize(int? bytes) {
+    if (bytes == null || bytes <= 0) return '1.8 MB';
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   void _showSubmissionPortalModal(Map<String, dynamic> assignment) {
-    final noteController = TextEditingController();
-    String? selectedFileName = assignment['submittedFile'];
+    final user = ref.read(currentUserProvider).value ?? ref.read(authServiceProvider).currentUser;
+    final meta = user?.metadata ?? {};
+    final studentUid = user?.uid ?? 'DEMO-STU';
+    final studentName = user?.fullName ?? user?.name ?? meta['fullName']?.toString() ?? 'Alex Johnson';
+    final regNo = meta['registerNumber']?.toString().trim() ?? 'RA2111003010001';
+
+    final noteController = TextEditingController(text: assignment['notes']?.toString() ?? '');
+    String? selectedFileName = assignment['submittedFile']?.toString();
+    int? selectedFileSize = assignment['fileSizeBytes'] is int ? assignment['fileSizeBytes'] as int : null;
+    String selectedFileType = assignment['fileType']?.toString() ?? 'PDF';
     bool isUploading = false;
+    bool isSubmitting = false;
+    final isGraded = assignment['status'] == 'Graded';
+    final isAlreadySubmitted = assignment['status'] == 'Submitted';
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          padding: EdgeInsets.only(
-            top: 24,
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-          ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        builder: (context, setModalState) {
+          Future<void> pickRealFile() async {
+            try {
+              setModalState(() {
+                isUploading = true;
+              });
+
+              final result = await FilePicker.platform.pickFiles(
+                type: FileType.custom,
+                allowedExtensions: ['pdf', 'doc', 'docx', 'zip', 'png', 'jpg', 'jpeg'],
+                allowMultiple: false,
+                withData: true,
+              );
+
+              if (result != null && result.files.isNotEmpty) {
+                final file = result.files.first;
+                final ext = file.extension?.toUpperCase() ?? 'PDF';
+                setModalState(() {
+                  selectedFileName = file.name;
+                  selectedFileSize = file.size;
+                  selectedFileType = ext;
+                  isUploading = false;
+                });
+              } else {
+                setModalState(() {
+                  isUploading = false;
+                });
+              }
+            } catch (e) {
+              debugPrint('FilePicker error, falling back to sample template: $e');
+              setModalState(() {
+                isUploading = false;
+                selectedFileName ??= '${studentName.replaceAll(" ", "_")}_${assignment['courseCode']}_Solution.pdf';
+                selectedFileSize ??= 2450000;
+                selectedFileType = 'PDF';
+              });
+            }
+          }
+
+          void pickTemplateSample(String sampleName) {
+            setModalState(() {
+              selectedFileName = sampleName;
+              selectedFileSize = 2150000;
+              selectedFileType = 'PDF';
+            });
+          }
+
+          return Container(
+            padding: EdgeInsets.only(
+              top: 20,
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
+                  // Handle Bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  // Header Row with Title and Close button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              assignment['title'] ?? 'Assignment Details',
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              '${assignment['courseCode']} - ${assignment['subjectName']} • Max Marks: ${assignment['maxMarks']}',
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 22, color: Color(0xFF64748B)),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1),
+                  const SizedBox(height: 14),
+
+                  // Question Prompt Container
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          assignment['title'],
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          children: [
+                            const Icon(Icons.help_outline_rounded, size: 16, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Posted Question (${assignment['facultyName']}):',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 6),
                         Text(
-                          '${assignment['courseCode']} - ${assignment['subjectName']} • Max Marks: ${assignment['maxMarks']}',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                          assignment['questionPrompt'] ?? 'Complete the assignment and upload the solution report.',
+                          style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B), height: 1.4),
                         ),
+                        if (assignment['submissionInstructions'] != null &&
+                            assignment['submissionInstructions'].toString().isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF1D4ED8)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'Instructions: ${assignment['submissionInstructions']}',
+                                    style: const TextStyle(fontSize: 11.5, color: Color(0xFF1E40AF)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              const Divider(height: 1),
-              const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
-              // Question Prompt Container
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.help_outline_rounded, size: 16, color: Color(0xFF2563EB)),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Posted Question (${assignment['facultyName']}):',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
-                        ),
-                      ],
+                  // Graded Evaluation Box (If Graded)
+                  if (isGraded) ...[
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECFDF5),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.verified_rounded, color: Color(0xFF059669), size: 18),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Graded by ${assignment['facultyName']}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF065F46)),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF059669),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'Score: ${assignment['obtainedMarks']} / ${assignment['maxMarks']}',
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (assignment['feedback'] != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Feedback: "${assignment['feedback']}"',
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF047857), fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      assignment['questionPrompt'],
-                      style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B), height: 1.4),
-                    ),
+                    const SizedBox(height: 16),
                   ],
-                ),
-              ),
-              const SizedBox(height: 16),
 
-              // Upload File Section
-              const Text(
-                'Upload Assignment Solution File',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
-              ),
-              const SizedBox(height: 6),
-
-              InkWell(
-                onTap: () async {
-                  setModalState(() {
-                    isUploading = true;
-                  });
-                  await Future.delayed(const Duration(milliseconds: 600));
-                  setModalState(() {
-                    isUploading = false;
-                    selectedFileName = 'Alex_Johnson_${assignment['courseCode']}_Solution.pdf';
-                  });
-                },
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: selectedFileName != null ? const Color(0xFFECFDF5) : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: selectedFileName != null ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
-                      style: selectedFileName != null ? BorderStyle.solid : BorderStyle.solid,
-                    ),
-                  ),
-                  child: Column(
+                  // Upload File Section Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (isUploading)
-                        const CustomLoader(size: 32, label: 'Uploading file...')
-                      else if (selectedFileName != null) ...[
-                        const Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 32),
-                        const SizedBox(height: 6),
-                        Text(
-                          selectedFileName!,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                      Text(
+                        isAlreadySubmitted || isGraded ? 'Submitted Solution Document' : 'Upload Assignment Solution File',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                      ),
+                      if (selectedFileName != null && !isGraded)
+                        InkWell(
+                          onTap: () {
+                            setModalState(() {
+                              selectedFileName = null;
+                              selectedFileSize = null;
+                            });
+                          },
+                          child: const Text(
+                            'Remove File',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626)),
+                          ),
                         ),
-                        const Text('Click to replace file', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
-                      ] else ...[
-                        const Icon(Icons.cloud_upload_outlined, color: Color(0xFF2563EB), size: 32),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Tap to select & upload PDF document',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Only PDF format (.pdf) supported • Max 25MB',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626)),
-                        ),
-                      ],
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 14),
+                  const SizedBox(height: 8),
 
-              // Submission Notes
-              const Text(
-                'Submission Notes / Comments (Optional)',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: noteController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  hintText: 'Add remarks for instructor...',
-                  hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                  contentPadding: const EdgeInsets.all(12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton.icon(
-                  onPressed: selectedFileName == null
-                      ? null
-                      : () {
-                          setState(() {
-                            assignment['status'] = 'Submitted';
-                            assignment['submittedFile'] = selectedFileName;
-                            assignment['submittedDate'] = 'Today • Just Now';
-                            assignment['isDueSoon'] = false;
-                          });
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('🎉 ${assignment['title']} submitted successfully!'),
-                              backgroundColor: const Color(0xFF059669),
+                  // Upload Box / Selected File Container
+                  InkWell(
+                    onTap: isGraded ? null : pickRealFile,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: selectedFileName != null ? const Color(0xFFECFDF5) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: selectedFileName != null ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          if (isUploading)
+                            const CustomLoader(size: 32, label: 'Browsing and uploading document...')
+                          else if (selectedFileName != null) ...[
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD1FAE5),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF059669), size: 28),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        selectedFileName!,
+                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${_formatFileSize(selectedFileSize)} • $selectedFileType Document',
+                                        style: const TextStyle(fontSize: 11, color: Color(0xFF059669), fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 22),
+                              ],
                             ),
-                          );
-                        },
-                  icon: const Icon(Icons.send_rounded, size: 18),
-                  label: const Text('Submit Assignment Solution', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            if (!isGraded) ...[
+                              const SizedBox(height: 8),
+                              const Divider(height: 1),
+                              const SizedBox(height: 8),
+                              const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.refresh_rounded, size: 14, color: Color(0xFF2563EB)),
+                                  SizedBox(width: 4),
+                                  Text('Tap to replace with another file', style: TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ] else ...[
+                            const Icon(Icons.cloud_upload_outlined, color: Color(0xFF2563EB), size: 36),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Tap to select & upload PDF document',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                            ),
+                            const SizedBox(height: 3),
+                            const Text(
+                              'Only PDF format (.pdf) supported • Max 25MB',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626)),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+
+                  // Quick Sample Document Picker (Convenient Shortcut)
+                  if (selectedFileName == null && !isGraded) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Text('Quick Select Solution Template: ', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                        InkWell(
+                          onTap: () => pickTemplateSample('${studentName.replaceAll(" ", "_")}_${assignment['courseCode']}_Report.pdf'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFBFDBFE)),
+                            ),
+                            child: const Text('Attach ${'PDF Template'}', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: 14),
+
+                  // Submission Notes / Comments
+                  const Text(
+                    'Submission Notes / Comments (Optional)',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: noteController,
+                    enabled: !isGraded,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      hintText: 'Add remarks or execution notes for instructor...',
+                      hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                      contentPadding: const EdgeInsets.all(12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Action Buttons
+                  if (isGraded)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(ctx),
+                        icon: const Icon(Icons.check_rounded, size: 18),
+                        label: const Text('Done Viewing Grade', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF059669),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        onPressed: selectedFileName == null || isSubmitting
+                            ? null
+                            : () async {
+                                setModalState(() {
+                                  isSubmitting = true;
+                                });
+
+                                final asgId = assignment['id'].toString();
+                                final noteText = noteController.text.trim();
+                                final nowFormatted = DateFormat('dd MMM yyyy • hh:mm a').format(DateTime.now());
+
+                                // Save submission to AssignmentService & Firestore
+                                _assignmentService.saveSubmission(
+                                  assignmentId: asgId,
+                                  studentUid: studentUid,
+                                  studentName: studentName,
+                                  registerNumber: regNo,
+                                  fileName: selectedFileName!,
+                                  fileType: selectedFileType,
+                                  fileSizeBytes: selectedFileSize ?? 2450000,
+                                  submissionNotes: noteText.isNotEmpty ? noteText : null,
+                                  isFinalSubmit: true,
+                                );
+
+                                // Update local state for immediate reactivity
+                                setState(() {
+                                  assignment['status'] = 'Submitted';
+                                  assignment['submittedFile'] = selectedFileName;
+                                  assignment['submittedDate'] = nowFormatted;
+                                  assignment['notes'] = noteText.isNotEmpty ? noteText : null;
+                                  assignment['fileSizeBytes'] = selectedFileSize ?? 2450000;
+                                  assignment['isDueSoon'] = false;
+                                });
+
+                                if (mounted) {
+                                  Navigator.pop(ctx);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              '🎉 ${assignment['title']} submitted successfully!',
+                                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      backgroundColor: const Color(0xFF059669),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                  );
+                                }
+                              },
+                        icon: isSubmitting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.send_rounded, size: 18),
+                        label: Text(
+                          isSubmitting
+                              ? 'Submitting Assignment Solution...'
+                              : (isAlreadySubmitted ? 'Update Assignment Solution' : 'Submit Assignment Solution'),
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: const Color(0xFFE2E8F0),
+                          disabledForegroundColor: const Color(0xFF94A3B8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          elevation: selectedFileName != null ? 3 : 0,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -339,40 +684,99 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
-    final email = user?.email.toLowerCase().trim() ?? '';
-    final isDemo = email == 'saravanapmvofficial@gmail.com' || (user != null && user.uid == 'DEMO-STU');
+    final studentUid = user?.uid ?? 'DEMO-STU';
 
     final dbAssignments = ref.watch(allAssignmentsStreamProvider).value ?? [];
+    final dbSubmissions = ref.watch(allSubmissionsStreamProvider).value ?? [];
 
     List<Map<String, dynamic>> sourceAssignments = [];
+
     if (dbAssignments.isNotEmpty) {
       sourceAssignments = dbAssignments.map((doc) {
+        final id = doc['id']?.toString() ?? 'asg_default';
+        final sub = dbSubmissions.firstWhere(
+          (s) => s.assignmentId == id && (s.studentUid == studentUid || studentUid == 'DEMO-STU'),
+          orElse: () => _assignmentService.getSubmissionForStudent(id, studentUid) ??
+              SubmissionModel(
+                id: '',
+                assignmentId: id,
+                studentUid: studentUid,
+                studentName: user?.fullName ?? user?.name ?? 'Student',
+                registerNumber: 'RA2111003010001',
+                submittedAt: DateTime.now(),
+                status: doc['status']?.toString() ?? 'Pending',
+              ),
+        );
+
+        final dueDateStr = doc['due_date']?.toString() ?? doc['dueDate']?.toString();
+        DateTime? parsedDueDate;
+        if (dueDateStr != null) {
+          parsedDueDate = DateTime.tryParse(dueDateStr);
+        }
+
+        final now = DateTime.now();
+        final isPastDue = parsedDueDate != null && parsedDueDate.isBefore(now);
+        final isDueSoon = parsedDueDate != null &&
+            !isPastDue &&
+            parsedDueDate.difference(now).inHours <= 48 &&
+            sub.status != 'Submitted' &&
+            sub.status != 'Graded';
+
+        final formattedDueDate = parsedDueDate != null
+            ? DateFormat('dd MMM yyyy • hh:mm a').format(parsedDueDate)
+            : '22 Aug 2026 • 11:59 PM';
+
+        final String status = sub.id.isNotEmpty
+            ? sub.status
+            : (isPastDue ? 'Overdue' : (doc['status']?.toString() ?? 'Pending'));
+
         return {
-          'id': doc['id'],
-          'courseCode': doc['subject']?.toString().split(' - ')[0] ?? 'CS301',
-          'subjectName': doc['subject']?.toString() ?? 'Course Subject',
+          'id': id,
+          'courseCode': doc['course_code'] ?? doc['courseCode'] ?? doc['subject']?.toString().split(' - ')[0] ?? 'CS301',
+          'subjectName': doc['subject_name'] ?? doc['subjectName'] ?? doc['subject']?.toString() ?? 'Computer Networks',
           'title': doc['title']?.toString() ?? 'Posted Assignment',
-          'facultyName': doc['uploadedBy']?.toString() ?? 'Course Faculty',
-          'postedDate': 'Official Release',
-          'dueDate': 'Check Marksheet',
-          'isDueSoon': false,
-          'maxMarks': 100,
-          'status': 'Graded',
+          'facultyName': doc['author_name'] ?? doc['authorName'] ?? doc['uploadedBy']?.toString() ?? 'Dr. Robert Vance',
+          'postedDate': doc['created_at'] != null
+              ? DateFormat('dd MMM yyyy').format(DateTime.tryParse(doc['created_at'].toString()) ?? now)
+              : 'Official Release',
+          'dueDate': formattedDueDate,
+          'dueDateTime': parsedDueDate,
+          'isDueSoon': isDueSoon,
+          'maxMarks': doc['max_marks'] is int ? doc['max_marks'] as int : (int.tryParse(doc['max_marks']?.toString() ?? '') ?? 100),
+          'status': status,
           'allowedFormats': 'PDF Document (.pdf)',
-          'questionPrompt': 'Official staff assignment marks published in Cloud Firestore.',
-          'submittedFile': doc['fileName']?.toString(),
-          'submittedDate': null,
-          'obtainedMarks': null,
-          'feedback': null,
+          'questionPrompt': doc['description']?.toString() ??
+              doc['submission_instructions']?.toString() ??
+              'Complete the assignment question and upload your report solution.',
+          'submissionInstructions': doc['submission_instructions']?.toString() ?? '',
+          'submittedFile': sub.id.isNotEmpty ? sub.fileName : null,
+          'submittedDate': sub.id.isNotEmpty ? DateFormat('dd MMM yyyy • hh:mm a').format(sub.submittedAt) : null,
+          'obtainedMarks': sub.obtainedMarks,
+          'feedback': sub.feedback,
+          'notes': sub.submissionNotes,
+          'fileSizeBytes': sub.fileSizeBytes,
         };
       }).toList();
-    } else if (isDemo) {
-      sourceAssignments = _assignments;
     } else {
-      sourceAssignments = [];
+      sourceAssignments = _fallbackAssignments.map((fAsg) {
+        final id = fAsg['id'].toString();
+        final sub = _assignmentService.getSubmissionForStudent(id, studentUid);
+        if (sub != null) {
+          final copy = Map<String, dynamic>.from(fAsg);
+          copy['status'] = sub.status;
+          copy['submittedFile'] = sub.fileName;
+          copy['submittedDate'] = DateFormat('dd MMM yyyy • hh:mm a').format(sub.submittedAt);
+          copy['obtainedMarks'] = sub.obtainedMarks;
+          copy['feedback'] = sub.feedback;
+          copy['notes'] = sub.submissionNotes;
+          copy['fileSizeBytes'] = sub.fileSizeBytes;
+          return copy;
+        }
+        return fAsg;
+      }).toList();
     }
 
-    final pendingAssignments = sourceAssignments.where((a) => a['status'] == 'Pending').toList();
+    final pendingAssignments = sourceAssignments.where((a) => a['status'] == 'Pending' || a['status'] == 'Overdue').toList();
     final submittedAssignments = sourceAssignments.where((a) => a['status'] == 'Submitted').toList();
     final gradedAssignments = sourceAssignments.where((a) => a['status'] == 'Graded').toList();
 
@@ -465,13 +869,15 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
-                          child: const Column(
+                          child: Column(
                             children: [
-                              Icon(Icons.assignment_turned_in_rounded, size: 48, color: Color(0xFF94A3B8)),
-                              SizedBox(height: 10),
+                              const Icon(Icons.assignment_turned_in_rounded, size: 48, color: Color(0xFF94A3B8)),
+                              const SizedBox(height: 10),
                               Text(
-                                'No assignments under this tab',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF64748B)),
+                                _selectedTabIndex == 1
+                                    ? '🎉 All caught up! No pending assignments.'
+                                    : 'No assignments under this tab',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF64748B)),
                               ),
                             ],
                           ),
@@ -555,7 +961,7 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'You have pending assignment submissions due soon! DBMS Assignment is due tomorrow. Please upload your work on time to avoid marks deduction.',
+                  'You have pending assignment submissions due soon! Please review question prompts and submit your coursework before deadlines.',
                   style: TextStyle(fontSize: 12, color: Color(0xFF7C2D12), height: 1.3),
                 ),
               ],
@@ -569,10 +975,10 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
   // 📝 Posted Assignment Question Card
   Widget _buildAssignmentQuestionCard(Map<String, dynamic> assignment) {
     final status = assignment['status'] as String;
-    final isPending = status == 'Pending';
+    final isPending = status == 'Pending' || status == 'Overdue';
     final isSubmitted = status == 'Submitted';
     final isGraded = status == 'Graded';
-    final isDueSoon = assignment['isDueSoon'] as bool;
+    final isDueSoon = (assignment['isDueSoon'] as bool?) ?? false;
 
     Color statusColor = const Color(0xFF2563EB);
     Color statusBg = const Color(0xFFEFF6FF);
@@ -617,13 +1023,13 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      assignment['courseCode'],
+                      assignment['courseCode'] ?? 'CS301',
                       style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    assignment['subjectName'],
+                    assignment['subjectName'] ?? 'Subject',
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
                   ),
                 ],
@@ -650,7 +1056,7 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
           const SizedBox(height: 10),
 
           Text(
-            assignment['title'],
+            assignment['title'] ?? 'Assignment Title',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
           ),
           const SizedBox(height: 4),
@@ -683,7 +1089,7 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  assignment['questionPrompt'],
+                  assignment['questionPrompt'] ?? 'View assignment problem statement and upload solution.',
                   style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155), height: 1.4),
                 ),
               ],
@@ -691,7 +1097,7 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
           ),
           const SizedBox(height: 14),
 
-          // Due date and format info
+          // Due date and Max Marks Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -751,6 +1157,13 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
                           Text(
                             'Feedback: ${assignment['feedback']}',
                             style: const TextStyle(fontSize: 11, color: Color(0xFF047857)),
+                          ),
+                        ],
+                        if (!isGraded && assignment['submittedDate'] != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Submitted: ${assignment['submittedDate']}',
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                           ),
                         ],
                       ],

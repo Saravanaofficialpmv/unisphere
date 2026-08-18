@@ -107,7 +107,7 @@ class FirebaseAuthService implements AuthService {
     return UserModel(
       uid: user.uid,
       email: user.email ?? '',
-      name: user.displayName ?? (user.email != null ? user.email!.split('@').first : 'User'),
+      fullName: user.displayName ?? (user.email != null ? user.email!.split('@').first : 'User'),
       role: UserRole.student,
     );
   }
@@ -140,37 +140,36 @@ class FirebaseAuthService implements AuthService {
   }
 
   @override
-  @override
   Future<void> signInWithEmail(String email, String password) async {
     final lowerEmail = email.toLowerCase().trim();
 
     // DEMO BYPASS ACCOUNTS (Only for designated exact demo accounts)
     if (lowerEmail == 'hod.cse@unisphere.edu' || lowerEmail == 'hod@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-HOD', email: email, name: 'Dr. R. Kumar', role: UserRole.hod);
+      _mockUser = UserModel(uid: 'DEMO-HOD', email: email, fullName: 'Dr. R. Kumar', role: UserRole.hod);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'admin@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-ADM', email: email, name: 'Demo Admin', role: UserRole.admin);
+      _mockUser = UserModel(uid: 'DEMO-ADM', email: email, fullName: 'Demo Admin', role: UserRole.admin);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'staff@unisphere.edu' || lowerEmail == 'faculty@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-STF', email: email, name: 'Demo Staff', role: UserRole.staff);
+      _mockUser = UserModel(uid: 'DEMO-STF', email: email, fullName: 'Demo Staff', role: UserRole.staff);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'student@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: 'Student Demo', role: UserRole.student);
+      _mockUser = UserModel(uid: 'DEMO-STU', email: email, fullName: 'Student Demo', role: UserRole.student);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
     }
     if (lowerEmail == 'parent@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-PRT', email: email, name: 'Rajesh Kumar', role: UserRole.parent);
+      _mockUser = UserModel(uid: 'DEMO-PRT', email: email, fullName: 'Rajesh Kumar', role: UserRole.parent);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
@@ -191,7 +190,6 @@ class FirebaseAuthService implements AuthService {
       }
     } on FirebaseAuthException catch (e) {
       debugPrint('Firebase Auth Sign In Error: ${e.code} - ${e.message}');
-      // If user does not exist in Firebase Auth yet, automatically register them in Firebase Console!
       if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
         try {
           final newCred = await auth.createUserWithEmailAndPassword(
@@ -203,7 +201,7 @@ class FirebaseAuthService implements AuthService {
             final newUser = UserModel(
               uid: newCred.user!.uid,
               email: email.trim(),
-              name: name,
+              fullName: name,
               role: UserRole.student,
             );
             await saveUserData(newUser);
@@ -266,7 +264,7 @@ class FirebaseAuthService implements AuthService {
   }) async {
     final lowerEmail = email.toLowerCase().trim();
     if (lowerEmail == 'student@unisphere.edu') {
-      _mockUser = UserModel(uid: 'DEMO-STU', email: email, name: name, role: UserRole.student);
+      _mockUser = UserModel(uid: 'DEMO-STU', email: email, fullName: name, role: UserRole.student);
       _currentUser = _mockUser;
       _stateController.add(_mockUser);
       return;
@@ -289,9 +287,9 @@ class FirebaseAuthService implements AuthService {
         final newUser = UserModel(
           uid: credential.user!.uid,
           email: email.trim(),
-          name: name,
+          fullName: name,
           role: role,
-          phoneNumber: phoneNumber,
+          phone: phoneNumber,
           metadata: metadata,
         );
         await saveUserData(newUser);
@@ -316,6 +314,7 @@ class FirebaseAuthService implements AuthService {
       rethrow;
     }
   }
+
 
   @override
   Future<void> updateUserProfile(UserModel updatedUser) async {

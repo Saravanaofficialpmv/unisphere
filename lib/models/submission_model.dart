@@ -15,6 +15,7 @@ class SubmissionModel {
   final String? feedback;
   final String? gradedBy;
   final DateTime? gradedAt;
+  final String? submissionNotes;
 
   SubmissionModel({
     required this.id,
@@ -33,26 +34,36 @@ class SubmissionModel {
     this.feedback,
     this.gradedBy,
     this.gradedAt,
+    this.submissionNotes,
   });
 
   factory SubmissionModel.fromMap(Map<String, dynamic> map) {
     return SubmissionModel(
-      id: map['id'].toString(),
-      assignmentId: map['assignment_id'] ?? '',
-      studentUid: map['student_uid'] ?? '',
-      studentName: map['student_name'] ?? '',
-      registerNumber: map['register_number'] ?? 'RA2111003010001',
-      fileName: map['file_name'],
-      fileUrl: map['file_url'],
-      fileType: map['file_type'] ?? 'PDF',
-      fileSizeBytes: map['file_size_bytes'],
-      submittedAt: DateTime.parse(map['submitted_at'] ?? DateTime.now().toIso8601String()),
-      status: map['status'] ?? (map['is_graded'] == true ? 'Graded' : 'Submitted'),
-      isGraded: map['is_graded'] ?? false,
-      obtainedMarks: map['obtained_marks'],
-      feedback: map['feedback'],
-      gradedBy: map['graded_by'],
-      gradedAt: map['graded_at'] != null ? DateTime.parse(map['graded_at']) : null,
+      id: map['id']?.toString() ?? 'sub_${DateTime.now().millisecondsSinceEpoch}',
+      assignmentId: map['assignment_id']?.toString() ?? map['assignmentId']?.toString() ?? '',
+      studentUid: map['student_uid']?.toString() ?? map['studentUid']?.toString() ?? '',
+      studentName: map['student_name']?.toString() ?? map['studentName']?.toString() ?? '',
+      registerNumber: map['register_number']?.toString() ?? map['registerNumber']?.toString() ?? 'RA2111003010001',
+      fileName: map['file_name']?.toString() ?? map['fileName']?.toString(),
+      fileUrl: map['file_url']?.toString() ?? map['fileUrl']?.toString(),
+      fileType: map['file_type']?.toString() ?? map['fileType']?.toString() ?? 'PDF',
+      fileSizeBytes: map['file_size_bytes'] is int
+          ? map['file_size_bytes'] as int
+          : (map['fileSizeBytes'] is int ? map['fileSizeBytes'] as int : null),
+      submittedAt: map['submitted_at'] != null
+          ? DateTime.tryParse(map['submitted_at'].toString()) ?? DateTime.now()
+          : (map['submittedAt'] != null ? DateTime.tryParse(map['submittedAt'].toString()) ?? DateTime.now() : DateTime.now()),
+      status: map['status']?.toString() ?? (map['is_graded'] == true || map['isGraded'] == true ? 'Graded' : 'Submitted'),
+      isGraded: map['is_graded'] == true || map['isGraded'] == true,
+      obtainedMarks: map['obtained_marks'] is int
+          ? map['obtained_marks'] as int
+          : (map['obtainedMarks'] is int ? map['obtainedMarks'] as int : null),
+      feedback: map['feedback']?.toString(),
+      gradedBy: map['graded_by']?.toString() ?? map['gradedBy']?.toString(),
+      gradedAt: map['graded_at'] != null
+          ? DateTime.tryParse(map['graded_at'].toString())
+          : (map['gradedAt'] != null ? DateTime.tryParse(map['gradedAt'].toString()) : null),
+      submissionNotes: map['submission_notes']?.toString() ?? map['submissionNotes']?.toString() ?? map['notes']?.toString(),
     );
   }
 
@@ -74,6 +85,7 @@ class SubmissionModel {
       'feedback': feedback,
       'graded_by': gradedBy,
       'graded_at': gradedAt?.toIso8601String(),
+      'submission_notes': submissionNotes,
     };
   }
 
@@ -89,6 +101,7 @@ class SubmissionModel {
     String? fileType,
     int? fileSizeBytes,
     DateTime? submittedAt,
+    String? submissionNotes,
   }) {
     return SubmissionModel(
       id: id,
@@ -107,6 +120,7 @@ class SubmissionModel {
       feedback: feedback ?? this.feedback,
       gradedBy: gradedBy ?? this.gradedBy,
       gradedAt: gradedAt ?? this.gradedAt,
+      submissionNotes: submissionNotes ?? this.submissionNotes,
     );
   }
 }

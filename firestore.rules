@@ -2,53 +2,203 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // =========================================================================
-    // UNISPHERE FIRESTORE SECURITY RULES
-    // =========================================================================
-    // 
-    // Option A: Development & Demo Testing (Allows seedInitialDataIfEmpty & all reads/writes)
-    // Uncomment this block while developing or testing with sample data:
-    match /{document=**} {
-      allow read, write: if true;
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // -------------------------------------------------------------------------
-    // Option B: Production Security Rules (Enforce authentication)
-    // To enable strict production rules, comment out Option A above and
-    // uncomment the rules below:
-    // -------------------------------------------------------------------------
-    /*
-    // Allow authenticated users to read & write their user documents
-    match /users/{userId} {
-      allow read, write: if request.auth != null;
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Announcements - public read, authenticated write
-    match /announcements/{annId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Assignments, Submissions, Marks, Attendance, Exams, Leaves
-    match /assignments/{docId} { allow read, write: if request.auth != null; }
-    match /submissions/{docId} { allow read, write: if request.auth != null; }
-    match /marks/{docId}       { allow read, write: if request.auth != null; }
-    match /attendance/{docId}  { allow read, write: if request.auth != null; }
-    match /exams/{docId}       { allow read, write: if request.auth != null; }
-    match /leaves/{docId}      { allow read, write: if request.auth != null; }
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
 
-    // Hackathons & Registrations
-    match /hackathons/{docId} { allow read: if true; allow write: if request.auth != null; }
-    match /hackathons/{hackId}/registrations/{regId} { allow read, write: if request.auth != null; }
-    match /hackathon_banners/{docId} { allow read: if true; allow write: if request.auth != null; }
+    function isAdmin() {
+      return hasRole('admin');
+    }
 
-    // Projects, Certifications, Department Metrics, Notifications, Faculties
-    match /projects/{docId}          { allow read, write: if request.auth != null; }
-    match /certifications/{docId}    { allow read, write: if request.auth != null; }
-    match /department_metrics/{docId}{ allow read, write: if request.auth != null; }
-    match /notifications/{docId}     { allow read, write: if request.auth != null; }
-    match /faculties/{docId}         { allow read: if true; allow write: if request.auth != null; }
-    match /students/{docId}          { allow read, write: if request.auth != null; }
-    */
+    function isHod() {
+      return hasRole('hod');
+    }
+
+    function isAdvisor() {
+      return hasRole('advisor');
+    }
+
+    function isStaff() {
+      return hasRole('staff') || isHod() || isAdvisor();
+    }
+
+    function isStudent() {
+      return hasRole('student');
+    }
+
+    function isParent() {
+      return hasRole('parent');
+    }
+
+    // 1. Central Users Collection: users/{uid}
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(uid);
+      allow update: if isAuthenticated() && (isOwner(uid) || isAdmin()) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
+      allow delete: if isAdmin();
+
+      // User notifications subcollection: users/{uid}/notifications/{notificationId}
+      match /notifications/{notificationId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    // 2. Students Collection: students/{uid}
+    match /students/{uid} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && (isOwner(uid) || isStaff() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 3. Staff Collection: staff/{uid}
+    match /staff/{uid} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && (isOwner(uid) || isHod() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 4. Parents Collection: parents/{parentId}
+    match /parents/{parentId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && (isOwner(parentId) || isStaff() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 5. Admins Collection: admins/{uid}
+    match /admins/{uid} {
+      allow read, write: if isAdmin();
+    }
+
+    // 6. Departments & Batches
+    match /departments/{departmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isHod();
+    }
+
+    match /batches/{batchId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isHod();
+    }
+
+    // 7. Hackathons, Teams, and Registrations
+    match /hackathons/{hackathonId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isHod();
+
+      match /teams/{teamId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAuthenticated() && (request.resource.data.memberIds.size() <= 6) && (request.auth.uid == request.resource.data.leaderId || isAdmin());
+        allow delete: if isAuthenticated() && (request.auth.uid == resource.data.leaderId || isAdmin());
+      }
+
+      match /registrations/{regId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
+    }
+
+    match /hackathonRegistrations/{registrationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (request.auth.uid == request.resource.data.leaderId || isAdmin());
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.leaderId || isHod() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /hackathon_banners/{bannerId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 8. Certifications
+    match /certifications/{certificateId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (request.auth.uid == request.resource.data.studentId || isStudent() || isAdmin());
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.studentId || isStaff() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 8b. Photo Albums & Gallery Photos
+    match /photo_albums/{albumId} {
+      allow read: if isAuthenticated() && (resource.data.status == 'published' || isStaff() || isAdmin());
+      allow create, update: if isStaff() || isAdmin();
+      allow delete: if isAdmin() || isHod();
+
+      match /photos/{photoId} {
+        allow read: if isAuthenticated();
+        allow create, update, delete: if isStaff() || isAdmin();
+      }
+    }
+
+
+    // 9. Central Notifications & Rules
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isStaff() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /notification_rules/{ruleId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 10. Activity Logs
+    match /activityLogs/{logId} {
+      allow read: if isAuthenticated() && (isStaff() || isAdmin());
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // 11. Academics, Attendance, Marks, Exams, Assignments, Submissions, Leaves
+    match /attendance/{attendanceId} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff() || isAdmin();
+    }
+
+    match /marks/{markId} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff() || isAdmin();
+    }
+
+    match /exams/{examId} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff() || isAdmin();
+    }
+
+    match /announcements/{announcementId} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff() || isAdmin();
+    }
+
+    match /assignments/{assignmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff() || isAdmin();
+    }
+
+    match /submissions/{submissionId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+
+    match /leaves/{leaveId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isStaff() || isAdmin();
+      allow delete: if isAdmin();
+    }
   }
 }

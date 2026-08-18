@@ -1044,7 +1044,7 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
   }
 
   Widget _buildNptelCertCard(Map<String, dynamic> cert) {
-    final Color badgeColor = cert['badgeColor'] as Color;
+    final Color badgeColor = (cert['badgeColor'] as Color?) ?? const Color(0xFF10B981);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -1170,7 +1170,7 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
   }
 
   Widget _buildIndustryCertCard(Map<String, dynamic> cert) {
-    final Color badgeColor = cert['badgeColor'] as Color;
+    final Color badgeColor = (cert['badgeColor'] as Color?) ?? const Color(0xFF10B981);
     final bool isVerified = cert['status'] == 'Verified';
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

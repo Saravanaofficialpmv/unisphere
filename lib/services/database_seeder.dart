@@ -13,10 +13,14 @@ import 'package:unisphere/models/hackathon_registration_model.dart';
 import 'package:unisphere/models/mark_model.dart';
 import 'package:unisphere/models/notification_model.dart';
 import 'package:unisphere/models/notification_rule_model.dart';
+import 'package:unisphere/models/gallery_photo_model.dart';
+import 'package:unisphere/models/photo_album_model.dart';
 import 'package:unisphere/models/project_model.dart';
 import 'package:unisphere/models/student_model.dart';
 import 'package:unisphere/models/submission_model.dart';
 import 'package:unisphere/models/user_model.dart';
+import 'package:unisphere/models/academic_schedule_model.dart';
+
 
 /// DatabaseSeeder populates Cloud Firestore with complete, real sample data across all 17 app collections for development, demo testing & production setup.
 class DatabaseSeeder {
@@ -31,7 +35,7 @@ class DatabaseSeeder {
         UserModel(
           uid: 'DEMO-STU',
           email: 'saravanapmvofficial@gmail.com',
-          name: 'Alex Johnson',
+          fullName: 'Alex Johnson',
           role: UserRole.student,
           metadata: {
             'registerNumber': 'RA2111003010001',
@@ -48,7 +52,7 @@ class DatabaseSeeder {
         UserModel(
           uid: 'DEMO-HOD',
           email: 'hod.cse@unisphere.edu',
-          name: 'Dr. R. Kumar',
+          fullName: 'Dr. R. Kumar',
           role: UserRole.hod,
           metadata: {
             'department': 'Computer Science & Engineering',
@@ -58,7 +62,7 @@ class DatabaseSeeder {
         UserModel(
           uid: 'DEMO-STF',
           email: 'staff@unisphere.edu',
-          name: 'Prof. Sarah Jenkins',
+          fullName: 'Prof. Sarah Jenkins',
           role: UserRole.staff,
           metadata: {
             'department': 'Computer Science & Engineering',
@@ -68,21 +72,21 @@ class DatabaseSeeder {
         UserModel(
           uid: 'DEMO-ADM',
           email: 'admin@unisphere.edu',
-          name: 'Campus Administrator',
+          fullName: 'Campus Administrator',
           role: UserRole.admin,
           metadata: {'role': 'Super Admin'},
         ),
         UserModel(
           uid: 'DEMO-PRT',
           email: 'parent@unisphere.edu',
-          name: 'Rajesh Johnson',
+          fullName: 'Rajesh Johnson',
           role: UserRole.parent,
           metadata: {'wardUid': 'DEMO-STU', 'wardName': 'Alex Johnson'},
         ),
         UserModel(
           uid: 'FAC-101',
           email: 'robert.vance@unisphere.edu',
-          name: 'Dr. Robert Vance',
+          fullName: 'Dr. Robert Vance',
           role: UserRole.staff,
           metadata: {
             'department': 'Computer Science & Engineering',
@@ -92,7 +96,7 @@ class DatabaseSeeder {
         UserModel(
           uid: 'FAC-102',
           email: 'grace.hopper@unisphere.edu',
-          name: 'Dr. Grace Hopper',
+          fullName: 'Dr. Grace Hopper',
           role: UserRole.staff,
           metadata: {
             'department': 'Computer Science & Engineering',
@@ -100,6 +104,7 @@ class DatabaseSeeder {
           },
         ),
       ];
+
 
       for (var u in users) {
         await _firestore.collection('users').doc(u.uid).set(u.toMap(), SetOptions(merge: true));
@@ -112,12 +117,14 @@ class DatabaseSeeder {
       // 2. Seed Student Profiles (Stored under unique Register Number & Student UID)
       final students = [
         StudentModel(
-          studentId: 'STU-101',
+          studentId: 'DEMO-STU',
           userId: 'DEMO-STU',
           registerNumber: 'RA2111003010001',
+          fullName: 'Alex Johnson',
           rollNumber: '917722104022',
           departmentId: 'DEP-CSE',
           departmentName: 'Computer Science & Engineering',
+          batchId: 'BATCH-2022-26',
           batch: '2022–2026',
           semester: 'Semester VI',
           section: 'Sec B',
@@ -132,9 +139,11 @@ class DatabaseSeeder {
           studentId: 'STU-102',
           userId: 'STU-USER-102',
           registerNumber: 'RA2111003010002',
+          fullName: 'Sarah Connor',
           rollNumber: '917722104023',
           departmentId: 'DEP-CSE',
           departmentName: 'Computer Science & Engineering',
+          batchId: 'BATCH-2022-26',
           batch: '2022–2026',
           semester: 'Semester VI',
           section: 'Sec B',
@@ -146,6 +155,7 @@ class DatabaseSeeder {
           membershipId: 'CSI-2024-5519',
         ),
       ];
+
 
       for (var st in students) {
         // Save under student ID and under unique Register Number doc ID
@@ -287,8 +297,8 @@ class DatabaseSeeder {
       final departments = [
         DepartmentModel(
           departmentId: 'DEP-CSE',
-          departmentName: 'Computer Science & Engineering',
-          departmentCode: 'CSE',
+          name: 'Computer Science & Engineering',
+          code: 'CSE',
           hodId: 'DEMO-HOD',
           hodName: 'Dr. R. Kumar',
           totalStudents: 480,
@@ -296,8 +306,8 @@ class DatabaseSeeder {
         ),
         DepartmentModel(
           departmentId: 'DEP-ECE',
-          departmentName: 'Electronics & Communication Engineering',
-          departmentCode: 'ECE',
+          name: 'Electronics & Communication Engineering',
+          code: 'ECE',
           hodId: 'HOD-ECE-01',
           hodName: 'Dr. V. Swaminathan',
           totalStudents: 390,
@@ -305,8 +315,8 @@ class DatabaseSeeder {
         ),
         DepartmentModel(
           departmentId: 'DEP-IT',
-          departmentName: 'Information Technology',
-          departmentCode: 'IT',
+          name: 'Information Technology',
+          code: 'IT',
           hodId: 'HOD-IT-01',
           hodName: 'Dr. Anita Desai',
           totalStudents: 340,
@@ -314,13 +324,14 @@ class DatabaseSeeder {
         ),
         DepartmentModel(
           departmentId: 'DEP-MECH',
-          departmentName: 'Mechanical Engineering',
-          departmentCode: 'MECH',
+          name: 'Mechanical Engineering',
+          code: 'MECH',
           hodId: 'HOD-MECH-01',
           hodName: 'Dr. K. Ramanathan',
           totalStudents: 300,
           totalFaculty: 20,
         ),
+
       ];
 
       for (var dep in departments) {
@@ -393,6 +404,7 @@ class DatabaseSeeder {
       final certs = [
         CertificationModel(
           id: 'cert-1',
+          studentId: 'DEMO-STU',
           studentUid: 'DEMO-STU',
           studentName: 'Alex Johnson',
           title: 'NPTEL Cloud Computing & Distributed Systems',
@@ -406,6 +418,7 @@ class DatabaseSeeder {
         ),
         CertificationModel(
           id: 'cert-2',
+          studentId: 'DEMO-STU',
           studentUid: 'DEMO-STU',
           studentName: 'Alex Johnson',
           title: 'AWS Certified Solutions Architect – Associate',
@@ -419,6 +432,7 @@ class DatabaseSeeder {
         ),
         CertificationModel(
           id: 'cert-3',
+          studentId: 'DEMO-STU',
           studentUid: 'DEMO-STU',
           studentName: 'Alex Johnson',
           title: 'Google Cloud Professional Data Engineer',
@@ -430,6 +444,7 @@ class DatabaseSeeder {
           approvalStatus: 'approved',
           createdAt: DateTime.now(),
         ),
+
       ];
       for (var c in certs) {
         await _firestore.collection('certifications').doc(c.id).set(c.toMap(), SetOptions(merge: true));
@@ -535,12 +550,25 @@ class DatabaseSeeder {
       );
 
       await _firestore.collection('hackathon_registrations').doc(reg.id).set(reg.toMap(), SetOptions(merge: true));
+      await _firestore.collection('hackathonRegistrations').doc(reg.id).set(reg.toMap(), SetOptions(merge: true));
       await _firestore
           .collection('hackathons')
           .doc('hack-1')
-          .collection('registrations')
-          .doc(reg.id)
-          .set(reg.toMap(), SetOptions(merge: true));
+          .collection('teams')
+          .doc('team-1')
+          .set({
+            'teamId': 'team-1',
+            'hackathonId': 'hack-1',
+            'teamName': 'Team CyberKnights',
+            'leaderId': 'DEMO-STU',
+            'memberIds': ['DEMO-STU', 'STU-102'],
+            'memberCount': 2,
+            'registrationStatus': 'registered',
+            'registrationCompleted': true,
+            'hodReviewStatus': 'pending',
+            'createdAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+
 
       // 10. Seed Marks
       final marks = [
@@ -930,8 +958,360 @@ class DatabaseSeeder {
         await _firestore.collection('leaves').doc(lv['id'] as String).set(lv, SetOptions(merge: true));
       }
 
-      debugPrint('✅ UniSphere Complete Database Seeding Succeeded across 17 Collections!');
+      // 18. Seed Photo Albums and Gallery Photos
+      final albums = [
+        PhotoAlbumModel(
+          albumId: 'album-tech-symposium-2026',
+          title: 'National Tech Symposium & Innovation Expo 2026',
+          description: 'Highlights from the annual tech symposium featuring project displays, guest keynote lectures, robotics arena, and hackathon awards ceremony.',
+          eventDate: DateTime.now().subtract(const Duration(days: 5)),
+          departmentId: 'DEP-CSE',
+          departmentName: 'Computer Science & Engineering',
+          coverPhotoUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80',
+          status: AlbumStatus.published,
+          createdBy: 'DEMO-HOD',
+          createdByName: 'Dr. R. Kumar (HOD CSE)',
+          createdAt: DateTime.now().subtract(const Duration(days: 6)),
+          updatedAt: DateTime.now().subtract(const Duration(days: 5)),
+          publishedAt: DateTime.now().subtract(const Duration(days: 5)),
+          photoCount: 5,
+        ),
+        PhotoAlbumModel(
+          albumId: 'album-ai-hackathon-2026',
+          title: 'Smart Campus AI Hackathon Grand Finale',
+          description: 'Memorable moments from the 36-hour non-stop hackathon with live coding sessions, mentor interactions, and winning project demonstrations.',
+          eventDate: DateTime.now().subtract(const Duration(days: 12)),
+          departmentId: 'DEP-CSE',
+          departmentName: 'Computer Science & Engineering',
+          coverPhotoUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80',
+          status: AlbumStatus.published,
+          createdBy: 'DEMO-HOD',
+          createdByName: 'Dr. R. Kumar (HOD CSE)',
+          createdAt: DateTime.now().subtract(const Duration(days: 14)),
+          updatedAt: DateTime.now().subtract(const Duration(days: 12)),
+          publishedAt: DateTime.now().subtract(const Duration(days: 12)),
+          photoCount: 4,
+        ),
+        PhotoAlbumModel(
+          albumId: 'album-cultural-fest-2026',
+          title: 'Annual Campus Cultural Fest – Waves 2026',
+          description: 'Vibrant musical performances, dance competitions, fashion shows, and celebrity guest appearances during our flagship cultural event.',
+          eventDate: DateTime.now().subtract(const Duration(days: 20)),
+          departmentId: 'DEP-ECE',
+          departmentName: 'Electronics & Communication',
+          coverPhotoUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&q=80',
+          status: AlbumStatus.published,
+          createdBy: 'HOD-ECE-01',
+          createdByName: 'Dr. V. Swaminathan',
+          createdAt: DateTime.now().subtract(const Duration(days: 22)),
+          updatedAt: DateTime.now().subtract(const Duration(days: 20)),
+          publishedAt: DateTime.now().subtract(const Duration(days: 20)),
+          photoCount: 4,
+        ),
+        PhotoAlbumModel(
+          albumId: 'album-sports-meet-2026',
+          title: 'Inter-Departmental Athletics & Sports Championship',
+          description: 'Thrilling track & field events, football finals, basketball championships, and trophy presentations honoring champion athletes.',
+          eventDate: DateTime.now().subtract(const Duration(days: 28)),
+          departmentId: 'DEP-MECH',
+          departmentName: 'Mechanical Engineering',
+          coverPhotoUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1200&q=80',
+          status: AlbumStatus.published,
+          createdBy: 'HOD-MECH-01',
+          createdByName: 'Dr. K. Ramanathan',
+          createdAt: DateTime.now().subtract(const Duration(days: 30)),
+          updatedAt: DateTime.now().subtract(const Duration(days: 28)),
+          publishedAt: DateTime.now().subtract(const Duration(days: 28)),
+          photoCount: 4,
+        ),
+      ];
+
+      final Map<String, List<GalleryPhotoModel>> albumPhotosMap = {
+        'album-tech-symposium-2026': [
+          GalleryPhotoModel(
+            photoId: 'photo-ts-1',
+            albumId: 'album-tech-symposium-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80',
+            caption: 'Keynote Address by Industry Leaders in Main Auditorium',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 5)),
+            displayOrder: 0,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-ts-2',
+            albumId: 'album-tech-symposium-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&q=80',
+            caption: 'Student Project Exhibition & Prototype Demonstrations',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 5)),
+            displayOrder: 1,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-ts-3',
+            albumId: 'album-tech-symposium-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80',
+            caption: 'Robotics Arena Arena Competition in Progress',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 5)),
+            displayOrder: 2,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-ts-4',
+            albumId: 'album-tech-symposium-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80',
+            caption: 'Interactive Workshop on Cloud & Distributed Architecture',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 5)),
+            displayOrder: 3,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-ts-5',
+            albumId: 'album-tech-symposium-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80',
+            caption: 'Award Distribution Ceremony for Top Innovation Projects',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 5)),
+            displayOrder: 4,
+          ),
+        ],
+        'album-ai-hackathon-2026': [
+          GalleryPhotoModel(
+            photoId: 'photo-hack-1',
+            albumId: 'album-ai-hackathon-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&q=80',
+            caption: 'Teams collaborating during overnight coding sprint',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 12)),
+            displayOrder: 0,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-hack-2',
+            albumId: 'album-ai-hackathon-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80',
+            caption: 'Mentorship round with Senior Cloud Solution Architects',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 12)),
+            displayOrder: 1,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-hack-3',
+            albumId: 'album-ai-hackathon-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&q=80',
+            caption: 'Final Jury Pitch Presentation in Main Conference Hall',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 12)),
+            displayOrder: 2,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-hack-4',
+            albumId: 'album-ai-hackathon-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&q=80',
+            caption: '1st Place Winner Team CyberKnights receiving ₹1,00,000 Cheque',
+            uploadedBy: 'DEMO-HOD',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 12)),
+            displayOrder: 3,
+          ),
+        ],
+        'album-cultural-fest-2026': [
+          GalleryPhotoModel(
+            photoId: 'photo-cult-1',
+            albumId: 'album-cultural-fest-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&q=80',
+            caption: 'Grand Stage Lighting & Inaugural Musical Concert',
+            uploadedBy: 'HOD-ECE-01',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 20)),
+            displayOrder: 0,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-cult-2',
+            albumId: 'album-cultural-fest-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&q=80',
+            caption: 'Classical & Contemporary Group Dance Competition',
+            uploadedBy: 'HOD-ECE-01',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 20)),
+            displayOrder: 1,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-cult-3',
+            albumId: 'album-cultural-fest-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&q=80',
+            caption: 'Celebrity DJ Night with Campus Crowd Celebration',
+            uploadedBy: 'HOD-ECE-01',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 20)),
+            displayOrder: 2,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-cult-4',
+            albumId: 'album-cultural-fest-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&q=80',
+            caption: 'Fashion Show Runway Display',
+            uploadedBy: 'HOD-ECE-01',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 20)),
+            displayOrder: 3,
+          ),
+        ],
+        'album-sports-meet-2026': [
+          GalleryPhotoModel(
+            photoId: 'photo-sp-1',
+            albumId: 'album-sports-meet-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1200&q=80',
+            caption: '100m Athletics Final Sprint at University Stadium',
+            uploadedBy: 'HOD-MECH-01',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 28)),
+            displayOrder: 0,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-sp-2',
+            albumId: 'album-sports-meet-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1200&q=80',
+            caption: 'Inter-Departmental Football Championship Trophy Final',
+            uploadedBy: 'HOD-MECH-01',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 28)),
+            displayOrder: 1,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-sp-3',
+            albumId: 'album-sports-meet-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1200&q=80',
+            caption: 'Basketball Finals High Voltage Match',
+            uploadedBy: 'HOD-MECH-01',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 28)),
+            displayOrder: 2,
+          ),
+          GalleryPhotoModel(
+            photoId: 'photo-sp-4',
+            albumId: 'album-sports-meet-2026',
+            photoUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266010b?w=1200&q=80',
+            caption: 'Overall Championship Shield Awarded to CSE Department',
+            uploadedBy: 'HOD-MECH-01',
+            uploadedAt: DateTime.now().subtract(const Duration(days: 28)),
+            displayOrder: 3,
+          ),
+        ],
+      };
+
+      for (var album in albums) {
+        await _firestore.collection('photo_albums').doc(album.albumId).set(album.toMap(), SetOptions(merge: true));
+        final photos = albumPhotosMap[album.albumId] ?? [];
+        for (var p in photos) {
+          await _firestore
+              .collection('photo_albums')
+              .doc(album.albumId)
+              .collection('photos')
+              .doc(p.photoId)
+              .set(p.toMap(), SetOptions(merge: true));
+        }
+      }
+
+      // 19. Seed Official Academic Schedules
+      final initialSchedule = AcademicScheduleModel(
+        id: 'SCHED-2026-I-YEAR-V1',
+        title: 'Academic Schedule for I Year',
+        description: 'Official College Academic Calendar & Schedule of Working Days, Continuous Assessments, Holidays and End-Semester Examinations.',
+        academicYear: '2026-27',
+        departmentId: 'all',
+        departmentName: 'All Departments',
+        targetStudentYear: 'I Year',
+        semester: 'Odd Semester (Semester 1)',
+        fileName: 'Academic schedule for I Year_07.08.2026.xls',
+        fileType: 'xls',
+        fileUrl: '',
+        storagePath: 'academic_schedules/2026-27/all/I_Year/SCHED-2026-I-YEAR-V1/v1/Academic schedule for I Year_07.08.2026.xls',
+        fileSize: 184320,
+        version: 1,
+        status: ScheduleStatus.active,
+        isLatest: true,
+        publishedAt: DateTime(2026, 8, 7),
+        uploadedAt: DateTime(2026, 8, 7),
+        uploadedBy: 'HOD-CSE-01',
+        uploadedByName: 'Dr. Suresh Kumar',
+        updatedAt: DateTime(2026, 8, 7),
+        scheduleEvents: [
+          ScheduleEventItem(
+            dateString: '07 Aug 2026',
+            date: DateTime(2026, 8, 7),
+            title: 'Commencement of Classes for I Year (Odd Sem)',
+            category: 'Academic',
+            description: 'Official reopening and orientation for freshers',
+          ),
+          ScheduleEventItem(
+            dateString: '15 Aug 2026',
+            date: DateTime(2026, 8, 15),
+            title: 'Independence Day',
+            category: 'Holiday',
+            isHoliday: true,
+          ),
+          ScheduleEventItem(
+            dateString: '01 Sep 2026 - 05 Sep 2026',
+            date: DateTime(2026, 9, 1),
+            title: 'Continuous Assessment Test 1 (CAT-1)',
+            category: 'Assessment',
+            description: 'First internal assessment examinations across all departments',
+          ),
+          ScheduleEventItem(
+            dateString: '17 Sep 2026',
+            date: DateTime(2026, 9, 17),
+            title: 'Milad-un-Nabi',
+            category: 'Holiday',
+            isHoliday: true,
+          ),
+          ScheduleEventItem(
+            dateString: '02 Oct 2026',
+            date: DateTime(2026, 10, 2),
+            title: 'Gandhi Jayanti',
+            category: 'Holiday',
+            isHoliday: true,
+          ),
+          ScheduleEventItem(
+            dateString: '12 Oct 2026 - 16 Oct 2026',
+            date: DateTime(2026, 10, 12),
+            title: 'Continuous Assessment Test 2 (CAT-2)',
+            category: 'Assessment',
+            description: 'Second internal assessment examinations',
+          ),
+          ScheduleEventItem(
+            dateString: '20 Oct 2026',
+            date: DateTime(2026, 10, 20),
+            title: 'Student Online Feedback Cycle 1',
+            category: 'Academic',
+          ),
+          ScheduleEventItem(
+            dateString: '31 Oct 2026',
+            date: DateTime(2026, 10, 31),
+            title: 'Deepavali',
+            category: 'Holiday',
+            isHoliday: true,
+          ),
+          ScheduleEventItem(
+            dateString: '16 Nov 2026 - 20 Nov 2026',
+            date: DateTime(2026, 11, 16),
+            title: 'Model Practical & Theory Examinations',
+            category: 'Examination',
+            description: 'Final preparatory exams before University Finals',
+          ),
+          ScheduleEventItem(
+            dateString: '28 Nov 2026',
+            date: DateTime(2026, 11, 28),
+            title: 'Last Working Day for I Year (Odd Sem)',
+            category: 'Academic',
+          ),
+          ScheduleEventItem(
+            dateString: '07 Dec 2026',
+            date: DateTime(2026, 12, 7),
+            title: 'Commencement of University End-Sem Theory Exams',
+            category: 'Examination',
+          ),
+        ],
+      );
+
+      await _firestore
+          .collection('academicSchedules')
+          .doc(initialSchedule.id)
+          .set(initialSchedule.toMap(), SetOptions(merge: true));
+
+      debugPrint('✅ UniSphere Complete Database Seeding Succeeded across 19 Collections!');
       return true;
+
     } catch (e) {
       if (e.toString().contains('permission-denied')) {
         debugPrint('⚠️ DatabaseSeeder Notice: Firestore permission-denied. Ensure Firestore Security Rules allow read/write in Firebase Console.');

@@ -14,7 +14,12 @@ import 'package:unisphere/screens/admin/modules/attendance_management.dart';
 import 'package:unisphere/screens/admin/modules/report_management.dart';
 import 'package:unisphere/screens/admin/modules/role_management.dart';
 import 'package:unisphere/screens/admin/modules/admin_notification_settings_screen.dart';
+import 'package:unisphere/screens/admin/modules/admin_gallery_management_screen.dart';
 import 'package:unisphere/screens/common/manual_notification_composer_screen.dart';
+import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
+import 'package:unisphere/screens/hod/modules/hod_academic_management.dart';
+import 'package:unisphere/screens/hod/modules/hod_settings.dart';
+
 
 class AdminShell extends ConsumerStatefulWidget {
   const AdminShell({super.key});
@@ -30,6 +35,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Dashboard', icon: Icons.grid_view_rounded),
+    SidebarItem(label: 'Photo Gallery Governance', icon: Icons.collections_outlined, badge: 'Gallery'),
     SidebarItem(label: 'User Management', icon: Icons.people_outline_rounded),
     SidebarItem(label: 'Departments', icon: Icons.business_rounded, badge: 'New'),
     SidebarItem(label: 'Manual Notifications', icon: Icons.send_rounded, badge: 'Composer'),
@@ -47,19 +53,22 @@ class _AdminShellState extends ConsumerState<AdminShell> {
 
   final List<Widget> _screens = [
     const AdminDashboard(), // 0: Dashboard
-    const UserManagementModule(), // 1: Users
-    const DepartmentManagementModule(), // 2: Departments
-    const ManualNotificationComposerScreen(), // 3: Manual Notifications
-    const AdminNotificationSettingsScreen(), // 4: Automation Rules
-    const AnnouncementManagementModule(), // 5: Announcements
-    const Center(child: Text('Institutional Academics')), // 6
-    const Center(child: Text('Marks Center')), // 7
-    const AttendanceManagementModule(), // 8: Attendance Monitoring
-    const ReportManagementModule(), // 9: Performance Intelligence
-    const RoleManagementModule(), // 10: Access & Governance
-    const Center(child: Text('Performance Analytics')), // 11
-    const Center(child: Text('General Settings')), // 12
+    const AdminGalleryManagementScreen(), // 1: Photo Gallery Governance
+    const UserManagementModule(), // 2: Users
+    const DepartmentManagementModule(), // 3: Departments
+    const ManualNotificationComposerScreen(), // 4: Manual Notifications
+    const AdminNotificationSettingsScreen(), // 5: Automation Rules
+    const AnnouncementManagementModule(), // 6: Announcements
+    const HodAcademicManagement(), // 7: Institutional Academics
+    const StaffMarksUploadModule(), // 8: Marks Center
+    const AttendanceManagementModule(), // 9: Attendance Monitoring
+    const ReportManagementModule(), // 10: Performance Intelligence
+    const RoleManagementModule(), // 11: Access & Governance
+    const ReportManagementModule(), // 12: Performance Analytics
+    const SizedBox.shrink(), // 13: Divider SYSTEM CONTROL
+    const HodSettings(), // 14: General Settings
   ];
+
 
   @override
   Widget build(BuildContext context) {

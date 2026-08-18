@@ -48,19 +48,23 @@ class HackathonRepository {
     if (studentUid.isEmpty || firestore == null) return Stream.value([]);
 
     return firestore
-        .collection('hackathon_registrations')
-        .where('student_uid', isEqualTo: studentUid)
+        .collection('hackathonRegistrations')
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              data['id'] = doc.id;
-              return HackathonRegistrationModel.fromMap(data);
-            }).toList())
+        .map((snapshot) {
+          if (snapshot.docs.isNotEmpty) {
+            return snapshot.docs
+                .map((doc) => HackathonRegistrationModel.fromMap(doc.data(), doc.id))
+                .where((reg) => reg.studentId == studentUid || reg.leaderId == studentUid || reg.teamMembers.contains(studentUid))
+                .toList();
+          }
+          return <HackathonRegistrationModel>[];
+        })
         .handleError((e) {
-      debugPrint('Firestore hackathon registrations error: $e');
+      debugPrint('Firestore hackathonRegistrations stream error: $e');
       return <HackathonRegistrationModel>[];
     });
   }
+
 
   /// Fetch featured hackathon from Firestore
   Future<HackathonModel?> fetchFeaturedHackathon() async {

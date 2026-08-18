@@ -1202,7 +1202,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
         _buildSectionHeader('🎓 NPTEL Certifications'),
         const SizedBox(height: 8),
         ...nptelCerts.map((cert) {
-          final Color color = cert['badgeColor'] as Color;
+          final Color color = (cert['badgeColor'] as Color?) ?? const Color(0xFF10B981);
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(14),
@@ -1331,7 +1331,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
         _buildSectionHeader('🏢 Industry Certifications'),
         const SizedBox(height: 8),
         ...industryCerts.map((cert) {
-          final Color color = cert['badgeColor'] as Color;
+          final Color color = (cert['badgeColor'] as Color?) ?? const Color(0xFF10B981);
           final bool isVerified = cert['status'] == 'Verified';
           return Container(
             margin: const EdgeInsets.only(bottom: 12),

@@ -4,6 +4,8 @@ import 'package:unisphere/models/hackathon_model.dart';
 class HackathonRegistrationModel {
   final String id; // registrationId
   final String hackathonId;
+  final String teamId;
+  final String leaderId;
   final String hackathonTitle;
   final String studentId;
   final String studentName;
@@ -16,9 +18,12 @@ class HackathonRegistrationModel {
   final DateTime registrationDate;
   final DateTime startDate;
   final DateTime endDate;
-  final String participationStatus; // e.g. 'Registration Confirmed', 'Active Participant', 'Participation Completed'
+  final String participationStatus;
+  final bool registrationCompleted;
+  final String externalRegistrationStatus;
+  final String hodReviewStatus;
   final String mode; // 'Online', 'Offline', 'Hybrid'
-  final String location; // Venue name if offline
+  final String location;
   final String organizer;
   final String description;
   final String bannerImage;
@@ -28,10 +33,13 @@ class HackathonRegistrationModel {
   final String? projectSubmissionTitle;
   final String? projectSubmissionNotes;
   final DateTime? submittedAt;
+  final DateTime? updatedAt;
 
   HackathonRegistrationModel({
     required this.id,
     required this.hackathonId,
+    String? teamId,
+    String? leaderId,
     required this.hackathonTitle,
     required this.studentId,
     required this.studentName,
@@ -45,6 +53,9 @@ class HackathonRegistrationModel {
     required this.startDate,
     required this.endDate,
     required this.participationStatus,
+    this.registrationCompleted = true,
+    this.externalRegistrationStatus = 'completed',
+    this.hodReviewStatus = 'pending',
     required this.mode,
     required this.location,
     required this.organizer,
@@ -56,12 +67,10 @@ class HackathonRegistrationModel {
     this.projectSubmissionTitle,
     this.projectSubmissionNotes,
     this.submittedAt,
-  });
+    this.updatedAt,
+  })  : teamId = teamId ?? 'TEAM-$id',
+        leaderId = leaderId ?? studentId;
 
-  /// Dynamic lifecycle status based on current date vs start/end dates
-  /// Registered + Start date in future -> PENDING
-  /// Current date between start and end date -> ONGOING
-  /// End date passed -> COMPLETED
   String get status {
     final now = DateTime.now();
     if (now.isBefore(startDate)) {
@@ -97,7 +106,8 @@ class HackathonRegistrationModel {
       prizePool: '₹2,50,000',
       registeredTeams: 120,
       maxTeams: 200,
-      teamSize: teamMembers.isNotEmpty ? teamMembers.length : 4,
+      maxTeamMembers: 6,
+      teamSize: teamMembers.isNotEmpty ? teamMembers.length : 6,
       status: status,
       userRegistrationStatus: 'registered',
       registrationId: id,
@@ -109,6 +119,8 @@ class HackathonRegistrationModel {
   HackathonRegistrationModel copyWith({
     String? id,
     String? hackathonId,
+    String? teamId,
+    String? leaderId,
     String? hackathonTitle,
     String? studentId,
     String? studentName,
@@ -122,6 +134,9 @@ class HackathonRegistrationModel {
     DateTime? startDate,
     DateTime? endDate,
     String? participationStatus,
+    bool? registrationCompleted,
+    String? externalRegistrationStatus,
+    String? hodReviewStatus,
     String? mode,
     String? location,
     String? organizer,
@@ -133,10 +148,13 @@ class HackathonRegistrationModel {
     String? projectSubmissionTitle,
     String? projectSubmissionNotes,
     DateTime? submittedAt,
+    DateTime? updatedAt,
   }) {
     return HackathonRegistrationModel(
       id: id ?? this.id,
       hackathonId: hackathonId ?? this.hackathonId,
+      teamId: teamId ?? this.teamId,
+      leaderId: leaderId ?? this.leaderId,
       hackathonTitle: hackathonTitle ?? this.hackathonTitle,
       studentId: studentId ?? this.studentId,
       studentName: studentName ?? this.studentName,
@@ -150,6 +168,9 @@ class HackathonRegistrationModel {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       participationStatus: participationStatus ?? this.participationStatus,
+      registrationCompleted: registrationCompleted ?? this.registrationCompleted,
+      externalRegistrationStatus: externalRegistrationStatus ?? this.externalRegistrationStatus,
+      hodReviewStatus: hodReviewStatus ?? this.hodReviewStatus,
       mode: mode ?? this.mode,
       location: location ?? this.location,
       organizer: organizer ?? this.organizer,
@@ -161,10 +182,11 @@ class HackathonRegistrationModel {
       projectSubmissionTitle: projectSubmissionTitle ?? this.projectSubmissionTitle,
       projectSubmissionNotes: projectSubmissionNotes ?? this.projectSubmissionNotes,
       submittedAt: submittedAt ?? this.submittedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
-  factory HackathonRegistrationModel.fromMap(Map<String, dynamic> map) {
+  factory HackathonRegistrationModel.fromMap(Map<String, dynamic> map, [String? docId]) {
     DateTime parseDate(dynamic val, DateTime fallback) {
       if (val == null) return fallback;
       if (val is DateTime) return val;
@@ -172,10 +194,13 @@ class HackathonRegistrationModel {
     }
 
     final now = DateTime.now();
+    final regId = docId ?? map['registrationId']?.toString() ?? map['id']?.toString() ?? 'REG-${now.millisecondsSinceEpoch}';
 
     return HackathonRegistrationModel(
-      id: map['registrationId']?.toString() ?? map['id']?.toString() ?? 'REG-${now.millisecondsSinceEpoch}',
+      id: regId,
       hackathonId: map['hackathonId']?.toString() ?? map['hackathon_id']?.toString() ?? '',
+      teamId: map['teamId']?.toString() ?? map['team_id']?.toString() ?? 'TEAM-$regId',
+      leaderId: map['leaderId']?.toString() ?? map['leader_id']?.toString() ?? map['studentId']?.toString() ?? map['student_id']?.toString() ?? '',
       hackathonTitle: map['hackathonTitle']?.toString() ?? map['hackathon_title']?.toString() ?? map['hackathonName']?.toString() ?? '',
       studentId: map['studentId']?.toString() ?? map['student_id']?.toString() ?? 'STU-2026-042',
       studentName: map['studentName']?.toString() ?? map['student_name']?.toString() ?? 'Alex Johnson',
@@ -187,10 +212,13 @@ class HackathonRegistrationModel {
       teamMembers: (map['teamMembers'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
           (map['members'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
           ['Alex Johnson (Lead)'],
-      registrationDate: parseDate(map['registrationDate'] ?? map['registration_date'], now),
+      registrationDate: parseDate(map['registrationDate'] ?? map['registration_date'] ?? map['submittedAt'] ?? map['submitted_at'], now),
       startDate: parseDate(map['startDate'] ?? map['start_date'], now.subtract(const Duration(days: 1))),
       endDate: parseDate(map['endDate'] ?? map['end_date'], now.add(const Duration(days: 2))),
       participationStatus: map['participationStatus']?.toString() ?? map['status']?.toString() ?? 'Confirmed',
+      registrationCompleted: map['registrationCompleted'] ?? map['registration_completed'] ?? true,
+      externalRegistrationStatus: map['externalRegistrationStatus'] ?? map['external_registration_status'] ?? 'completed',
+      hodReviewStatus: map['hodReviewStatus'] ?? map['hod_review_status'] ?? 'pending',
       mode: map['mode']?.toString() ?? 'Online',
       location: map['location']?.toString() ?? map['venue']?.toString() ?? 'Online',
       organizer: map['organizer']?.toString() ?? 'UniSphere Innovation Cell',
@@ -202,6 +230,7 @@ class HackathonRegistrationModel {
       projectSubmissionTitle: map['projectSubmissionTitle']?.toString(),
       projectSubmissionNotes: map['projectSubmissionNotes']?.toString(),
       submittedAt: map['submittedAt'] != null ? parseDate(map['submittedAt'], now) : null,
+      updatedAt: map['updatedAt'] != null ? parseDate(map['updatedAt'], now) : null,
     );
   }
 
@@ -210,21 +239,33 @@ class HackathonRegistrationModel {
       'registrationId': id,
       'id': id,
       'hackathonId': hackathonId,
+      'hackathon_id': hackathonId,
+      'teamId': teamId,
+      'team_id': teamId,
+      'leaderId': leaderId,
+      'leader_id': leaderId,
       'hackathonTitle': hackathonTitle,
-      'hackathonName': hackathonTitle,
       'studentId': studentId,
+      'student_id': studentId,
       'studentName': studentName,
       'department': department,
       'year': year,
       'email': email,
       'phone': phone,
       'teamName': teamName,
+      'team_name': teamName,
       'teamMembers': teamMembers,
       'registrationDate': registrationDate.toIso8601String(),
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
       'status': status,
       'participationStatus': participationStatus,
+      'registrationCompleted': registrationCompleted,
+      'registration_completed': registrationCompleted,
+      'externalRegistrationStatus': externalRegistrationStatus,
+      'external_registration_status': externalRegistrationStatus,
+      'hodReviewStatus': hodReviewStatus,
+      'hod_review_status': hodReviewStatus,
       'mode': mode,
       'location': location,
       'organizer': organizer,
@@ -235,7 +276,9 @@ class HackathonRegistrationModel {
       'projectSubmissionUrl': projectSubmissionUrl,
       'projectSubmissionTitle': projectSubmissionTitle,
       'projectSubmissionNotes': projectSubmissionNotes,
-      'submittedAt': submittedAt?.toIso8601String(),
+      'submittedAt': (submittedAt ?? registrationDate).toIso8601String(),
+      'submitted_at': (submittedAt ?? registrationDate).toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 
@@ -243,4 +286,3 @@ class HackathonRegistrationModel {
 
   factory HackathonRegistrationModel.fromJson(String source) => HackathonRegistrationModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }
-

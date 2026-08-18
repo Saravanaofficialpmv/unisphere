@@ -564,58 +564,69 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
     final List<Map<String, String>> poList = [
       {
         'id': 'PO 1',
+        'title': 'Engineering Knowledge',
         'desc':
-            'Engineering Knowledge: Apply knowledge of mathematics, natural science, computing, engineering fundamentals and an engineering specialization as specified in WK1 to WK4 respectively to develop to the solution of complex engineering problems.'
+            'Apply knowledge of mathematics, natural science, computing, engineering fundamentals and an engineering specialization as specified in WK1 to WK4 respectively to develop to the solution of complex engineering problems.'
       },
       {
         'id': 'PO 2',
+        'title': 'Problem Analysis',
         'desc':
-            'Problem Analysis: Identify, formulate, review research literature and analyze complex engineering problems reaching substantiated conclusions with consideration for sustainable development. (WK1 to WK4)'
+            'Identify, formulate, review research literature and analyze complex engineering problems reaching substantiated conclusions with consideration for sustainable development. (WK1 to WK4)'
       },
       {
         'id': 'PO 3',
+        'title': 'Design/Development of Solutions',
         'desc':
-            'Design/Development of Solutions: Design creative solutions for complex engineering problems and design/develop systems/components/processes to meet identified needs with consideration for the public health and safety, whole-life cost, net zero carbon, culture, society and environment as required. (WK5)'
+            'Design creative solutions for complex engineering problems and design/develop systems/components/processes to meet identified needs with consideration for the public health and safety, whole-life cost, net zero carbon, culture, society and environment as required. (WK5)'
       },
       {
         'id': 'PO 4',
+        'title': 'Conduct Investigations of Complex Problems',
         'desc':
-            'Conduct Investigations of Complex Problems: Conduct investigations of complex engineering problems using research-based knowledge including design of experiments, modelling, analysis & interpretation of data to provide valid conclusions. (WK8).'
+            'Conduct investigations of complex engineering problems using research-based knowledge including design of experiments, modelling, analysis & interpretation of data to provide valid conclusions. (WK8).'
       },
       {
         'id': 'PO 5',
+        'title': 'Engineering Tool Usage',
         'desc':
-            'Engineering Tool Usage: Create, select and apply appropriate techniques, resources and modern engineering & IT tools, including prediction and modelling recognizing their limitations to solve complex engineering problems. (WK2 and WK6).'
+            'Create, select and apply appropriate techniques, resources and modern engineering & IT tools, including prediction and modelling recognizing their limitations to solve complex engineering problems. (WK2 and WK6).'
       },
       {
         'id': 'PO 6',
+        'title': 'The Engineer and The World',
         'desc':
-            'The Engineer and The World: Analyze and evaluate societal and environmental aspects while solving complex engineering problems for its impact on sustainability with reference to economy, health, safety, legal framework, culture and environment. (WK1, WK5, and WK7).'
+            'Analyze and evaluate societal and environmental aspects while solving complex engineering problems for its impact on sustainability with reference to economy, health, safety, legal framework, culture and environment. (WK1, WK5, and WK7).'
       },
       {
         'id': 'PO 7',
+        'title': 'Ethics',
         'desc':
-            'Ethics: Apply ethical principles and commit to professional ethics, human values, diversity and inclusion; adhere to national & international laws. (WK9).'
+            'Apply ethical principles and commit to professional ethics, human values, diversity and inclusion; adhere to national & international laws. (WK9).'
       },
       {
         'id': 'PO 8',
+        'title': 'Individual and Collaborative Team Work',
         'desc':
-            'Individual and Collaborative Team work: Function effectively as an individual, and as a member or leader in diverse/multi-disciplinary teams.'
+            'Function effectively as an individual, and as a member or leader in diverse/multi-disciplinary teams.'
       },
       {
         'id': 'PO 9',
+        'title': 'Communication',
         'desc':
-            'Communication: Communicate effectively and inclusively within the engineering community and society at large, such as being able to comprehend and write effective reports and design documentation, make effective presentations considering cultural, language, and learning differences.'
+            'Communicate effectively and inclusively within the engineering community and society at large, such as being able to comprehend and write effective reports and design documentation, make effective presentations considering cultural, language, and learning differences.'
       },
       {
         'id': 'PO 10',
+        'title': 'Project Management and Finance',
         'desc':
-            'Project Management and Finance: Apply knowledge and understanding of engineering management principles and economic decision-making and apply these to one’s own work, as a member and leader in a team, and to manage projects and in multidisciplinary environments.'
+            'Apply knowledge and understanding of engineering management principles and economic decision-making and apply these to one’s own work, as a member and leader in a team, and to manage projects and in multidisciplinary environments.'
       },
       {
         'id': 'PO 11',
+        'title': 'Life-Long Learning',
         'desc':
-            'Life-Long Learning: Recognize the need for, and have the preparation and ability for i) independent and life-long learning ii) adaptability to new and emerging technologies and iii) critical thinking in the broadest context of technological change. (WK8)'
+            'Recognize the need for, and have the preparation and ability for i) independent and life-long learning ii) adaptability to new and emerging technologies and iii) critical thinking in the broadest context of technological change. (WK8)'
       },
     ];
 
@@ -624,6 +635,7 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
         : poList
             .where((item) =>
                 item['desc']!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                item['title']!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
                 item['id']!.toLowerCase().contains(_searchQuery.toLowerCase()))
             .toList();
 
@@ -702,9 +714,27 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          po['desc']!,
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF334155), height: 1.45),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              po['title']!,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              po['desc']!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF475569),
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -725,22 +755,25 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
       children: [
         _buildPsoCard(
           psoId: 'PSO 1',
+          title: 'AI & Data Science',
           description:
-              'AI & Data Science: Design, implement, and optimize intelligent systems using Artificial Intelligence, Machine Learning, Deep Learning, Natural Language Processing, and Computer Vision techniques to solve domain-specific challenges.',
+              'Design, implement, and optimize intelligent systems using Artificial Intelligence, Machine Learning, Deep Learning, Natural Language Processing, and Computer Vision techniques to solve domain-specific challenges.',
           color: const Color(0xFF2563EB),
         ),
         const SizedBox(height: 10),
         _buildPsoCard(
           psoId: 'PSO 2',
+          title: 'Data Analytics',
           description:
-              'Data Analytics: Apply advanced data engineering, analytics, visualization, and predictive modeling techniques using state-of-the-art industrial tools and AI frameworks to transform data into actionable intelligence for strategic decision-making.',
+              'Apply advanced data engineering, analytics, visualization, and predictive modeling techniques using state-of-the-art industrial tools and AI frameworks to transform data into actionable intelligence for strategic decision-making.',
           color: const Color(0xFF059669),
         ),
         const SizedBox(height: 10),
         _buildPsoCard(
           psoId: 'PSO 3',
+          title: 'Intelligent Systems',
           description:
-              'Intelligent Systems: Engineer scalable, reliable, secure, and ethical AI-enabled solutions by integrating cloud computing, edge intelligence, Generative AI, IoT, and MLOps while effectively managing multidisciplinary projects and adhering to professional and societal responsibilities.',
+              'Engineer scalable, reliable, secure, and ethical AI-enabled solutions by integrating cloud computing, edge intelligence, Generative AI, IoT, and MLOps while effectively managing multidisciplinary projects and adhering to professional and societal responsibilities.',
           color: const Color(0xFF7C3AED),
         ),
         const SizedBox(height: 24),
@@ -750,6 +783,7 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
 
   Widget _buildPsoCard({
     required String psoId,
+    required String title,
     required String description,
     required Color color,
   }) {
@@ -776,12 +810,23 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                description,
-                style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155), height: 1.5),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155), height: 1.5),
+                ),
+              ],
             ),
           ),
         ],

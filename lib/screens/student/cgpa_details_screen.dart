@@ -401,7 +401,7 @@ class _CgpaDetailsScreenState extends ConsumerState<CgpaDetailsScreen>
               separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
               itemBuilder: (context, index) {
                 final item = gradeScale[index];
-                final color = item['color'] as Color;
+                final color = (item['color'] as Color?) ?? const Color(0xFF2563EB);
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
