@@ -395,9 +395,6 @@ class _StudentProfileCompletionSheetState
       _busType = 'College Bus';
       _boardingPointController.text = 'Gandhigramam';
       _busStopController.text = 'College Main Gate';
-      _pickupTimeController.text = '07:45 AM';
-      _distanceController.text = '14 km';
-      _travelTimeController.text = '35 mins';
 
       // Step 8: Confirmation
       _isConfirmed = true;
@@ -1726,8 +1723,6 @@ class _StudentProfileCompletionSheetState
           _buildDropdown('Bus Type', _busType, ['College Bus', 'Public Bus'], (val) => setState(() => _busType = val)),
           const SizedBox(height: 8),
           _buildTextField(_boardingPointController, 'Boarding Point', 'Gandhigramam'),
-          const SizedBox(height: 8),
-          _buildTextField(_pickupTimeController, 'Pickup Time', '07:45 AM'),
         ],
 
         if (_transportMode == PrimaryTransportMode.BIKE) ...[
@@ -1742,15 +1737,6 @@ class _StudentProfileCompletionSheetState
             activeThumbColor: const Color(0xFF2563EB),
           ),
         ],
-
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _buildTextField(_distanceController, 'One-Way Distance', '12 km')),
-            const SizedBox(width: 12),
-            Expanded(child: _buildTextField(_travelTimeController, 'Travel Time', '30 mins')),
-          ],
-        ),
       ],
     );
   }
