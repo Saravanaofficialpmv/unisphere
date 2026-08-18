@@ -191,6 +191,8 @@ class DatabaseSeeder {
           'education': {
             'tenth': {
               'institutionName': 'Government Higher Sec School',
+              'boardOrUniversity': 'State Board',
+              'medium': 'Tamil',
               'marksObtained': 465,
               'totalMarks': 500,
               'percentage': 93.0,
@@ -198,6 +200,8 @@ class DatabaseSeeder {
             },
             'twelfthOrDiploma': {
               'institutionName': 'VSB Higher Sec School',
+              'boardOrUniversity': 'State Board',
+              'medium': 'English',
               'marksObtained': 552,
               'totalMarks': 600,
               'percentage': 92.0,
@@ -206,6 +210,8 @@ class DatabaseSeeder {
             'hasDiploma': true,
             'diploma': {
               'institutionName': 'VSB Polytechnic College',
+              'boardOrUniversity': 'DOTE / Polytechnic Board',
+              'medium': 'English',
               'registerNumber': 'Diploma in Computer Engineering',
               'marksObtained': 88.5,
               'totalMarks': 100,
@@ -213,6 +219,13 @@ class DatabaseSeeder {
               'passingYear': '2025',
             },
           },
+          'documents': [
+            {'id': 'doc_photo', 'name': 'Student Passport Photo', 'isRequired': true, 'fileName': 'passport_photo.jpg (0.8 MB)', 'fileUrl': 'https://unisphere.edu/docs/photo.jpg', 'status': 'uploaded'},
+            {'id': 'doc_10th', 'name': '10th Standard Marksheet', 'isRequired': true, 'fileName': '10th_marksheet.pdf (1.4 MB)', 'fileUrl': 'https://unisphere.edu/docs/10th.pdf', 'status': 'uploaded'},
+            {'id': 'doc_12th', 'name': '12th / Diploma Marksheet', 'isRequired': true, 'fileName': '12th_marksheet.pdf (1.6 MB)', 'fileUrl': 'https://unisphere.edu/docs/12th.pdf', 'status': 'uploaded'},
+            {'id': 'doc_tc', 'name': 'Transfer Certificate (TC)', 'isRequired': true, 'fileName': 'transfer_certificate.pdf (0.9 MB)', 'fileUrl': 'https://unisphere.edu/docs/tc.pdf', 'status': 'uploaded'},
+            {'id': 'doc_community', 'name': 'Community Certificate', 'isRequired': false, 'fileName': '', 'fileUrl': '', 'status': 'pending'},
+          ],
           'hasMembership': st.hasMembership,
           'membershipOrg': st.membershipOrg,
           'membershipId': st.membershipId,
