@@ -6,6 +6,8 @@ import 'package:unisphere/models/student_profile_model.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
 
+enum EducationPathway { HSC_12th, Diploma, Both }
+
 class StudentProfileCompletionSheet extends ConsumerStatefulWidget {
   const StudentProfileCompletionSheet({super.key});
 
@@ -19,6 +21,11 @@ class _StudentProfileCompletionSheetState
   int _currentStep = 1;
   bool _isSavingDraft = false;
   bool _isSubmitting = false;
+
+  // Education Pathway Selection
+  EducationPathway _educationPathway = EducationPathway.HSC_12th;
+  bool get _has12th => _educationPathway == EducationPathway.HSC_12th || _educationPathway == EducationPathway.Both;
+  bool get _hasDiploma => _educationPathway == EducationPathway.Diploma || _educationPathway == EducationPathway.Both;
 
   // Validation Error State Flags
   bool _dobError = false;
@@ -126,8 +133,7 @@ class _StudentProfileCompletionSheetState
   final _twelfthObtainedController = TextEditingController();
   double _twelfthPercentage = 0.0;
 
-  // Diploma / Polytechnic (Optional)
-  bool _hasDiploma = false;
+  // Diploma / Polytechnic
   final _diplomaCollegeController = TextEditingController();
   final _diplomaBranchController = TextEditingController();
   final _diplomaYearController = TextEditingController();
@@ -214,7 +220,12 @@ class _StudentProfileCompletionSheetState
         if (draft['motherPhone'] != null) _motherPhoneController.text = draft['motherPhone'];
         if (draft['tenthObtained'] != null) _tenthObtainedController.text = draft['tenthObtained'];
         if (draft['twelfthObtained'] != null) _twelfthObtainedController.text = draft['twelfthObtained'];
-        if (draft['hasDiploma'] != null) _hasDiploma = draft['hasDiploma'];
+        if (draft['educationPathway'] != null) {
+          _educationPathway = EducationPathway.values.firstWhere(
+            (e) => e.name == draft['educationPathway'],
+            orElse: () => EducationPathway.HSC_12th,
+          );
+        }
         if (draft['diplomaCollege'] != null) _diplomaCollegeController.text = draft['diplomaCollege'];
         if (draft['diplomaBranch'] != null) _diplomaBranchController.text = draft['diplomaBranch'];
         if (draft['diplomaObtained'] != null) _diplomaObtainedController.text = draft['diplomaObtained'];
@@ -261,7 +272,7 @@ class _StudentProfileCompletionSheetState
       'motherPhone': _motherPhoneController.text,
       'tenthObtained': _tenthObtainedController.text,
       'twelfthObtained': _twelfthObtainedController.text,
-      'hasDiploma': _hasDiploma,
+      'educationPathway': _educationPathway.name,
       'diplomaCollege': _diplomaCollegeController.text,
       'diplomaBranch': _diplomaBranchController.text,
       'diplomaObtained': _diplomaObtainedController.text,
@@ -324,6 +335,7 @@ class _StudentProfileCompletionSheetState
       _motherNameError = false;
 
       // Step 4: Previous Education
+      _educationPathway = EducationPathway.Both;
       _tenthSchoolController.text = 'Government Higher Sec School';
       _tenthBoard = 'State Board';
       _tenthMedium = 'English';
@@ -340,7 +352,6 @@ class _StudentProfileCompletionSheetState
       _twelfthObtainedController.text = '552';
 
       // Diploma
-      _hasDiploma = true;
       _diplomaCollegeController.text = 'VSB Polytechnic College';
       _diplomaBranchController.text = 'Diploma in Computer Engineering';
       _diplomaYearController.text = '2025';
@@ -400,6 +411,22 @@ class _StudentProfileCompletionSheetState
           _fatherNameError = fEmpty;
           _motherNameError = mEmpty;
         });
+        return;
+      }
+    }
+    if (_currentStep == 4) {
+      final tenthEmpty = _tenthSchoolController.text.trim().isEmpty || _tenthObtainedController.text.trim().isEmpty;
+      final twelfthEmpty = _has12th && (_twelfthSchoolController.text.trim().isEmpty || _twelfthObtainedController.text.trim().isEmpty);
+      final diplomaEmpty = _hasDiploma && (_diplomaCollegeController.text.trim().isEmpty || _diplomaObtainedController.text.trim().isEmpty);
+
+      if (tenthEmpty || twelfthEmpty || diplomaEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Please fill all compulsory Previous Education details for your selected qualification pathway.'),
+            backgroundColor: Color(0xFFEF4444),
+            duration: Duration(seconds: 3),
+          ),
+        );
         return;
       }
     }
@@ -1295,77 +1322,206 @@ class _StudentProfileCompletionSheetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStepHeader('Step 4: Previous Education', 'Enter your 10th, 12th, and optional Diploma academic records.'),
+        _buildStepHeader('Step 4: Previous Education', 'Select your post-10th qualification pathway and enter academic records.'),
         const SizedBox(height: 16),
 
-        const Text('10th Standard Records', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
+        // Qualification Stream Selector
+        const Text('Qualification Pathway after 10th *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
         const SizedBox(height: 8),
-        _buildTextField(_tenthSchoolController, 'School Name', 'Government / Private School'),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(child: _buildTextField(_tenthObtainedController, 'Marks Obtained', '450', onChanged: (_) => setState(_calculateEducationPercentages))),
-            const SizedBox(width: 12),
-            Expanded(child: _buildTextField(_tenthTotalController, 'Total Marks', '500', onChanged: (_) => setState(_calculateEducationPercentages))),
-          ],
+        _buildPathwayOptionCard(
+          pathway: EducationPathway.HSC_12th,
+          title: '12th Standard (Higher Secondary / HSC)',
+          subtitle: 'Completed 10th and 12th Standard school route',
+          icon: Icons.school_rounded,
         ),
-        const SizedBox(height: 16),
-
-        const Text('12th Standard Records', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
         const SizedBox(height: 8),
-        _buildTextField(_twelfthSchoolController, 'Higher Sec School Name', 'VSB Higher Sec School'),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(child: _buildTextField(_twelfthObtainedController, 'Marks Obtained', '540', onChanged: (_) => setState(_calculateEducationPercentages))),
-            const SizedBox(width: 12),
-            Expanded(child: _buildTextField(_twelfthTotalController, 'Total Marks', '600', onChanged: (_) => setState(_calculateEducationPercentages))),
-          ],
+        _buildPathwayOptionCard(
+          pathway: EducationPathway.Diploma,
+          title: 'Polytechnic Diploma (Direct Lateral Entry)',
+          subtitle: 'Completed 10th + 3-Year Polytechnic Diploma (No 12th)',
+          icon: Icons.engineering_rounded,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+        _buildPathwayOptionCard(
+          pathway: EducationPathway.Both,
+          title: 'Both 12th Standard & Polytechnic Diploma',
+          subtitle: 'Completed 10th + 12th + Polytechnic Diploma',
+          icon: Icons.workspace_premium_rounded,
+        ),
+        const SizedBox(height: 20),
 
-        // Diploma Section Toggle & Details
+        // 10th Standard Records (Compulsory for ALL pathways)
         Container(
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SwitchListTile(
-                title: const Text('+ Completed Diploma / Polytechnic?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
-                subtitle: const Text('Enable if student completed a Polytechnic Diploma course', style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
-                value: _hasDiploma,
-                onChanged: (val) => setState(() => _hasDiploma = val),
-                activeThumbColor: const Color(0xFF2563EB),
-              ),
-              if (_hasDiploma) ...[
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    children: [
-                      _buildTextField(_diplomaCollegeController, 'Polytechnic College Name', 'e.g. VSB Polytechnic College'),
-                      const SizedBox(height: 8),
-                      _buildTextField(_diplomaBranchController, 'Diploma Branch / Course', 'e.g. Diploma in Computer Engineering'),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(child: _buildTextField(_diplomaObtainedController, 'Marks / CGPA / % Obtained', '88.5', onChanged: (_) => setState(_calculateEducationPercentages))),
-                          const SizedBox(width: 12),
-                          Expanded(child: _buildTextField(_diplomaTotalController, 'Total Marks / Max CGPA', '100', onChanged: (_) => setState(_calculateEducationPercentages))),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      _buildTextField(_diplomaYearController, 'Year of Passing', '2023'),
-                    ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('10th Standard Records *', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFF0F172A))),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('Compulsory', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF166534))),
                   ),
-                ),
-              ],
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildTextField(_tenthSchoolController, 'School Name *', 'Government / Private Higher Sec School'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: _buildTextField(_tenthObtainedController, 'Marks Obtained *', '450', onChanged: (_) => setState(_calculateEducationPercentages))),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildTextField(_tenthTotalController, 'Total Marks *', '500', onChanged: (_) => setState(_calculateEducationPercentages))),
+                ],
+              ),
             ],
           ),
         ),
+        const SizedBox(height: 16),
+
+        // 12th Standard Records (If HSC or Both)
+        if (_has12th) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('12th Standard Records *', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFF0F172A))),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(6)),
+                      child: const Text('Compulsory', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF166534))),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildTextField(_twelfthSchoolController, 'Higher Sec School Name *', 'VSB Higher Sec School'),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: _buildTextField(_twelfthObtainedController, 'Marks Obtained *', '540', onChanged: (_) => setState(_calculateEducationPercentages))),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildTextField(_twelfthTotalController, 'Total Marks *', '600', onChanged: (_) => setState(_calculateEducationPercentages))),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // Diploma Records (If Diploma or Both)
+        if (_hasDiploma) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Polytechnic Diploma Records *', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFF1E40AF))),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xFFDBEAFE), borderRadius: BorderRadius.circular(6)),
+                      child: const Text('Compulsory for Diploma Stream', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF))),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildTextField(_diplomaCollegeController, 'Polytechnic College Name *', 'e.g. VSB Polytechnic College'),
+                const SizedBox(height: 8),
+                _buildTextField(_diplomaBranchController, 'Diploma Branch / Specialization *', 'e.g. Diploma in Computer Engineering'),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: _buildTextField(_diplomaObtainedController, 'Marks / % / CGPA Obtained *', '88.5', onChanged: (_) => setState(_calculateEducationPercentages))),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildTextField(_diplomaTotalController, 'Total / Max Marks or CGPA *', '100', onChanged: (_) => setState(_calculateEducationPercentages))),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _buildTextField(_diplomaYearController, 'Year of Passing', '2023'),
+              ],
+            ),
+          ),
+        ],
       ],
+    );
+  }
+
+  Widget _buildPathwayOptionCard({
+    required EducationPathway pathway,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
+    final isSelected = _educationPathway == pathway;
+    return InkWell(
+      onTap: () => setState(() => _educationPathway = pathway),
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+            width: isSelected ? 2.0 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 20, color: isSelected ? Colors.white : const Color(0xFF64748B)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: isSelected ? const Color(0xFF1E40AF) : const Color(0xFF0F172A))),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                ],
+              ),
+            ),
+            Radio<EducationPathway>(
+              value: pathway,
+              groupValue: _educationPathway,
+              onChanged: (val) => setState(() => _educationPathway = val!),
+              activeColor: const Color(0xFF2563EB),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1601,10 +1757,12 @@ class _StudentProfileCompletionSheetState
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Previous Education', [
+          'Pathway: ${_educationPathway == EducationPathway.HSC_12th ? "12th Standard (HSC)" : _educationPathway == EducationPathway.Diploma ? "Polytechnic Diploma (Lateral Entry)" : "Both 12th & Diploma"}',
           '10th Standard: ${_tenthSchoolController.text.isNotEmpty ? _tenthSchoolController.text : "Recorded"} (${_tenthObtainedController.text}/${_tenthTotalController.text})',
-          '12th Standard: ${_twelfthSchoolController.text.isNotEmpty ? _twelfthSchoolController.text : "Recorded"} (${_twelfthObtainedController.text}/${_twelfthTotalController.text})',
+          if (_has12th)
+            '12th Standard: ${_twelfthSchoolController.text.isNotEmpty ? _twelfthSchoolController.text : "Recorded"} (${_twelfthObtainedController.text}/${_twelfthTotalController.text})',
           if (_hasDiploma)
-            'Diploma / Polytechnic: ${_diplomaCollegeController.text} (${_diplomaBranchController.text}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text}',
+            'Diploma / Polytechnic: ${_diplomaCollegeController.text.isNotEmpty ? _diplomaCollegeController.text : "Recorded"} (${_diplomaBranchController.text}) - ${_diplomaObtainedController.text}/${_diplomaTotalController.text}',
         ]),
         const SizedBox(height: 12),
         _buildSummaryCard('Living & Transport', [
