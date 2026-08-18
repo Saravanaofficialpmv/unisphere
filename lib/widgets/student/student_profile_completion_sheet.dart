@@ -1824,7 +1824,7 @@ class _StudentProfileCompletionSheetState
           const SizedBox(height: 8),
           _buildTextField(_pgAddressController, 'PG Address / Location *', 'e.g. Covai Road, Near VSB Campus, Karur'),
           const SizedBox(height: 8),
-          _buildTextField(_roommatesController, 'Roommate Register Numbers (Optional)', 'e.g. 7378211CS101, 7378211CS105 or Single Room'),
+          _buildTextField(_roommatesController, 'Roommate Register Numbers', 'e.g. 7378211CS101, 7378211CS105 or Single Room'),
         ],
 
         if (_selectedLivingType == LivingType.rentedHouse) ...[
