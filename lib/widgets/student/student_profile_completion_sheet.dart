@@ -277,7 +277,9 @@ class _StudentProfileCompletionSheetState
         if (draft['pgName'] != null) _pgNameController.text = draft['pgName'];
         if (draft['pgAddress'] != null) _pgAddressController.text = draft['pgAddress'];
         if (draft['rentedAddress'] != null) _rentedAddressController.text = draft['rentedAddress'];
-        if (draft['roommates'] != null) _roommatesController.text = draft['roommates'];
+        if (draft['roommateRegisterNumbers'] != null || draft['roommates'] != null) {
+          _roommatesController.text = draft['roommateRegisterNumbers'] ?? draft['roommates'];
+        }
         if (draft['documents'] != null && draft['documents'] is List) {
           _uploadedDocuments.clear();
           for (var d in (draft['documents'] as List)) {
@@ -375,6 +377,7 @@ class _StudentProfileCompletionSheetState
       'pgName': _pgNameController.text,
       'pgAddress': _pgAddressController.text,
       'rentedAddress': _rentedAddressController.text,
+      'roommateRegisterNumbers': _roommatesController.text,
       'roommates': _roommatesController.text,
       'transportMode': _transportMode?.name ?? '',
       'documents': _activeDocuments.map((d) => d.toMap()).toList(),
@@ -469,7 +472,7 @@ class _StudentProfileCompletionSheetState
       _pgNameController.text = 'Sri Sai Men\'s PG';
       _pgAddressController.text = 'Covai Road, Near VSB Campus, Karur';
       _rentedAddressController.text = '12/A, Gandhigramam 3rd Street, Karur';
-      _roommatesController.text = 'Classmates (Karthik & Ramesh)';
+      _roommatesController.text = '7378211CS101, 7378211CS105';
       _transportMode = PrimaryTransportMode.BUS;
       _busType = 'College Bus';
       _boardingPointController.text = 'Gandhigramam';
@@ -721,6 +724,7 @@ class _StudentProfileCompletionSheetState
           'pgName': _pgNameController.text.trim(),
           'pgAddress': _pgAddressController.text.trim(),
           'rentedAddress': _rentedAddressController.text.trim(),
+          'roommateRegisterNumbers': _roommatesController.text.trim(),
           'roommates': _roommatesController.text.trim(),
           'ownerName': _accOwnerNameController.text.trim(),
           'ownerPhone': _accOwnerPhoneController.text.trim(),
@@ -1825,7 +1829,7 @@ class _StudentProfileCompletionSheetState
           const SizedBox(height: 12),
           _buildTextField(_rentedAddressController, 'Rented House Address / Location *', 'e.g. 12/A, Gandhigramam 3rd Street, Karur'),
           const SizedBox(height: 8),
-          _buildTextField(_roommatesController, 'With Whom Do You Live? (Roommates / Family) *', 'e.g. Classmates (Karthik, Ramesh) or Family'),
+          _buildTextField(_roommatesController, 'Roommate Register Numbers (comma separated) *', 'e.g. 7378211CS101, 7378211CS105 or Family'),
         ],
       ],
     );
