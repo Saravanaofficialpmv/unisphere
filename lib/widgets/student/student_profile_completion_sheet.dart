@@ -192,31 +192,23 @@ class _StudentProfileCompletionSheetState
   final _departureTimeController = TextEditingController(text: '05:00 PM');
 
   // ── Step 7: Documents ──
-  final List<StudentDocument> _uploadedDocuments = [
-    StudentDocument(id: 'doc_photo', name: 'Student Passport Photo', isRequired: true, fileUrl: '', fileName: ''),
-    StudentDocument(id: 'doc_10th', name: '10th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
-    StudentDocument(id: 'doc_12th', name: '12th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
-    StudentDocument(id: 'doc_diploma', name: 'Polytechnic / Diploma Certificate', isRequired: false, fileUrl: '', fileName: ''),
-    StudentDocument(id: 'doc_tc', name: 'Transfer Certificate (TC)', isRequired: true, fileUrl: '', fileName: ''),
-    StudentDocument(id: 'doc_community', name: 'Community Certificate', isRequired: false, fileUrl: '', fileName: ''),
-  ];
+  final List<StudentDocument> _uploadedDocuments = [];
 
   List<StudentDocument> get _activeDocuments {
-    if (_uploadedDocuments.isEmpty) {
-      _uploadedDocuments.addAll([
-        StudentDocument(id: 'doc_photo', name: 'Student Passport Photo', isRequired: true, fileUrl: '', fileName: ''),
-        StudentDocument(id: 'doc_10th', name: '10th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
+    final defaultList = [
+      StudentDocument(id: 'doc_photo', name: 'Student Passport Photo', isRequired: true, fileUrl: '', fileName: ''),
+      StudentDocument(id: 'doc_10th', name: '10th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
+      if (_has12th)
         StudentDocument(id: 'doc_12th', name: '12th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
-        StudentDocument(id: 'doc_diploma', name: 'Polytechnic / Diploma Certificate', isRequired: false, fileUrl: '', fileName: ''),
-        StudentDocument(id: 'doc_tc', name: 'Transfer Certificate (TC)', isRequired: true, fileUrl: '', fileName: ''),
-        StudentDocument(id: 'doc_community', name: 'Community Certificate', isRequired: false, fileUrl: '', fileName: ''),
-      ]);
-    }
+      if (_hasDiploma)
+        StudentDocument(id: 'doc_diploma', name: 'Polytechnic / Diploma Marksheet', isRequired: true, fileUrl: '', fileName: ''),
+      StudentDocument(id: 'doc_tc', name: 'Transfer Certificate (TC)', isRequired: true, fileUrl: '', fileName: ''),
+      StudentDocument(id: 'doc_community', name: 'Community Certificate', isRequired: false, fileUrl: '', fileName: ''),
+    ];
 
-    return _uploadedDocuments.where((doc) {
-      if (doc.id == 'doc_12th' && !_has12th) return false;
-      if (doc.id == 'doc_diploma' && !_hasDiploma) return false;
-      return true;
+    return defaultList.map((item) {
+      final existingIdx = _uploadedDocuments.indexWhere((d) => d.id == item.id);
+      return existingIdx != -1 ? _uploadedDocuments[existingIdx] : item;
     }).toList();
   }
 
@@ -533,9 +525,7 @@ class _StudentProfileCompletionSheetState
     _saveDraft();
 
     setState(() {
-      if (_currentStep == 5 && !_isDayScholar) {
-        _currentStep = 7; // Skip Step 6 Day Scholar Transport for College Hostel students!
-      } else if (_currentStep < 8) {
+      if (_currentStep < 8) {
         _currentStep++;
       }
     });
@@ -543,9 +533,7 @@ class _StudentProfileCompletionSheetState
 
   void _previousStep() {
     setState(() {
-      if (_currentStep == 7 && !_isDayScholar) {
-        _currentStep = 5; // Return back to Step 5 for Hostel students
-      } else if (_currentStep > 1) {
+      if (_currentStep > 1) {
         _currentStep--;
       }
     });
@@ -1029,9 +1017,9 @@ class _StudentProfileCompletionSheetState
       case 5:
         return _buildStep5Living();
       case 6:
-        return _isDayScholar ? _buildStep6Transport() : _buildStep7Documents();
+        return _buildStep6Transport();
       case 7:
-        return _isDayScholar ? _buildStep7Documents() : _buildStep8Review();
+        return _buildStep7Documents();
       case 8:
         return _buildStep8Review();
       default:
@@ -1840,6 +1828,46 @@ class _StudentProfileCompletionSheetState
 
   // ── STEP 6: DAY SCHOLAR TRANSPORT (STRICTLY ONLY BUS, BIKE, WALK) ──
   Widget _buildStep6Transport() {
+    if (!_isDayScholar) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildStepHeader('Step 6: Transport Mode', 'Transport configuration for College Hostel residents.'),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.bed_rounded, color: Color(0xFF2563EB), size: 36),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'College Hostel Resident',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF1E40AF)),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Day Scholar bus/vehicle transport setup is not required because you selected College Hostel in Step 5. Tap Next below to proceed to Step 7 (Certificate Documents Upload).',
+                        style: TextStyle(fontSize: 12.5, color: Color(0xFF3B82F6), height: 1.35),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1914,77 +1942,97 @@ class _StudentProfileCompletionSheetState
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        final sizeInMb = (file.size / (1024 * 1024)).toStringAsFixed(1);
-        final displaySize = sizeInMb == '0.0' ? '0.5 MB' : '$sizeInMb MB';
-        final fileNameWithSize = '${file.name} ($displaySize)';
+        final sizeMb = (file.size / (1024 * 1024)).toStringAsFixed(1);
+        final sizeStr = sizeMb == '0.0' ? '0.5 MB' : '$sizeMb MB';
+        final displayName = '${file.name} ($sizeStr)';
 
         setState(() {
-          final index = _uploadedDocuments.indexWhere((d) => d.id == doc.id);
-          if (index != -1) {
-            _uploadedDocuments[index] = StudentDocument(
-              id: doc.id,
-              name: doc.name,
-              isRequired: doc.isRequired,
-              fileName: fileNameWithSize,
-              fileUrl: file.path ?? 'https://unisphere.edu/docs/${file.name}',
-              status: 'uploaded',
-            );
+          final idx = _uploadedDocuments.indexWhere((d) => d.id == doc.id);
+          final newDoc = StudentDocument(
+            id: doc.id,
+            name: doc.name,
+            isRequired: doc.isRequired,
+            fileName: displayName,
+            fileUrl: file.path ?? 'https://unisphere.edu/docs/${file.name}',
+            status: 'uploaded',
+          );
+          if (idx != -1) {
+            _uploadedDocuments[idx] = newDoc;
+          } else {
+            _uploadedDocuments.add(newDoc);
           }
         });
       }
     } catch (e) {
-      debugPrint('Error picking file for ${doc.name}: $e');
+      debugPrint('Error picking document: $e');
     }
   }
 
   void _removeDocument(StudentDocument doc) {
     setState(() {
-      final index = _uploadedDocuments.indexWhere((d) => d.id == doc.id);
-      if (index != -1) {
-        _uploadedDocuments[index] = StudentDocument(
+      final idx = _uploadedDocuments.indexWhere((d) => d.id == doc.id);
+      if (idx != -1) {
+        _uploadedDocuments[idx] = StudentDocument(
           id: doc.id,
           name: doc.name,
           isRequired: doc.isRequired,
           fileName: '',
           fileUrl: '',
+          status: 'pending',
         );
       }
     });
   }
 
-  // ── STEP 7: DOCUMENTS ──
+  // ── STEP 7: DOCUMENTS UPLOAD (REBUILT CLEAN & CRASH-FREE) ──
   Widget _buildStep7Documents() {
+    final docs = _activeDocuments;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStepHeader('Step 7: Documents Upload', 'Upload clear PDF or image scans of required certificates for college verification.'),
+        _buildStepHeader(
+          'Step 7: Documents Upload',
+          'Upload clear PDF or image scans of required certificates for college verification.',
+        ),
         const SizedBox(height: 16),
 
-        ..._activeDocuments.map((doc) {
+        ...docs.map((doc) {
           final isUploaded = doc.fileName.isNotEmpty;
+
           return Container(
+            key: ValueKey('doc_${doc.id}'),
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isUploaded ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+              color: isUploaded ? const Color(0xFFF0FDF4) : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isUploaded ? const Color(0xFF86EFAC) : const Color(0xFFE2E8F0),
-                width: 1.2,
+                width: 1.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: isUploaded ? const Color(0xFFDCFCE7) : const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  alignment: Alignment.center,
                   child: Icon(
-                    isUploaded ? Icons.task_alt_rounded : Icons.file_present_rounded,
+                    isUploaded ? Icons.check_circle_rounded : Icons.cloud_upload_rounded,
                     color: isUploaded ? const Color(0xFF16A34A) : const Color(0xFF2563EB),
-                    size: 22,
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1994,53 +2042,69 @@ class _StudentProfileCompletionSheetState
                     children: [
                       Row(
                         children: [
-                          Flexible(
+                          Expanded(
                             child: Text(
                               doc.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13.5,
+                                color: Color(0xFF0F172A),
+                              ),
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (doc.isRequired) ...[
-                            const SizedBox(width: 4),
-                            const Text('*', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 13)),
-                          ],
+                          if (doc.isRequired)
+                            const Text(
+                              ' *',
+                              style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 4),
                       Text(
-                        isUploaded ? '✅ ${doc.fileName}' : 'Status: Pending Upload (PDF/JPG)',
+                        isUploaded ? '✅ ${doc.fileName}' : 'Required formats: PDF, JPG, PNG (Max 5MB)',
                         style: TextStyle(
                           fontSize: 11.5,
-                          fontWeight: isUploaded ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isUploaded ? FontWeight.w700 : FontWeight.normal,
                           color: isUploaded ? const Color(0xFF15803D) : const Color(0xFF64748B),
                         ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                if (isUploaded) ...[
-                  IconButton(
-                    onPressed: () => _removeDocument(doc),
-                    icon: const Icon(Icons.cancel_rounded, color: Color(0xFF94A3B8), size: 20),
-                    tooltip: 'Remove file',
-                    constraints: const BoxConstraints(),
-                    padding: EdgeInsets.zero,
+                const SizedBox(width: 10),
+                if (isUploaded)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: InkWell(
+                      onTap: () => _removeDocument(doc),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close_rounded, size: 16, color: Color(0xFF64748B)),
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                ],
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: () => _pickDocument(doc),
-                  icon: Icon(isUploaded ? Icons.swap_horiz_rounded : Icons.upload_file_rounded, size: 16),
-                  label: Text(isUploaded ? 'Change' : 'Upload', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isUploaded ? const Color(0xFF0F172A) : AppColors.primary,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    minimumSize: const Size(64, 36),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text(
+                    isUploaded ? 'Change' : 'Upload',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
