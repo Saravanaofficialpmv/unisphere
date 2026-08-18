@@ -1511,7 +1511,7 @@ class _StudentProfileCompletionSheetState
                           ),
                           const SizedBox(width: 8),
                           ChoiceChip(
-                            label: const Text('Grade (O, A+, A, B+, B, C)'),
+                            label: const Text('Grade'),
                             selected: _diplomaEvalMode == 'Grade',
                             onSelected: (selected) {
                               if (selected) {
