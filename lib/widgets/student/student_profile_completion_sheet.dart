@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/models/student_profile_model.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
@@ -788,28 +789,32 @@ class _StudentProfileCompletionSheetState
             ),
             child: Row(
               children: [
-                if (_currentStep > 1) ...[
-                  SizedBox(
-                    height: 52,
-                    child: OutlinedButton(
-                      onPressed: _previousStep,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF0F172A),
-                        side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        padding: const EdgeInsets.symmetric(horizontal: 22),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.arrow_back_rounded, size: 18),
-                          SizedBox(width: 6),
-                          Text('Back', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                        ],
-                      ),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      if (_currentStep > 1) {
+                        _previousStep();
+                      } else {
+                        Navigator.pop(context);
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary,
+                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(horizontal: 22),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.arrow_back_rounded, size: 18),
+                        SizedBox(width: 6),
+                        Text('Back', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                ],
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: SizedBox(
                     height: 52,
@@ -818,9 +823,10 @@ class _StudentProfileCompletionSheetState
                           ? (_isSubmitting ? null : _submitFinalProfile)
                           : _nextStep,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F172A),
+                        backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        elevation: 0,
+                        elevation: 2,
+                        shadowColor: AppColors.primary.withValues(alpha: 0.3),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       child: _isSubmitting
