@@ -738,13 +738,13 @@ class _StudentProfileCompletionSheetState
             const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 64),
             const SizedBox(height: 16),
             const Text(
-              'Profile Submitted Successfully!',
+              'Submitted to HOD Panel!',
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFF0F172A)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             const Text(
-              'Your 360° student profile has been submitted. Some information and documents will be verified by your Class Advisor.',
+              'Your 360° student profile details have been saved to the database and sent to the HOD Panel for official verification. Once approved by your HOD, you will receive an instant notification!',
               style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
               textAlign: TextAlign.center,
             ),
@@ -957,10 +957,12 @@ class _StudentProfileCompletionSheetState
                     height: 52,
                     child: ElevatedButton(
                       onPressed: _currentStep == 8
-                          ? (_isSubmitting ? null : _submitFinalProfile)
+                          ? (!_isConfirmed || _isSubmitting ? null : _submitFinalProfile)
                           : _nextStep,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: (_currentStep == 8 && !_isConfirmed)
+                            ? const Color(0xFF94A3B8)
+                            : AppColors.primary,
                         foregroundColor: Colors.white,
                         elevation: 2,
                         shadowColor: AppColors.primary.withValues(alpha: 0.3),

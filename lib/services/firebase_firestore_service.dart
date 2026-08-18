@@ -808,6 +808,8 @@ class FirebaseFirestoreService implements SupabaseService {
   }) async {
     try {
       final nowStr = DateTime.now().toIso8601String();
+
+      // Update student_profiles collection under studentUid
       await _firestore.collection('student_profiles').doc(studentUid).set({
         'verificationStatus': 'approved',
         'completionStatus': 'completed',
@@ -816,7 +818,23 @@ class FirebaseFirestoreService implements SupabaseService {
         'verifiedByHodName': hodName,
       }, SetOptions(merge: true));
 
-      await _firestore.collection('users').doc(studentUid).set({
+      // Get registerNumber if studentUid is a firebase UID, or vice versa
+      final profileSnap = await _firestore.collection('student_profiles').doc(studentUid).get();
+      final regNo = profileSnap.data()?['registerNumber'] ?? profileSnap.data()?['personal']?['registerNumber'];
+      final actualUid = profileSnap.data()?['studentUid'] ?? studentUid;
+
+      if (regNo != null && regNo.toString().isNotEmpty) {
+        await _firestore.collection('student_profiles').doc(regNo.toString()).set({
+          'verificationStatus': 'approved',
+          'completionStatus': 'completed',
+          'verifiedAt': nowStr,
+          'verifiedByHodUid': hodUid,
+          'verifiedByHodName': hodName,
+        }, SetOptions(merge: true));
+      }
+
+      // Update users collection
+      await _firestore.collection('users').doc(actualUid.toString()).set({
         'verificationStatus': 'approved',
         'profileCompletionStatus': 'completed',
         'metadata': {
@@ -825,9 +843,38 @@ class FirebaseFirestoreService implements SupabaseService {
         }
       }, SetOptions(merge: true));
 
+      // Send approval notification to student
+      final notifId = 'notif_appr_${DateTime.now().millisecondsSinceEpoch}';
+      await _firestore.collection('notifications').doc(notifId).set({
+        'id': notifId,
+        'title': 'Profile Approved 🎉',
+        'body': 'Congratulations! Your 360° student profile has been verified and approved by HOD $hodName.',
+        'senderId': hodUid,
+        'senderName': hodName,
+        'senderRole': 'hod',
+        'targetRoles': ['student'],
+        'recipientUserIds': [actualUid.toString()],
+        'category': 'Academic',
+        'priority': 'HIGH',
+        'type': 'AUTOMATED',
+        'createdAt': nowStr,
+      });
+
+      await _firestore.collection('notification_recipients').doc('${notifId}_${actualUid.toString()}').set({
+        'id': '${notifId}_${actualUid.toString()}',
+        'notificationId': notifId,
+        'userId': actualUid.toString(),
+        'userRole': 'student',
+        'status': 'UNREAD',
+        'createdAt': nowStr,
+        'priority': 'HIGH',
+        'category': 'Academic',
+        'type': 'AUTOMATED',
+      });
+
       await _firestore.collection('audit_logs').add({
         'actionType': 'hod_profile_verification_approval',
-        'studentUid': studentUid,
+        'studentUid': actualUid.toString(),
         'hodUid': hodUid,
         'hodName': hodName,
         'timestamp': nowStr,
@@ -854,7 +901,22 @@ class FirebaseFirestoreService implements SupabaseService {
         'rejectedByHodName': hodName,
       }, SetOptions(merge: true));
 
-      await _firestore.collection('users').doc(studentUid).set({
+      final profileSnap = await _firestore.collection('student_profiles').doc(studentUid).get();
+      final regNo = profileSnap.data()?['registerNumber'] ?? profileSnap.data()?['personal']?['registerNumber'];
+      final actualUid = profileSnap.data()?['studentUid'] ?? studentUid;
+
+      if (regNo != null && regNo.toString().isNotEmpty) {
+        await _firestore.collection('student_profiles').doc(regNo.toString()).set({
+          'verificationStatus': 'rejected',
+          'completionStatus': 'rejected',
+          'rejectionReason': reason,
+          'rejectedAt': nowStr,
+          'rejectedByHodUid': hodUid,
+          'rejectedByHodName': hodName,
+        }, SetOptions(merge: true));
+      }
+
+      await _firestore.collection('users').doc(actualUid.toString()).set({
         'verificationStatus': 'rejected',
         'profileCompletionStatus': 'rejected',
         'rejectionReason': reason,
@@ -864,9 +926,38 @@ class FirebaseFirestoreService implements SupabaseService {
         }
       }, SetOptions(merge: true));
 
+      // Send rejection notification to student
+      final notifId = 'notif_rej_${DateTime.now().millisecondsSinceEpoch}';
+      await _firestore.collection('notifications').doc(notifId).set({
+        'id': notifId,
+        'title': 'Profile Verification Update ⚠️',
+        'body': 'Your profile requires correction: $reason. Please update and resubmit.',
+        'senderId': hodUid,
+        'senderName': hodName,
+        'senderRole': 'hod',
+        'targetRoles': ['student'],
+        'recipientUserIds': [actualUid.toString()],
+        'category': 'Academic',
+        'priority': 'HIGH',
+        'type': 'AUTOMATED',
+        'createdAt': nowStr,
+      });
+
+      await _firestore.collection('notification_recipients').doc('${notifId}_${actualUid.toString()}').set({
+        'id': '${notifId}_${actualUid.toString()}',
+        'notificationId': notifId,
+        'userId': actualUid.toString(),
+        'userRole': 'student',
+        'status': 'UNREAD',
+        'createdAt': nowStr,
+        'priority': 'HIGH',
+        'category': 'Academic',
+        'type': 'AUTOMATED',
+      });
+
       await _firestore.collection('audit_logs').add({
         'actionType': 'hod_profile_verification_rejection',
-        'studentUid': studentUid,
+        'studentUid': actualUid.toString(),
         'hodUid': hodUid,
         'hodName': hodName,
         'reason': reason,
