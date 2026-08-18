@@ -222,6 +222,15 @@ class DatabaseSeeder {
               'passingYear': '2025',
             },
           },
+          'living': {
+            'livingType': 'pgHostel',
+            'details': {
+              'pgName': 'Sri Sai Men\'s PG',
+              'pgAddress': 'Covai Road, Near VSB Campus, Karur',
+              'rentedAddress': '12/A, Gandhigramam 3rd Street, Karur',
+              'roommates': 'Classmates (Karthik & Ramesh)',
+            },
+          },
           'documents': [
             {'id': 'doc_photo', 'name': 'Student Passport Photo', 'isRequired': true, 'fileName': 'passport_photo.jpg (0.8 MB)', 'fileUrl': 'https://unisphere.edu/docs/photo.jpg', 'status': 'uploaded'},
             {'id': 'doc_10th', 'name': '10th Standard Marksheet', 'isRequired': true, 'fileName': '10th_marksheet.pdf (1.4 MB)', 'fileUrl': 'https://unisphere.edu/docs/10th.pdf', 'status': 'uploaded'},

@@ -168,6 +168,10 @@ class _StudentProfileCompletionSheetState
   final _hostelRoomController = TextEditingController();
   final _hostelBedController = TextEditingController();
   final _hostelAdmissionController = TextEditingController();
+  final _pgNameController = TextEditingController();
+  final _pgAddressController = TextEditingController();
+  final _rentedAddressController = TextEditingController();
+  final _roommatesController = TextEditingController();
   final _accOwnerNameController = TextEditingController();
   final _accOwnerPhoneController = TextEditingController();
   final _accAddressController = TextEditingController();
@@ -270,6 +274,10 @@ class _StudentProfileCompletionSheetState
         if (draft['diplomaObtained'] != null) _diplomaObtainedController.text = draft['diplomaObtained'];
         if (draft['diplomaTotal'] != null) _diplomaTotalController.text = draft['diplomaTotal'];
         if (draft['diplomaYear'] != null) _diplomaYearController.text = draft['diplomaYear'];
+        if (draft['pgName'] != null) _pgNameController.text = draft['pgName'];
+        if (draft['pgAddress'] != null) _pgAddressController.text = draft['pgAddress'];
+        if (draft['rentedAddress'] != null) _rentedAddressController.text = draft['rentedAddress'];
+        if (draft['roommates'] != null) _roommatesController.text = draft['roommates'];
         if (draft['documents'] != null && draft['documents'] is List) {
           _uploadedDocuments.clear();
           for (var d in (draft['documents'] as List)) {
@@ -364,6 +372,10 @@ class _StudentProfileCompletionSheetState
       'diplomaTotal': _diplomaTotalController.text,
       'diplomaYear': _diplomaYearController.text,
       'livingType': _selectedLivingType?.name ?? '',
+      'pgName': _pgNameController.text,
+      'pgAddress': _pgAddressController.text,
+      'rentedAddress': _rentedAddressController.text,
+      'roommates': _roommatesController.text,
       'transportMode': _transportMode?.name ?? '',
       'documents': _activeDocuments.map((d) => d.toMap()).toList(),
     });
@@ -454,6 +466,10 @@ class _StudentProfileCompletionSheetState
 
       // Step 5 & 6: Living & Transport
       _selectedLivingType = LivingType.homeFamily;
+      _pgNameController.text = 'Sri Sai Men\'s PG';
+      _pgAddressController.text = 'Covai Road, Near VSB Campus, Karur';
+      _rentedAddressController.text = '12/A, Gandhigramam 3rd Street, Karur';
+      _roommatesController.text = 'Classmates (Karthik & Ramesh)';
       _transportMode = PrimaryTransportMode.BUS;
       _busType = 'College Bus';
       _boardingPointController.text = 'Gandhigramam';
@@ -698,20 +714,18 @@ class _StudentProfileCompletionSheetState
       ),
       living: StudentLivingDetails(
         livingType: _selectedLivingType ?? LivingType.homeFamily,
-        details: _selectedLivingType == LivingType.collegeHostel
-            ? {
-                'hostelName': _hostelNameController.text.trim(),
-                'block': _hostelBlockController.text.trim(),
-                'roomNo': _hostelRoomController.text.trim(),
-                'bedNo': _hostelBedController.text.trim(),
-                'admissionDate': _hostelAdmissionController.text.trim(),
-              }
-            : {
-                'ownerName': _accOwnerNameController.text.trim(),
-                'ownerPhone': _accOwnerPhoneController.text.trim(),
-                'address': _accAddressController.text.trim(),
-                'rent': _accRentController.text.trim(),
-              },
+        details: {
+          'hostelName': _hostelNameController.text.trim(),
+          'block': _hostelBlockController.text.trim(),
+          'roomNo': _hostelRoomController.text.trim(),
+          'pgName': _pgNameController.text.trim(),
+          'pgAddress': _pgAddressController.text.trim(),
+          'rentedAddress': _rentedAddressController.text.trim(),
+          'roommates': _roommatesController.text.trim(),
+          'ownerName': _accOwnerNameController.text.trim(),
+          'ownerPhone': _accOwnerPhoneController.text.trim(),
+          'address': _accAddressController.text.trim(),
+        },
       ),
       transport: _isDayScholar
           ? StudentTransportDetails(
@@ -1799,6 +1813,20 @@ class _StudentProfileCompletionSheetState
             ],
           ),
         ],
+
+        if (_selectedLivingType == LivingType.pgHostel) ...[
+          const SizedBox(height: 12),
+          _buildTextField(_pgNameController, 'Name of PG / Private Hostel *', 'e.g. Sri Sai Men\'s PG'),
+          const SizedBox(height: 8),
+          _buildTextField(_pgAddressController, 'PG Address / Location *', 'e.g. Covai Road, Near VSB Campus, Karur'),
+        ],
+
+        if (_selectedLivingType == LivingType.rentedHouse) ...[
+          const SizedBox(height: 12),
+          _buildTextField(_rentedAddressController, 'Rented House Address / Location *', 'e.g. 12/A, Gandhigramam 3rd Street, Karur'),
+          const SizedBox(height: 8),
+          _buildTextField(_roommatesController, 'With Whom Do You Live? (Roommates / Family) *', 'e.g. Classmates (Karthik, Ramesh) or Family'),
+        ],
       ],
     );
   }
@@ -2159,6 +2187,14 @@ class _StudentProfileCompletionSheetState
         const SizedBox(height: 12),
         _buildSummaryCard('Living & Transport', [
           'Staying Type: ${_selectedLivingType?.name ?? 'Not selected'}',
+          if (_selectedLivingType == LivingType.pgHostel) ...[
+            'PG Name: ${_pgNameController.text.isNotEmpty ? _pgNameController.text : "Not specified"}',
+            'PG Location: ${_pgAddressController.text.isNotEmpty ? _pgAddressController.text : "Not specified"}',
+          ],
+          if (_selectedLivingType == LivingType.rentedHouse) ...[
+            'Rented Address: ${_rentedAddressController.text.isNotEmpty ? _rentedAddressController.text : "Not specified"}',
+            'Living With: ${_roommatesController.text.isNotEmpty ? _roommatesController.text : "Not specified"}',
+          ],
           if (_isDayScholar) 'Transport Mode: ${_transportMode?.name ?? 'Not selected'}',
         ]),
         const SizedBox(height: 20),
