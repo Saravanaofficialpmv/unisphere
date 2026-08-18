@@ -1539,12 +1539,14 @@ class _StudentProfileCompletionSheetState
                         Row(
                           children: [
                             Expanded(
+                              flex: 4,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text('Grade Obtained *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0F172A))),
                                   const SizedBox(height: 4),
                                   DropdownButtonFormField<String>(
+                                    isExpanded: true,
                                     value: ['O', 'A+', 'A', 'B+', 'B', 'C'].contains(_diplomaObtainedController.text.trim())
                                         ? _diplomaObtainedController.text.trim()
                                         : 'A+',
@@ -1553,15 +1555,15 @@ class _StudentProfileCompletionSheetState
                                       filled: true,
                                       fillColor: Colors.white,
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                     ),
                                     items: const [
-                                      DropdownMenuItem(value: 'O', child: Text('O Grade (Outstanding)')),
-                                      DropdownMenuItem(value: 'A+', child: Text('A+ Grade (Distinction)')),
-                                      DropdownMenuItem(value: 'A', child: Text('A Grade (First Class)')),
-                                      DropdownMenuItem(value: 'B+', child: Text('B+ Grade (Above Avg)')),
-                                      DropdownMenuItem(value: 'B', child: Text('B Grade (Second Class)')),
-                                      DropdownMenuItem(value: 'C', child: Text('C Grade (Pass Grade)')),
+                                      DropdownMenuItem(value: 'O', child: Text('O Grade', overflow: TextOverflow.ellipsis)),
+                                      DropdownMenuItem(value: 'A+', child: Text('A+ Grade', overflow: TextOverflow.ellipsis)),
+                                      DropdownMenuItem(value: 'A', child: Text('A Grade', overflow: TextOverflow.ellipsis)),
+                                      DropdownMenuItem(value: 'B+', child: Text('B+ Grade', overflow: TextOverflow.ellipsis)),
+                                      DropdownMenuItem(value: 'B', child: Text('B Grade', overflow: TextOverflow.ellipsis)),
+                                      DropdownMenuItem(value: 'C', child: Text('C Grade', overflow: TextOverflow.ellipsis)),
                                     ],
                                     onChanged: (val) {
                                       if (val != null) {
@@ -1576,9 +1578,10 @@ class _StudentProfileCompletionSheetState
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
-                              child: _buildTextField(_diplomaTotalController, 'Class / Division *', 'First Class with Distinction'),
+                              flex: 5,
+                              child: _buildTextField(_diplomaTotalController, 'Class / Division *', 'First Class Distinction'),
                             ),
                           ],
                         ),
