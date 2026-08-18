@@ -195,10 +195,30 @@ class _StudentProfileCompletionSheetState
   final List<StudentDocument> _uploadedDocuments = [
     StudentDocument(id: 'doc_photo', name: 'Student Passport Photo', isRequired: true, fileUrl: '', fileName: ''),
     StudentDocument(id: 'doc_10th', name: '10th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
-    StudentDocument(id: 'doc_12th', name: '12th / Diploma Marksheet', isRequired: true, fileUrl: '', fileName: ''),
+    StudentDocument(id: 'doc_12th', name: '12th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
+    StudentDocument(id: 'doc_diploma', name: 'Polytechnic / Diploma Certificate', isRequired: false, fileUrl: '', fileName: ''),
     StudentDocument(id: 'doc_tc', name: 'Transfer Certificate (TC)', isRequired: true, fileUrl: '', fileName: ''),
     StudentDocument(id: 'doc_community', name: 'Community Certificate', isRequired: false, fileUrl: '', fileName: ''),
   ];
+
+  List<StudentDocument> get _activeDocuments {
+    if (_uploadedDocuments.isEmpty) {
+      _uploadedDocuments.addAll([
+        StudentDocument(id: 'doc_photo', name: 'Student Passport Photo', isRequired: true, fileUrl: '', fileName: ''),
+        StudentDocument(id: 'doc_10th', name: '10th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
+        StudentDocument(id: 'doc_12th', name: '12th Standard Marksheet', isRequired: true, fileUrl: '', fileName: ''),
+        StudentDocument(id: 'doc_diploma', name: 'Polytechnic / Diploma Certificate', isRequired: false, fileUrl: '', fileName: ''),
+        StudentDocument(id: 'doc_tc', name: 'Transfer Certificate (TC)', isRequired: true, fileUrl: '', fileName: ''),
+        StudentDocument(id: 'doc_community', name: 'Community Certificate', isRequired: false, fileUrl: '', fileName: ''),
+      ]);
+    }
+
+    return _uploadedDocuments.where((doc) {
+      if (doc.id == 'doc_12th' && !_has12th) return false;
+      if (doc.id == 'doc_diploma' && !_hasDiploma) return false;
+      return true;
+    }).toList();
+  }
 
   // ── Step 8: Confirmation ──
   bool _isConfirmed = false;
@@ -437,6 +457,17 @@ class _StudentProfileCompletionSheetState
       _busType = 'College Bus';
       _boardingPointController.text = 'Gandhigramam';
       _busStopController.text = 'College Main Gate';
+
+      // Step 7: Documents Mock Setup
+      _uploadedDocuments.clear();
+      _uploadedDocuments.addAll([
+        StudentDocument(id: 'doc_photo', name: 'Student Passport Photo', isRequired: true, fileName: 'passport_photo.jpg (0.8 MB)', fileUrl: 'https://unisphere.edu/docs/photo.jpg', status: 'uploaded'),
+        StudentDocument(id: 'doc_10th', name: '10th Standard Marksheet', isRequired: true, fileName: '10th_marksheet.pdf (1.4 MB)', fileUrl: 'https://unisphere.edu/docs/10th.pdf', status: 'uploaded'),
+        StudentDocument(id: 'doc_12th', name: '12th Standard Marksheet', isRequired: true, fileName: '12th_marksheet.pdf (1.6 MB)', fileUrl: 'https://unisphere.edu/docs/12th.pdf', status: 'uploaded'),
+        StudentDocument(id: 'doc_diploma', name: 'Polytechnic / Diploma Certificate', isRequired: true, fileName: 'diploma_certificate.pdf (1.2 MB)', fileUrl: 'https://unisphere.edu/docs/diploma.pdf', status: 'uploaded'),
+        StudentDocument(id: 'doc_tc', name: 'Transfer Certificate (TC)', isRequired: true, fileName: 'transfer_certificate.pdf (0.9 MB)', fileUrl: 'https://unisphere.edu/docs/tc.pdf', status: 'uploaded'),
+        StudentDocument(id: 'doc_community', name: 'Community Certificate', isRequired: false, fileName: 'community_cert.pdf (0.7 MB)', fileUrl: 'https://unisphere.edu/docs/community.pdf', status: 'uploaded'),
+      ]);
 
       // Step 8: Confirmation
       _isConfirmed = true;
@@ -1929,7 +1960,7 @@ class _StudentProfileCompletionSheetState
         _buildStepHeader('Step 7: Documents Upload', 'Upload clear PDF or image scans of required certificates for college verification.'),
         const SizedBox(height: 16),
 
-        ..._uploadedDocuments.map((doc) {
+        ..._activeDocuments.map((doc) {
           final isUploaded = doc.fileName.isNotEmpty;
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
