@@ -118,18 +118,16 @@ class UnisphereHeaderCard extends StatelessWidget {
                   children: [
                     if (rightActions != null) ...rightActions!,
                     if (onInfoPressed != null)
-                      Tooltip(
-                        message: infoTooltip ?? 'Section Information',
-                        child: IconButton(
-                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(
-                            Icons.info_outline_rounded,
-                            color: Colors.white70,
-                            size: 22,
-                          ),
-                          onPressed: onInfoPressed,
+                      IconButton(
+                        tooltip: infoTooltip ?? 'Section Information',
+                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(
+                          Icons.info_outline_rounded,
+                          color: Colors.white70,
+                          size: 22,
                         ),
+                        onPressed: onInfoPressed,
                       )
                     else if (rightActions == null && showBackButton)
                       const SizedBox(width: 36),

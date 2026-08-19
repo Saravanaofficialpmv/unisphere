@@ -418,11 +418,11 @@ class _StudentMembershipModalState extends ConsumerState<StudentMembershipModal>
   Widget _buildOrgChoiceChip(String orgKey, String tooltip) {
     final isSelected = _selectedOrg == orgKey;
     return Expanded(
-      child: Tooltip(
-        message: tooltip,
-        child: InkWell(
-          onTap: () => setState(() => _selectedOrg = orgKey),
-          borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => setState(() => _selectedOrg = orgKey),
+        borderRadius: BorderRadius.circular(12),
+        child: Tooltip(
+          message: tooltip,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(

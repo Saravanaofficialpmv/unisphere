@@ -254,8 +254,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           padding: const EdgeInsets.only(bottom: 24),
           child: TextButton(
             onPressed: () => context.go('/login'),
-            child: RichText(
-              text: TextSpan(
+            child: Text.rich(
+              TextSpan(
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                 children: [
                   const TextSpan(text: 'Already have an account? '),

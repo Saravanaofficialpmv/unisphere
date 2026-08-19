@@ -517,8 +517,8 @@ class StaffHomeScreen extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: RichText(
-                        text: TextSpan(
+                      child: Text.rich(
+                        TextSpan(
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.black,

@@ -181,8 +181,6 @@ void main() {
     });
 
     test('8. Future/ineligible condition -> Zero notifications', () async {
-      final engine = NotificationEngine();
-
       final canTrigger = await NotificationDuplicatePreventer().shouldTrigger(
         ruleId: 'rule_fee_due_parent',
         recipientUserId: 'parent999',
