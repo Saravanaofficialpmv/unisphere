@@ -18,6 +18,9 @@ class NotificationModel {
   final String? relatedModule; // 'attendance', 'assignment', 'fee', 'placement', 'exam', 'approval', 'hackathon', 'system'
   final String? relatedRecordId;
   final String? deepLink;
+  final String? ruleId;
+  final String? eventId;
+  final String? deduplicationKey;
   final DateTime createdAt;
   final DateTime? scheduledAt;
   final DateTime? sentAt;
@@ -46,6 +49,9 @@ class NotificationModel {
     this.relatedModule,
     this.relatedRecordId,
     this.deepLink,
+    this.ruleId,
+    this.eventId,
+    this.deduplicationKey,
     required this.createdAt,
     this.scheduledAt,
     this.sentAt,
@@ -85,6 +91,9 @@ class NotificationModel {
       relatedModule: map['related_module'] ?? map['type'],
       relatedRecordId: map['related_record_id'],
       deepLink: map['deep_link'] ?? map['deepLink'],
+      ruleId: map['ruleId'] ?? map['rule_id'],
+      eventId: map['eventId'] ?? map['event_id'],
+      deduplicationKey: map['deduplicationKey'] ?? map['deduplication_key'],
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
@@ -99,50 +108,6 @@ class NotificationModel {
 
   String get targetType => recipientType;
   List<String> get targetUserIds => recipientUserIds;
-  String? get relatedEntityId => relatedRecordId;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'message': message,
-      'type': type,
-      'category': category,
-      'priority': priority,
-      'sender_id': senderId,
-      'senderId': senderId,
-      'sender_name': senderName,
-      'senderName': senderName,
-      'sender_role': senderRole,
-      'senderRole': senderRole,
-      'recipient_type': recipientType,
-      'recipientType': recipientType,
-      'targetType': recipientType,
-      'recipient_user_ids': recipientUserIds,
-      'targetUserIds': recipientUserIds,
-      'target_roles': targetRoles,
-      'target_department': targetDepartment,
-      'target_year': targetYear,
-      'target_semester': targetSemester,
-      'target_section': targetSection,
-      'related_module': relatedModule,
-      'relatedModule': relatedModule,
-      'related_record_id': relatedRecordId,
-      'relatedRecordId': relatedRecordId,
-      'relatedEntityId': relatedRecordId,
-      'deep_link': deepLink,
-      'created_at': createdAt.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
-      'scheduled_at': scheduledAt?.toIso8601String(),
-      'scheduledAt': scheduledAt?.toIso8601String(),
-      'sent_at': sentAt?.toIso8601String(),
-      'read_status': readStatus,
-      'delivery_status': deliveryStatus,
-      'expiry_date': expiryDate?.toIso8601String(),
-      'is_read': isRead,
-      'isRead': isRead,
-    };
-  }
 
   NotificationModel copyWith({
     String? id,
@@ -164,6 +129,9 @@ class NotificationModel {
     String? relatedModule,
     String? relatedRecordId,
     String? deepLink,
+    String? ruleId,
+    String? eventId,
+    String? deduplicationKey,
     DateTime? createdAt,
     DateTime? scheduledAt,
     DateTime? sentAt,
@@ -192,6 +160,9 @@ class NotificationModel {
       relatedModule: relatedModule ?? this.relatedModule,
       relatedRecordId: relatedRecordId ?? this.relatedRecordId,
       deepLink: deepLink ?? this.deepLink,
+      ruleId: ruleId ?? this.ruleId,
+      eventId: eventId ?? this.eventId,
+      deduplicationKey: deduplicationKey ?? this.deduplicationKey,
       createdAt: createdAt ?? this.createdAt,
       scheduledAt: scheduledAt ?? this.scheduledAt,
       sentAt: sentAt ?? this.sentAt,
@@ -200,5 +171,42 @@ class NotificationModel {
       expiryDate: expiryDate ?? this.expiryDate,
       isRead: isRead ?? this.isRead,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'message': message,
+      'type': type,
+      'category': category,
+      'priority': priority,
+      'sender_id': senderId,
+      'sender_name': senderName,
+      'sender_role': senderRole,
+      'recipient_type': recipientType,
+      'recipient_user_ids': recipientUserIds,
+      'target_roles': targetRoles,
+      'target_department': targetDepartment,
+      'target_year': targetYear,
+      'target_semester': targetSemester,
+      'target_section': targetSection,
+      'related_module': relatedModule,
+      'related_record_id': relatedRecordId,
+      'deep_link': deepLink,
+      'ruleId': ruleId,
+      'rule_id': ruleId,
+      'eventId': eventId,
+      'event_id': eventId,
+      'deduplicationKey': deduplicationKey,
+      'deduplication_key': deduplicationKey,
+      'created_at': createdAt.toIso8601String(),
+      'scheduled_at': scheduledAt?.toIso8601String(),
+      'sent_at': sentAt?.toIso8601String(),
+      'read_status': readStatus,
+      'delivery_status': deliveryStatus,
+      'expiry_date': expiryDate?.toIso8601String(),
+      'is_read': isRead,
+    };
   }
 }
