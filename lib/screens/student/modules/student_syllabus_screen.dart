@@ -337,6 +337,66 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
           ),
           const SizedBox(height: 16),
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          const SizedBox(height: 14),
+
+          // Academic Year & Semester Selector Controls
+          const Text('Select Academic Year:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _availableYears.map((yr) {
+                final isSelected = yr == _currentSelectedYear;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: ChoiceChip(
+                    label: Text(yr),
+                    selected: isSelected,
+                    selectedColor: AppColors.primary,
+                    backgroundColor: const Color(0xFFF1F5F9),
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : const Color(0xFF475569),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                    onSelected: (_) => setState(() {
+                      _currentSelectedYear = yr;
+                      _currentSelectedSemester = _getAvailableSemesters(yr).first;
+                    }),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          const Text('Select Semester:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _getAvailableSemesters(_currentSelectedYear).map((sem) {
+                final isSelected = sem == _currentSelectedSemester;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: ChoiceChip(
+                    label: Text(sem),
+                    selected: isSelected,
+                    selectedColor: const Color(0xFF2563EB),
+                    backgroundColor: const Color(0xFFF1F5F9),
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : const Color(0xFF475569),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                    onSelected: (_) => setState(() => _currentSelectedSemester = sem),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
           const SizedBox(height: 16),
 
           // Search Input & Type Filter Chips
@@ -552,81 +612,107 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
         color: isCurrent ? const Color(0xFFF8FAFC) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => SubjectDetailsScreen(subject: subject),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    subject.subjectCode,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    subject.subjectType,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${subject.credits} Credits',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              subject.subjectName,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${subject.year} · ${subject.semester}  ·  Regulation ${subject.applicableBatch}',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.info_outline_rounded, size: 16),
-                  label: const Text('Subject Info', style: TextStyle(fontSize: 12)),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => SubjectDetailsScreen(subject: subject),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                    );
-                  },
+                      child: Text(
+                        subject.subjectCode,
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        subject.subjectType,
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${subject.credits} Credits',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                    ),
+                  ],
                 ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.picture_as_pdf_rounded, size: 16, color: Colors.white),
-                  label: const Text('View Syllabus →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isCurrent ? AppColors.primary : const Color(0xFF475569),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onPressed: () => _handleViewDocument(subject),
+                const SizedBox(height: 10),
+                Text(
+                  subject.subjectName,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${subject.subjectCode} · ${subject.subjectType} · ${subject.credits} Credits',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${subject.year} · ${subject.semester}  ·  Regulation ${subject.applicableBatch}',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.info_outline_rounded, size: 16),
+                      label: const Text('Subject Info', style: TextStyle(fontSize: 12)),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => SubjectDetailsScreen(subject: subject),
+                          ),
+                        );
+                      },
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.picture_as_pdf_rounded, size: 16, color: Colors.white),
+                      label: const Text('View Syllabus →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isCurrent ? AppColors.primary : const Color(0xFF475569),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: () => _handleViewDocument(subject),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -650,7 +736,7 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
           ),
           SizedBox(height: 4),
           Text(
-            'Your syllabus has not been published yet for the selected year/semester. Please check again later.',
+            'Your syllabus has not been published yet. Please check again later.',
             style: TextStyle(fontSize: 12, color: Color(0xFFB45309)),
             textAlign: TextAlign.center,
           ),

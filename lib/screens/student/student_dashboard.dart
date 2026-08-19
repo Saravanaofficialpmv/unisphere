@@ -20,7 +20,6 @@ import 'package:unisphere/screens/profile/profile_screen.dart';
 import 'package:unisphere/widgets/student/student_profile_completion_sheet.dart';
 import 'package:unisphere/screens/student/modules/student_attendance_screen.dart';
 import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
-import 'package:unisphere/screens/student/modules/student_library_screen.dart';
 import 'package:unisphere/screens/student/modules/student_syllabus_screen.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/providers/notification_provider.dart';
@@ -91,7 +90,6 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem.divider('CAMPUS LIFE'),
     SidebarItem(label: 'Campus Photo Gallery', icon: Icons.collections_outlined, badge: 'New'),
     SidebarItem(label: 'Official Announcements', icon: Icons.campaign_outlined),
-    SidebarItem(label: 'Digital Library', icon: Icons.local_library_outlined),
     SidebarItem.divider('ACCOUNT'),
     SidebarItem(label: 'My Profile', icon: Icons.person_outline),
   ];
@@ -135,8 +133,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       ),
       const SizedBox.shrink(), // 19: Divider CAMPUS LIFE
       FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)), // 19: Photo Gallery
-      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 20: Announcements
-      StudentLibraryScreen(onBack: () => _handleNavigation(0)), // 21: Library Status
+      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 21: Announcements
       const SizedBox.shrink(), // 22: Divider ACCOUNT
       ProfileScreen(onBack: () => _handleNavigation(0)), // 23: My Profile
     ];
@@ -1098,17 +1095,16 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
       {'title': 'Examinations & Hall Ticket', 'subtitle': 'IA schedule, university dates & seating', 'icon': Icons.badge_outlined, 'color': const Color(0xFF4F46E5), 'tabIndex': 5},
       {'title': 'Important Days & Schedule', 'subtitle': 'Official academic calendar, CAT dates & holidays', 'icon': Icons.event_note_rounded, 'color': const Color(0xFF1E40AF), 'tabIndex': 6},
       {'title': 'CGPA & Target Planner', 'subtitle': 'Semester GPA forecasting & targets', 'icon': Icons.calculate_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 7},
-      {'title': 'Fees & Dues Payment', 'subtitle': 'Tuition & hostel fee receipts', 'icon': Icons.school_rounded, 'color': const Color(0xFFFFA726), 'tabIndex': 8},
-      {'title': 'Hackathons & Coding', 'subtitle': 'Inter-college hackathons & wins', 'icon': Icons.code_rounded, 'color': const Color(0xFF8B5CF6), 'tabIndex': 10},
-      {'title': 'Certifications & Badges', 'subtitle': 'NPTEL, Coursera & AWS certificates', 'icon': Icons.workspace_premium_rounded, 'color': const Color(0xFF10B981), 'tabIndex': 11},
-      {'title': 'LeetCode Coding Tracker', 'subtitle': 'DSA solved count & contest rank', 'icon': Icons.code_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 12},
-      {'title': 'GitHub Dev Portfolio', 'subtitle': 'Repositories & commit contributions', 'icon': Icons.terminal_rounded, 'color': const Color(0xFF0F172A), 'tabIndex': 13},
-      {'title': 'Achievements & Honors', 'subtitle': 'Academic & sports trophies', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 14},
-      {'title': 'Campus Events & Symposia', 'subtitle': 'Department fests & cultural events', 'icon': Icons.event_rounded, 'color': const Color(0xFFEC4899), 'tabIndex': 15},
-      {'title': 'Professional Resume', 'subtitle': 'Auto-generated dynamic A4 resume & completeness', 'icon': Icons.description_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 17},
-      {'title': 'Campus Photo Gallery', 'subtitle': 'Event photos & fest highlights', 'icon': Icons.collections_rounded, 'color': const Color(0xFF0284C7), 'tabIndex': 19},
-      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 20},
-      {'title': 'Digital Library Status', 'subtitle': 'Issued books, catalogs & renewals', 'icon': Icons.local_library_rounded, 'color': const Color(0xFF059669), 'tabIndex': 21},
+      {'title': 'Fees & Dues Payment', 'subtitle': 'Tuition & hostel fee receipts', 'icon': Icons.school_rounded, 'color': const Color(0xFFFFA726), 'tabIndex': 9},
+      {'title': 'Hackathons & Coding', 'subtitle': 'Inter-college hackathons & wins', 'icon': Icons.code_rounded, 'color': const Color(0xFF8B5CF6), 'tabIndex': 11},
+      {'title': 'Certifications & Badges', 'subtitle': 'NPTEL, Coursera & AWS certificates', 'icon': Icons.workspace_premium_rounded, 'color': const Color(0xFF10B981), 'tabIndex': 12},
+      {'title': 'LeetCode Coding Tracker', 'subtitle': 'DSA solved count & contest rank', 'icon': Icons.code_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 13},
+      {'title': 'GitHub Dev Portfolio', 'subtitle': 'Repositories & commit contributions', 'icon': Icons.terminal_rounded, 'color': const Color(0xFF0F172A), 'tabIndex': 14},
+      {'title': 'Achievements & Honors', 'subtitle': 'Academic & sports trophies', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 15},
+      {'title': 'Campus Events & Symposia', 'subtitle': 'Department fests & cultural events', 'icon': Icons.event_rounded, 'color': const Color(0xFFEC4899), 'tabIndex': 16},
+      {'title': 'Professional Resume', 'subtitle': 'Auto-generated dynamic A4 resume & completeness', 'icon': Icons.description_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 18},
+      {'title': 'Campus Photo Gallery', 'subtitle': 'Event photos & fest highlights', 'icon': Icons.collections_rounded, 'color': const Color(0xFF0284C7), 'tabIndex': 20},
+      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 21},
     ];
 
     showModalBottomSheet(
@@ -2101,38 +2097,41 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
         'type': 'grades',
       },
       {
+        'image': 'assets/syllabus.png',
         'label': 'Syllabus',
-        'icon': Icons.menu_book_rounded,
+        'color': const Color(0xFFD97706),
         'iconBg': const Color(0xFFFEF3C7),
-        'iconColor': const Color(0xFFD97706),
         'type': 'syllabus',
       },
     ];
 
     final row2Actions = [
       {
+        'image': 'assets/certifications.png',
         'label': 'Certifications',
+        'color': const Color(0xFF4F46E5),
         'iconBg': const Color(0xFFEEF2FF),
-        'iconColor': const Color(0xFF4F46E5),
         'type': 'certifications',
       },
       {
+        'image': 'assets/announcement.png',
         'label': 'Announcement',
+        'color': const Color(0xFFEA580C),
         'iconBg': const Color(0xFFFEF3C7),
-        'iconColor': const Color(0xFFEA580C),
         'type': 'announcement',
       },
       {
+        'image': 'assets/exams.png',
         'label': 'Exams',
+        'color': const Color(0xFF0284C7),
         'iconBg': const Color(0xFFE0F2FE),
-        'iconColor': const Color(0xFF0284C7),
         'type': 'exams',
       },
       {
-        'icon': Icons.grid_view_rounded,
+        'image': 'assets/more.png',
         'label': 'More',
+        'color': const Color(0xFF475569),
         'iconBg': const Color(0xFFF1F5F9),
-        'iconColor': const Color(0xFF475569),
         'type': 'more',
       },
     ];
@@ -2182,7 +2181,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
           } else if (type == 'certifications') {
             widget.onNavigateToTab(12);
           } else if (type == 'announcement') {
-            widget.onNavigateToTab(20);
+            widget.onNavigateToTab(21);
           } else if (type == 'exams') {
             widget.onNavigateToTab(5);
           } else if (type == 'more') {
