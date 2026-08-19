@@ -301,7 +301,6 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             // Zoom In / Out
             IconButton(
               icon: const Icon(Icons.zoom_out_rounded, size: 18, color: Color(0xFF64748B)),
-              tooltip: 'Zoom Out',
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
               onPressed: () {
@@ -314,7 +313,6 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             ),
             IconButton(
               icon: const Icon(Icons.zoom_in_rounded, size: 18, color: Color(0xFF64748B)),
-              tooltip: 'Zoom In',
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
               onPressed: () {
@@ -327,7 +325,6 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             // Copy text action
             IconButton(
               icon: const Icon(Icons.copy_all_rounded, size: 18, color: Color(0xFF475569)),
-              tooltip: 'Copy Resume Markdown',
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
               onPressed: _copyResumeText,
@@ -583,8 +580,8 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             ),
           ),
           const SizedBox(height: 2),
-          RichText(
-            text: TextSpan(
+          Text.rich(
+            TextSpan(
               children: [
                 TextSpan(
                   text: 'Relevant Coursework: ',
@@ -696,8 +693,8 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
                 final impactText = out.substring(7).trim();
                 return Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: RichText(
-                    text: TextSpan(
+                  child: Text.rich(
+                    TextSpan(
                       children: [
                         TextSpan(
                           text: 'Impact: ',
@@ -729,8 +726,8 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
   Widget _buildCertificationItem(ResumeCertificationItem c, Color bodyColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: RichText(
-        text: TextSpan(
+      child: Text.rich(
+        TextSpan(
           children: [
             TextSpan(
               text: '• ${c.title}  –  ',

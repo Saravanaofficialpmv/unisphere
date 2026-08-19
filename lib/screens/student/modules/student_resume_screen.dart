@@ -127,14 +127,12 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.edit_note_rounded, color: Color(0xFF2563EB), size: 22),
-            tooltip: 'Request Profile Edit',
             padding: const EdgeInsets.symmetric(horizontal: 4),
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: _showEditProfileModal,
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF475569), size: 20),
-            tooltip: 'Refresh Resume Data',
             padding: const EdgeInsets.only(left: 4, right: 8),
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: () {
