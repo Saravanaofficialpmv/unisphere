@@ -21,6 +21,7 @@ import 'package:unisphere/widgets/student/student_profile_completion_sheet.dart'
 import 'package:unisphere/screens/student/modules/student_attendance_screen.dart';
 import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
 import 'package:unisphere/screens/student/modules/student_library_screen.dart';
+import 'package:unisphere/screens/student/modules/student_syllabus_screen.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/providers/notification_provider.dart';
 import 'package:unisphere/screens/features/exams_detail_screen.dart';
@@ -76,6 +77,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem(label: 'Examinations & Hall Ticket', icon: Icons.badge_outlined, badge: 'Exams'),
     SidebarItem(label: 'Important Days & Schedule', icon: Icons.event_note_rounded, badge: 'Official'),
     SidebarItem(label: 'CGPA & Target Planner', icon: Icons.calculate_outlined),
+    SidebarItem(label: 'Academic Syllabus', icon: Icons.menu_book_outlined, badge: 'Official'),
     SidebarItem(label: 'Fees & Payments', icon: Icons.payments_outlined),
     SidebarItem.divider('CAREER & SKILLS'),
     SidebarItem(label: 'Hackathons', icon: Icons.sports_score_outlined, badge: 'Live'),
@@ -112,25 +114,26 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       ExamsDetailScreen(onBack: () => _handleNavigation(0)), // 5: Examinations & Hall Ticket
       AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0)), // 6: Important Days & Schedule
       CgpaDetailsScreen(onBack: () => _handleNavigation(0)), // 7: CGPA & Target Planner
-      FeesScreen(onBack: () => _handleNavigation(0)), // 8: Fees & Payments
-      const SizedBox.shrink(), // 9: Divider CAREER & SKILLS
-      HackathonsScreen(onBack: () => _handleNavigation(0)), // 10: Hackathons
-      CertificationsScreen(onBack: () => _handleNavigation(0)), // 11: Certifications
-      LeetCodeDetailScreen(onBack: () => _handleNavigation(0)), // 12: LeetCode Tracker
-      GitHubDetailScreen(onBack: () => _handleNavigation(0)), // 13: GitHub Dev Portfolio
-      AchievementsScreen(onBack: () => _handleNavigation(0)), // 14: Achievements
-      EventsScreen(onBack: () => _handleNavigation(0)), // 15: Campus Events
+      StudentSyllabusScreen(onBack: () => _handleNavigation(0)), // 8: Academic Syllabus
+      FeesScreen(onBack: () => _handleNavigation(0)), // 9: Fees & Payments
+      const SizedBox.shrink(), // 10: Divider CAREER & SKILLS
+      HackathonsScreen(onBack: () => _handleNavigation(0)), // 11: Hackathons
+      CertificationsScreen(onBack: () => _handleNavigation(0)), // 12: Certifications
+      LeetCodeDetailScreen(onBack: () => _handleNavigation(0)), // 13: LeetCode Tracker
+      GitHubDetailScreen(onBack: () => _handleNavigation(0)), // 14: GitHub Dev Portfolio
+      AchievementsScreen(onBack: () => _handleNavigation(0)), // 15: Achievements
+      EventsScreen(onBack: () => _handleNavigation(0)), // 16: Campus Events
       FeatureHubScreen(
-        // 16: Feature Hub
+        // 17: Feature Hub
         onNavigateToTab: _handleNavigation,
         onBack: () => _handleNavigation(0),
       ),
       StudentResumeScreen(
-        // 17: Professional Resume
+        // 18: Professional Resume
         onBack: () => _handleNavigation(0),
         onNavigateToTab: _handleNavigation,
       ),
-      const SizedBox.shrink(), // 18: Divider CAMPUS LIFE
+      const SizedBox.shrink(), // 19: Divider CAMPUS LIFE
       FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)), // 19: Photo Gallery
       StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 20: Announcements
       StudentLibraryScreen(onBack: () => _handleNavigation(0)), // 21: Library Status
@@ -2226,10 +2229,11 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
         'type': 'grades',
       },
       {
-        'image': 'assets/school.png',
-        'label': 'Fees',
-        'color': const Color(0xFFFFA726),
-        'type': 'fees',
+        'label': 'Syllabus',
+        'icon': Icons.menu_book_rounded,
+        'iconBg': const Color(0xFFFEF3C7),
+        'iconColor': const Color(0xFFD97706),
+        'type': 'syllabus',
       },
     ];
 
@@ -2299,16 +2303,18 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             widget.onNavigateToTab(2);
           } else if (type == 'grades') {
             widget.onNavigateToTab(4);
-          } else if (type == 'fees') {
+          } else if (type == 'syllabus') {
             widget.onNavigateToTab(8);
+          } else if (type == 'fees') {
+            widget.onNavigateToTab(9);
           } else if (type == 'certifications') {
-            widget.onNavigateToTab(11);
+            widget.onNavigateToTab(12);
           } else if (type == 'announcement') {
             widget.onNavigateToTab(20);
           } else if (type == 'exams') {
             widget.onNavigateToTab(5);
           } else if (type == 'more') {
-            widget.onNavigateToTab(16);
+            widget.onNavigateToTab(17);
           }
         },
         borderRadius: BorderRadius.circular(16),
