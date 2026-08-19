@@ -1542,12 +1542,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                 child: PageView(
                   onPageChanged: (index) {
                     if (_academicOverviewPageIndex != index) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          setCardState(() {
-                            _academicOverviewPageIndex = index;
-                          });
-                        }
+                      setCardState(() {
+                        _academicOverviewPageIndex = index;
                       });
                     }
                   },
