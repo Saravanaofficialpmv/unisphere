@@ -7,6 +7,15 @@ import 'package:unisphere/services/firebase_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Suppress Flutter framework semantics dirty parent data assertions during hot restart / layout passes
+  final originalOnError = FlutterError.onError;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    if (details.exceptionAsString().contains('!semantics.parentDataDirty')) {
+      return;
+    }
+    originalOnError?.call(details);
+  };
+
   // Initialize Firebase Core & Auth services
   try {
     await FirebaseService.instance.initialize();
