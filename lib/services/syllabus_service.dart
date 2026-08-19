@@ -115,7 +115,7 @@ class SyllabusService {
       if (snapshot.docs.isNotEmpty) {
         final allDocs = snapshot.docs
             .map((doc) => SyllabusSubjectModel.fromMap(doc.data(), doc.id))
-            .where((s) => _normalizeDepartment(s.department) == normalizedDept)
+            .where((s) => s.department.isEmpty || s.department.toLowerCase() == 'all' || _normalizeDepartment(s.department) == normalizedDept)
             .toList();
         if (allDocs.isNotEmpty) return allDocs;
       }
@@ -123,6 +123,143 @@ class SyllabusService {
       debugPrint('SyllabusService error loading HOD records: $e');
     }
     return _getBuiltInSyllabusDatabase(department);
+  }
+
+  /// Add a new subject record to Firestore syllabi collection
+  Future<bool> createSubject(SyllabusSubjectModel subject) async {
+    try {
+      final docRef = _firestore.collection('syllabi').doc(subject.id.isNotEmpty ? subject.id : null);
+      final finalSubject = SyllabusSubjectModel(
+        id: docRef.id,
+        subjectCode: subject.subjectCode,
+        subjectName: subject.subjectName,
+        department: subject.department,
+        applicableBatch: subject.applicableBatch,
+        year: subject.year,
+        semester: subject.semester,
+        academicYear: subject.academicYear,
+        effectiveStartYear: subject.effectiveStartYear,
+        credits: subject.credits,
+        subjectType: subject.subjectType,
+        description: subject.description,
+        units: subject.units,
+        textbooks: subject.textbooks,
+        referenceBooks: subject.referenceBooks,
+        documentUrl: subject.documentUrl,
+        documentFileName: subject.documentFileName,
+        documentSize: subject.documentSize,
+        effectiveFrom: subject.effectiveFrom,
+        lastUpdated: DateTime.now(),
+        status: subject.status,
+        uploadedBy: subject.uploadedBy,
+        uploadedAt: DateTime.now(),
+      );
+
+      await docRef.set(finalSubject.toMap(), SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      debugPrint('SyllabusService createSubject error: $e');
+      return false;
+    }
+  }
+
+  /// Update existing subject record in Firestore syllabi collection
+  Future<bool> updateSubject(SyllabusSubjectModel subject) async {
+    try {
+      if (subject.id.isEmpty) return false;
+      final updatedSubject = SyllabusSubjectModel(
+        id: subject.id,
+        subjectCode: subject.subjectCode,
+        subjectName: subject.subjectName,
+        department: subject.department,
+        applicableBatch: subject.applicableBatch,
+        year: subject.year,
+        semester: subject.semester,
+        academicYear: subject.academicYear,
+        effectiveStartYear: subject.effectiveStartYear,
+        credits: subject.credits,
+        subjectType: subject.subjectType,
+        description: subject.description,
+        units: subject.units,
+        textbooks: subject.textbooks,
+        referenceBooks: subject.referenceBooks,
+        documentUrl: subject.documentUrl,
+        documentFileName: subject.documentFileName,
+        documentSize: subject.documentSize,
+        effectiveFrom: subject.effectiveFrom,
+        lastUpdated: DateTime.now(),
+        status: subject.status,
+        uploadedBy: subject.uploadedBy,
+        uploadedAt: subject.uploadedAt,
+      );
+
+      await _firestore.collection('syllabi').doc(subject.id).set(updatedSubject.toMap(), SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      debugPrint('SyllabusService updateSubject error: $e');
+      return false;
+    }
+  }
+
+  /// Delete subject record from Firestore syllabi collection
+  Future<bool> deleteSubject(String subjectId) async {
+    try {
+      if (subjectId.isEmpty) return false;
+      await _firestore.collection('syllabi').doc(subjectId).delete();
+      return true;
+    } catch (e) {
+      debugPrint('SyllabusService deleteSubject error: $e');
+      return false;
+    }
+  }
+
+  /// Toggle or update publish status ('published' vs 'draft')
+  Future<bool> updateSubjectStatus(String subjectId, String newStatus) async {
+    try {
+      if (subjectId.isEmpty) return false;
+      await _firestore.collection('syllabi').doc(subjectId).update({
+        'status': newStatus,
+        'lastUpdated': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('SyllabusService updateSubjectStatus error: $e');
+      return false;
+    }
+  }
+
+  /// Check if a subject code already exists within the same academic year and semester for a department
+  Future<bool> isDuplicateSubjectCode({
+    required String subjectCode,
+    required String academicYear,
+    required String semester,
+    required String department,
+    String? currentId,
+  }) async {
+    try {
+      final snapshot = await _firestore.collection('syllabi').get();
+      final normCode = subjectCode.trim().toLowerCase();
+      final normAcYear = academicYear.trim().toLowerCase();
+      final normSem = _normalizeSemester(semester);
+      final normDept = _normalizeDepartment(department);
+
+      for (var doc in snapshot.docs) {
+        if (currentId != null && doc.id == currentId) continue;
+        final data = doc.data();
+        final cCode = (data['subjectCode'] ?? data['subject_code'] ?? '').toString().trim().toLowerCase();
+        final cAcYear = (data['academicYear'] ?? data['academic_year'] ?? '').toString().trim().toLowerCase();
+        final cSem = _normalizeSemester((data['semester'] ?? '').toString());
+        final cDept = _normalizeDepartment((data['department'] ?? '').toString());
+
+        if (cCode == normCode && cAcYear == normAcYear && cSem == normSem && cDept == normDept) {
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('SyllabusService isDuplicateSubjectCode error: $e');
+    }
+    return false;
   }
 
   String _normalizeDepartment(String dept) {

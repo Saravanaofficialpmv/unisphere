@@ -26,6 +26,7 @@ import 'package:unisphere/widgets/schedule/academic_schedule_card.dart';
 import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart';
 
 import 'package:unisphere/screens/staff/modules/adviser_resume_bank_screen.dart';
+import 'package:unisphere/screens/hod/modules/hod_syllabus_management_screen.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {
   const StaffDashboard({super.key});
@@ -49,6 +50,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Home Dashboard', icon: Icons.dashboard_outlined),
+    SidebarItem(label: 'Syllabus Management', icon: Icons.menu_book_rounded, badge: 'Syllabus'),
     SidebarItem(label: 'Give Assignment', icon: Icons.add_task_outlined),
     SidebarItem(label: 'Review Submissions', icon: Icons.checklist_outlined, badge: '12'),
     SidebarItem(label: 'Student Directory & Portfolios', icon: Icons.people_alt_outlined),
@@ -69,7 +71,8 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
 
   late final List<Widget> _screens = [
     StaffHomeScreen(onNavigate: _handleNavigation),
-    StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 2)),
+    const HodSyllabusManagementScreen(),
+    StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 3)),
     const StaffSubmissionReview(),
     const StaffStudentDirectory(),
     AdviserResumeBankScreen(onBack: () => _handleNavigation(0)),

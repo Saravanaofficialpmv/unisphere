@@ -28,6 +28,7 @@ import '../gallery/full_photo_gallery_screen.dart';
 import '../common/manual_notification_composer_screen.dart';
 import 'modules/hod_academic_schedule_screen.dart';
 import 'modules/hod_resume_bank_screen.dart';
+import 'modules/hod_syllabus_management_screen.dart';
 
 class HodShell extends ConsumerStatefulWidget {
   const HodShell({super.key});
@@ -54,8 +55,9 @@ class _HodShellState extends ConsumerState<HodShell> {
     SidebarItem(label: 'Reports & Analytics', icon: Icons.insights_outlined),
     SidebarItem(label: 'Department Settings', icon: Icons.settings_outlined),
     SidebarItem.divider('ACADEMIC MODULES'),
+    SidebarItem(label: 'Syllabus Management', icon: Icons.menu_book_rounded, badge: 'Syllabus'),
     SidebarItem(label: 'Attendance Management', icon: Icons.fact_check_outlined),
-    SidebarItem(label: 'Academic Administration', icon: Icons.menu_book_outlined),
+    SidebarItem(label: 'Academic Administration', icon: Icons.school_outlined),
     SidebarItem(label: 'Timetable Management', icon: Icons.calendar_month_outlined),
     SidebarItem(label: 'Examination & Marks', icon: Icons.assessment_outlined),
     SidebarItem(label: 'Academic Schedule & Days', icon: Icons.event_note_rounded, badge: 'Official'),
@@ -83,15 +85,16 @@ class _HodShellState extends ConsumerState<HodShell> {
       const HodReportsAnalytics(), // 9
       const HodSettings(), // 10
       const SizedBox.shrink(), // 11: Divider ACADEMIC MODULES
-      const HodAttendanceManagement(), // 12
-      const HodAcademicManagement(), // 13
-      const HodTimetableManagement(), // 14
-      const HodExamManagement(), // 15
-      const HodAcademicScheduleScreen(), // 16: Academic Schedule Manager
-      const HodLeaveManagement(), // 17
-      const HodCharterUploadScreen(), // 18
-      const HodAnnouncements(), // 19
-      const FullPhotoGalleryScreen(), // 20
+      const HodSyllabusManagementScreen(), // 12: Syllabus Management
+      const HodAttendanceManagement(), // 13
+      const HodAcademicManagement(), // 14
+      const HodTimetableManagement(), // 15
+      const HodExamManagement(), // 16
+      const HodAcademicScheduleScreen(), // 17: Academic Schedule Manager
+      const HodLeaveManagement(), // 18
+      const HodCharterUploadScreen(), // 19
+      const HodAnnouncements(), // 20
+      const FullPhotoGalleryScreen(), // 21
     ];
   }
 
