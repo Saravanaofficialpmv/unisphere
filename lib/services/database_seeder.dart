@@ -20,6 +20,7 @@ import 'package:unisphere/models/student_model.dart';
 import 'package:unisphere/models/submission_model.dart';
 import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/models/academic_schedule_model.dart';
+import 'package:unisphere/models/syllabus_model.dart';
 
 
 /// DatabaseSeeder populates Cloud Firestore with complete, real sample data across all 17 app collections for development, demo testing & production setup.
@@ -1140,8 +1141,92 @@ class DatabaseSeeder {
         },
       ];
 
-      for (var lv in leaves) {
-        await _firestore.collection('leaves').doc(lv['id'] as String).set(lv, SetOptions(merge: true));
+      for (var l in leaves) {
+        await _firestore.collection('leave_applications').doc(l['id'].toString()).set(l, SetOptions(merge: true));
+      }
+
+      // 18. Seed Published Syllabi Documents
+      final syllabi = [
+        SyllabusSubjectModel(
+          id: 'SYLL-CS101-2026',
+          subjectCode: 'CS101',
+          subjectName: 'Programming in C',
+          department: 'Computer Science & Engineering',
+          applicableBatch: '2026–2030',
+          year: 'I Year',
+          semester: 'Semester 1',
+          academicYear: '2026–2027',
+          effectiveStartYear: 2026,
+          credits: 4,
+          subjectType: 'Theory',
+          description: 'Fundamental programming constructs, data types, control flow, functions, arrays, pointers, structures, file operations, and algorithmic logic in C language.',
+          units: [
+            SyllabusUnitModel(unitNumber: 'Unit I', title: 'C Language Fundamentals & Data Types', topics: ['Algorithm & Flowcharts', 'Structure of C Program', 'Variables & Data Types', 'Operators & Expressions']),
+            SyllabusUnitModel(unitNumber: 'Unit II', title: 'Control Flow & Decision Statements', topics: ['if-else Statements', 'switch-case Statements', 'while & do-while Loops', 'for Loops']),
+            SyllabusUnitModel(unitNumber: 'Unit III', title: 'Arrays, Strings & User-defined Functions', topics: ['Single & Multi-dimensional Arrays', 'String Manipulation', 'Function Prototypes', 'Recursion']),
+            SyllabusUnitModel(unitNumber: 'Unit IV', title: 'Pointers & Dynamic Memory Management', topics: ['Pointer Arithmetic', 'Pointers to Arrays & Functions', 'Dynamic Memory Allocation']),
+            SyllabusUnitModel(unitNumber: 'Unit V', title: 'Structures, Unions & File Handling', topics: ['Defining Structures & Unions', 'File Pointers & Modes', 'Sequential Access']),
+          ],
+          textbooks: ['Programming in ANSI C (8th Edition) by E. Balagurusamy, McGraw Hill'],
+          referenceBooks: ['The C Programming Language (2nd Edition) by Kernighan and Ritchie'],
+          documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          documentFileName: 'CS101_Programming_in_C_2026-27.pdf',
+          documentSize: '2.4 MB',
+          lastUpdated: DateTime(2026, 8, 1),
+          status: 'published',
+        ),
+        SyllabusSubjectModel(
+          id: 'SYLL-MA101-2026',
+          subjectCode: 'MA101',
+          subjectName: 'Mathematics I: Calculus & Linear Algebra',
+          department: 'Computer Science & Engineering',
+          applicableBatch: '2026–2030',
+          year: 'I Year',
+          semester: 'Semester 1',
+          academicYear: '2026–2027',
+          effectiveStartYear: 2026,
+          credits: 4,
+          subjectType: 'Theory',
+          description: 'Matrix algebra, eigenvalues, multivariable calculus, partial derivatives, double and triple integrals, and vector calculus.',
+          units: [
+            SyllabusUnitModel(unitNumber: 'Unit I', title: 'Matrices & Linear Systems', topics: ['Rank of a Matrix', 'System of Linear Equations', 'Eigenvalues & Eigenvectors']),
+          ],
+          textbooks: ['Higher Engineering Mathematics (44th Edition) by B.S. Grewal'],
+          referenceBooks: ['Advanced Engineering Mathematics by Erwin Kreyszig'],
+          documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          documentFileName: 'MA101_Mathematics_I_2026-27.pdf',
+          documentSize: '3.1 MB',
+          lastUpdated: DateTime(2026, 8, 2),
+          status: 'published',
+        ),
+        SyllabusSubjectModel(
+          id: 'SYLL-PH101-2026',
+          subjectCode: 'PH101',
+          subjectName: 'Physics for Computing',
+          department: 'Computer Science & Engineering',
+          applicableBatch: '2026–2030',
+          year: 'I Year',
+          semester: 'Semester 1',
+          academicYear: '2026–2027',
+          effectiveStartYear: 2026,
+          credits: 3,
+          subjectType: 'Theory',
+          description: 'Quantum mechanics, lasers, fiber optics, semiconductor physics, and magnetic materials.',
+          units: [
+            SyllabusUnitModel(unitNumber: 'Unit I', title: 'Wave Optics & Lasers', topics: ['Interference & Diffraction', 'Laser Principles', 'Semiconductor Lasers']),
+          ],
+          textbooks: ['A Textbook of Engineering Physics by M.N. Avadhanulu'],
+          referenceBooks: ['Concepts of Modern Physics by Arthur Beiser'],
+          documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          documentFileName: 'PH101_Physics_2026-27.pdf',
+          documentSize: '1.9 MB',
+          lastUpdated: DateTime(2026, 8, 1),
+          status: 'published',
+        ),
+      ];
+
+      for (var s in syllabi) {
+        await _firestore.collection('syllabi').doc(s.id).set(s.toMap(), SetOptions(merge: true));
       }
 
       // 18. Seed Photo Albums and Gallery Photos

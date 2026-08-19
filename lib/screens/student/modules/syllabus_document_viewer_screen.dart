@@ -84,6 +84,7 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Return to Subject Details',
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,6 +104,7 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded, color: Colors.white),
+            tooltip: 'Download Document',
             onPressed: _isDownloading ? null : _handleDownload,
           ),
         ],
@@ -143,6 +145,7 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
                   IconButton(
                     icon: const Icon(Icons.zoom_out_rounded, color: Colors.white, size: 20),
                     onPressed: _zoomOut,
+                    tooltip: 'Zoom Out',
                   ),
                   Text(
                     '${(_zoomScale * 100).toInt()}%',
@@ -151,10 +154,12 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
                   IconButton(
                     icon: const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 20),
                     onPressed: _zoomIn,
+                    tooltip: 'Zoom In',
                   ),
                   IconButton(
                     icon: const Icon(Icons.restart_alt_rounded, color: Color(0xFF94A3B8), size: 20),
                     onPressed: _resetZoom,
+                    tooltip: 'Reset Zoom',
                   ),
                 ],
               ),

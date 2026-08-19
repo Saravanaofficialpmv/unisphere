@@ -1,55 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
-class NotificationDeduplicationRecord {
-  final String deduplicationKey;
+class RuleExecutionRecord {
   final String ruleId;
-  final String recipientUserId;
-  final String eventId;
-  final DateTime createdAt;
-  final String? statusValue;
-  final String notificationId;
+  final String targetId; // studentUid, staffUid, etc.
+  final DateTime lastTriggeredAt;
+  final String? lastStatusValue; // e.g. "74.5%" or "ABSENT_2_DAYS" or "OVERDUE_3_DAYS"
+  final DateTime cooldownUntil;
 
-  NotificationDeduplicationRecord({
-    required this.deduplicationKey,
+  RuleExecutionRecord({
     required this.ruleId,
-    required this.recipientUserId,
-    required this.eventId,
-    required this.createdAt,
-    this.statusValue,
-    required this.notificationId,
+    required this.targetId,
+    required this.lastTriggeredAt,
+    this.lastStatusValue,
+    required this.cooldownUntil,
   });
 
-  factory NotificationDeduplicationRecord.fromMap(Map<String, dynamic> map, String key) {
-    return NotificationDeduplicationRecord(
-      deduplicationKey: key,
-      ruleId: map['rule_id'] ?? map['ruleId'] ?? '',
-      recipientUserId: map['recipient_user_id'] ?? map['recipientUserId'] ?? '',
-      eventId: map['event_id'] ?? map['eventId'] ?? '',
-      createdAt: map['created_at'] != null
-          ? DateTime.tryParse(map['created_at'].toString()) ?? DateTime.now()
+  factory RuleExecutionRecord.fromMap(Map<String, dynamic> map, String docId) {
+    final parts = docId.split('_');
+    final rId = parts.isNotEmpty ? parts[0] : 'rule';
+    final tId = parts.length > 1 ? parts.sublist(1).join('_') : 'target';
+
+    return RuleExecutionRecord(
+      ruleId: map['rule_id'] ?? rId,
+      targetId: map['target_id'] ?? tId,
+      lastTriggeredAt: map['last_triggered_at'] != null
+          ? DateTime.tryParse(map['last_triggered_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
-      statusValue: map['status_value']?.toString(),
-      notificationId: map['notification_id'] ?? map['notificationId'] ?? '',
+      lastStatusValue: map['last_status_value']?.toString(),
+      cooldownUntil: map['cooldown_until'] != null
+          ? DateTime.tryParse(map['cooldown_until'].toString()) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'deduplication_key': deduplicationKey,
       'rule_id': ruleId,
-      'recipient_user_id': recipientUserId,
-      'event_id': eventId,
-      'created_at': createdAt.toIso8601String(),
-      'status_value': statusValue,
-      'notification_id': notificationId,
+      'target_id': targetId,
+      'last_triggered_at': lastTriggeredAt.toIso8601String(),
+      'last_status_value': lastStatusValue,
+      'cooldown_until': cooldownUntil.toIso8601String(),
     };
   }
 }
 
 class NotificationDuplicatePreventer {
   final FirebaseFirestore? _firestore;
-  static final Map<String, NotificationDeduplicationRecord> _inMemoryCache = {};
+  static final Map<String, RuleExecutionRecord> _localCache = {};
 
   NotificationDuplicatePreventer({FirebaseFirestore? firestore})
       : _firestore = firestore ?? _tryGetFirestore();
@@ -62,157 +60,85 @@ class NotificationDuplicatePreventer {
     }
   }
 
-  /// Generates deterministic deduplication key: ruleId_recipientUserId_eventId
-  static String buildDeduplicationKey({
+  /// Check if a notification rule should trigger for targetId.
+  /// Returns `true` if allowed, `false` if duplicate/suppressed.
+  Future<bool> shouldTrigger({
     required String ruleId,
-    required String recipientUserId,
-    required String eventId,
-  }) {
-    return '${ruleId}_${recipientUserId}_$eventId';
-  }
-
-  /// Scoped check to determine if a notification has ALREADY been sent.
-  /// Returns `true` if already sent for (ruleId, recipientUserId, eventId).
-  Future<bool> alreadySent({
-    required String ruleId,
-    required String recipientUserId,
-    required String eventId,
+    required String targetId,
+    required int cooldownHours,
+    String? currentStatusValue,
   }) async {
-    final key = buildDeduplicationKey(
-      ruleId: ruleId,
-      recipientUserId: recipientUserId,
-      eventId: eventId,
-    );
+    final key = '${ruleId}_$targetId';
+    final now = DateTime.now();
 
-    // 1. Check in-memory cache
-    if (_inMemoryCache.containsKey(key)) {
-      _logSuppression(ruleId: ruleId, recipientUserId: recipientUserId, eventId: eventId, deduplicationKey: key);
+    // 1. Check local cache or Firestore execution history
+    RuleExecutionRecord? record = _localCache[key];
+    if (record == null && _firestore != null) {
+      try {
+        final doc = await _firestore
+            .collection('notification_rule_execution_history')
+            .doc(key)
+            .get();
+        if (doc.exists && doc.data() != null) {
+          record = RuleExecutionRecord.fromMap(doc.data()!, doc.id);
+          _localCache[key] = record;
+        }
+      } catch (e) {
+        debugPrint('Error fetching execution history: $e');
+      }
+    }
+
+    if (record == null) {
+      // Never triggered before -> ALLOW
       return true;
     }
 
-    // 2. Check Firestore persistence
-    final firestore = _firestore;
-    if (firestore != null) {
-      try {
-        final doc = await firestore.collection('notification_rule_execution_history').doc(key).get();
-        if (doc.exists && doc.data() != null) {
-          final record = NotificationDeduplicationRecord.fromMap(doc.data()!, key);
-          _inMemoryCache[key] = record;
-          _logSuppression(ruleId: ruleId, recipientUserId: recipientUserId, eventId: eventId, deduplicationKey: key);
-          return true;
-        }
-      } catch (e) {
-        debugPrint('NotificationDuplicatePreventer Firestore check error: $e');
-      }
+    // 2. Check if status value meaningfully changed (e.g. threshold crossed from warning to critical)
+    if (currentStatusValue != null && record.lastStatusValue != currentStatusValue) {
+      // Status state changed! -> ALLOW
+      return true;
     }
 
+    // 3. Check if cooldown has passed
+    if (now.isAfter(record.cooldownUntil)) {
+      // Cooldown expired -> ALLOW
+      return true;
+    }
+
+    // Otherwise SUPPRESS (prevent duplicate)
     return false;
   }
 
-  /// Check whether a notification SHOULD trigger.
-  /// Returns `true` if allowed (new/eligible), `false` if duplicate/suppressed.
-  Future<bool> shouldTrigger({
-    required String ruleId,
-    required String recipientUserId,
-    required String eventId,
-    int cooldownHours = 24,
-    String? currentStatusValue,
-  }) async {
-    final isSent = await alreadySent(
-      ruleId: ruleId,
-      recipientUserId: recipientUserId,
-      eventId: eventId,
-    );
-
-    if (!isSent) {
-      debugPrint('NotificationEngine:\nNew recipient/event detected\nruleId: $ruleId\nrecipientUserId: $recipientUserId\neventId: $eventId');
-    }
-
-    return !isSent;
-  }
-
-  /// Atomically claims and records the deduplication key to prevent concurrent duplicate dispatches.
-  /// Returns `true` if claim succeeded, `false` if another execution claimed it concurrently.
-  Future<bool> claimAndRecord({
-    required String ruleId,
-    required String recipientUserId,
-    required String eventId,
-    required String notificationId,
-    String? currentStatusValue,
-  }) async {
-    final key = buildDeduplicationKey(
-      ruleId: ruleId,
-      recipientUserId: recipientUserId,
-      eventId: eventId,
-    );
-    final now = DateTime.now();
-
-    final record = NotificationDeduplicationRecord(
-      deduplicationKey: key,
-      ruleId: ruleId,
-      recipientUserId: recipientUserId,
-      eventId: eventId,
-      createdAt: now,
-      statusValue: currentStatusValue,
-      notificationId: notificationId,
-    );
-
-    // Update in-memory cache
-    _inMemoryCache[key] = record;
-
-    final firestore = _firestore;
-    if (firestore != null) {
-      try {
-        final docRef = firestore.collection('notification_rule_execution_history').doc(key);
-
-        // Atomic transaction to ensure concurrency safety across simultaneous scheduler jobs
-        return await firestore.runTransaction<bool>((transaction) async {
-          final snapshot = await transaction.get(docRef);
-          if (snapshot.exists) {
-            _logSuppression(ruleId: ruleId, recipientUserId: recipientUserId, eventId: eventId, deduplicationKey: key);
-            return false;
-          }
-          transaction.set(docRef, record.toMap());
-          return true;
-        });
-      } catch (e) {
-        debugPrint('NotificationDuplicatePreventer atomic claim error: $e');
-        return true;
-      }
-    }
-
-    return true;
-  }
-
-  /// Log execution record (for testing/compatibility)
+  /// Log successful rule execution to prevent duplicate notifications until cooldown or status change.
   Future<void> recordExecution({
     required String ruleId,
     required String targetId,
     required int cooldownHours,
     String? currentStatusValue,
-    String eventId = 'default_event',
-    String notificationId = 'notif_auto',
   }) async {
-    await claimAndRecord(
+    final key = '${ruleId}_$targetId';
+    final now = DateTime.now();
+    final cooldownUntil = now.add(Duration(hours: cooldownHours));
+
+    final record = RuleExecutionRecord(
       ruleId: ruleId,
-      recipientUserId: targetId,
-      eventId: eventId,
-      notificationId: notificationId,
-      currentStatusValue: currentStatusValue,
+      targetId: targetId,
+      lastTriggeredAt: now,
+      lastStatusValue: currentStatusValue,
+      cooldownUntil: cooldownUntil,
     );
-  }
 
-  /// Clears in-memory cache (primarily for unit tests)
-  static void clearCache() {
-    _inMemoryCache.clear();
-  }
+    _localCache[key] = record;
 
-  static void _logSuppression({
-    required String ruleId,
-    required String recipientUserId,
-    required String eventId,
-    required String deduplicationKey,
-  }) {
-    debugPrint('NotificationEngine:\nDuplicate suppressed\nruleId: $ruleId\nrecipientUserId: $recipientUserId\neventId: $eventId\ndeduplicationKey: $deduplicationKey');
+    if (_firestore != null) {
+      try {
+        await _firestore
+            .collection('notification_rule_execution_history')
+            .doc(key)
+            .set(record.toMap());
+      } catch (e) {
+        debugPrint('Error saving execution history: $e');
+      }
+    }
   }
 }

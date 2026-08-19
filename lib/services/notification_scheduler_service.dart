@@ -37,9 +37,9 @@ class NotificationSchedulerService {
     try {
       debugPrint('NotificationSchedulerService: Executing background rule & deadline checks...');
 
-      // 1. Run automated system condition checks with detailed summary logging
-      final summary = await _rulesService.evaluateAllRules();
-      debugPrint('NotificationSchedulerService: Rule checks completed.\nRules checked: ${summary.rulesChecked}\nEligible notifications: ${summary.eligibleNotifications}\nDuplicates suppressed: ${summary.duplicatesSuppressed}\nNew notifications dispatched: ${summary.newDispatched}');
+      // 1. Run automated system condition checks
+      final triggeredCount = await _rulesService.runAllAutomatedRuleChecks();
+      debugPrint('NotificationSchedulerService: Rule checks completed. New notifications dispatched: $triggeredCount');
 
       // 2. Process pending scheduled notifications queue
       await _processScheduledQueue();

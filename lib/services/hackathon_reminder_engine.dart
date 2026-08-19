@@ -47,7 +47,6 @@ class HackathonReminderEngine {
           priority: 'urgent',
           targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
           targetRoles: ['student'],
-          eventId: reg.id,
           relatedModule: 'hackathon',
           relatedRecordId: reg.id,
           deepLink: '/hackathons/details/${reg.hackathonId}',
@@ -76,7 +75,6 @@ class HackathonReminderEngine {
             priority: 'medium',
             targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
             targetRoles: ['student'],
-            eventId: reg.id,
             relatedModule: 'hackathon',
             relatedRecordId: reg.id,
             deepLink: '/hackathons/details/${reg.hackathonId}',
@@ -96,7 +94,6 @@ class HackathonReminderEngine {
             priority: 'high',
             targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
             targetRoles: ['student'],
-            eventId: reg.id,
             relatedModule: 'hackathon',
             relatedRecordId: reg.id,
             deepLink: '/hackathons/details/${reg.hackathonId}',
@@ -116,7 +113,6 @@ class HackathonReminderEngine {
             priority: 'urgent',
             targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
             targetRoles: ['student'],
-            eventId: reg.id,
             relatedModule: 'hackathon',
             relatedRecordId: reg.id,
             deepLink: '/hackathons/details/${reg.hackathonId}',
@@ -136,7 +132,6 @@ class HackathonReminderEngine {
             priority: 'urgent',
             targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
             targetRoles: ['student'],
-            eventId: reg.id,
             relatedModule: 'hackathon',
             relatedRecordId: reg.id,
             deepLink: '/hackathons/details/${reg.hackathonId}',
