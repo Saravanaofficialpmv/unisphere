@@ -33,9 +33,11 @@ class SyllabusSubjectModel {
   final String subjectCode; // e.g., "CS101"
   final String subjectName; // e.g., "Programming in C"
   final String department; // e.g., "Computer Science & Engineering"
+  final String applicableBatch; // e.g., "2026–2030"
   final String year; // "I Year", "II Year", "III Year", "IV Year"
   final String semester; // "Semester 1", "Semester 2", ...
   final String academicYear; // "2026–2027"
+  final int effectiveStartYear; // 2026 (extracted from academicYear for comparison)
   final int credits; // e.g., 4
   final String subjectType; // "Theory", "Practical", "Elective"
   final String description;
@@ -45,17 +47,22 @@ class SyllabusSubjectModel {
   final String documentUrl;
   final String documentFileName;
   final String documentSize;
+  final DateTime effectiveFrom;
   final DateTime lastUpdated;
   final String status; // "published", "draft"
+  final String uploadedBy;
+  final DateTime uploadedAt;
 
   SyllabusSubjectModel({
     required this.id,
     required this.subjectCode,
     required this.subjectName,
     required this.department,
+    this.applicableBatch = '2026–2030',
     required this.year,
     required this.semester,
     required this.academicYear,
+    int? effectiveStartYear,
     required this.credits,
     required this.subjectType,
     required this.description,
@@ -65,11 +72,25 @@ class SyllabusSubjectModel {
     required this.documentUrl,
     required this.documentFileName,
     required this.documentSize,
+    DateTime? effectiveFrom,
     required this.lastUpdated,
     this.status = 'published',
-  });
+    this.uploadedBy = 'HOD / Department Admin',
+    DateTime? uploadedAt,
+  })  : effectiveStartYear = effectiveStartYear ?? _parseAcademicYearStart(academicYear),
+        effectiveFrom = effectiveFrom ?? lastUpdated,
+        uploadedAt = uploadedAt ?? lastUpdated;
 
   bool get isPublished => status.toLowerCase() == 'published';
+
+  /// Helper to extract numeric start year e.g. "2026–2027" -> 2026
+  static int _parseAcademicYearStart(String acYear) {
+    final match = RegExp(r'\d{4}').firstMatch(acYear);
+    if (match != null) {
+      return int.tryParse(match.group(0)!) ?? 2026;
+    }
+    return 2026;
+  }
 
   factory SyllabusSubjectModel.fromMap(Map<String, dynamic> map, [String? docId]) {
     DateTime parseDate(dynamic val) {
@@ -88,14 +109,23 @@ class SyllabusSubjectModel {
       }
     }
 
+    final acYear = map['academicYear']?.toString() ?? map['academic_year']?.toString() ?? '2026–2027';
+    final effYear = map['effectiveStartYear'] is int
+        ? map['effectiveStartYear'] as int
+        : (map['effectiveAcademicYear'] is int
+            ? map['effectiveAcademicYear'] as int
+            : _parseAcademicYearStart(acYear));
+
     return SyllabusSubjectModel(
       id: docId ?? map['id']?.toString() ?? '',
       subjectCode: map['subjectCode']?.toString() ?? map['subject_code']?.toString() ?? 'SUB101',
       subjectName: map['subjectName']?.toString() ?? map['subject_name']?.toString() ?? 'Subject Title',
       department: map['department']?.toString() ?? 'Computer Science & Engineering',
+      applicableBatch: map['applicableBatch']?.toString() ?? map['applicable_batch']?.toString() ?? '2026–2030',
       year: map['year']?.toString() ?? 'I Year',
       semester: map['semester']?.toString() ?? 'Semester 1',
-      academicYear: map['academicYear']?.toString() ?? map['academic_year']?.toString() ?? '2026–2027',
+      academicYear: acYear,
+      effectiveStartYear: effYear,
       credits: (map['credits'] ?? 4) as int,
       subjectType: map['subjectType']?.toString() ?? map['subject_type']?.toString() ?? 'Theory',
       description: map['description']?.toString() ?? '',
@@ -103,10 +133,13 @@ class SyllabusSubjectModel {
       textbooks: (map['textbooks'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       referenceBooks: (map['referenceBooks'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       documentUrl: map['documentUrl']?.toString() ?? map['document_url']?.toString() ?? '',
-      documentFileName: map['documentFileName']?.toString() ?? map['document_file_name']?.toString() ?? 'syllabus_document.pdf',
+      documentFileName: map['documentFileName']?.toString() ?? map['document_file_name']?.toString() ?? map['documentName']?.toString() ?? 'syllabus_document.pdf',
       documentSize: map['documentSize']?.toString() ?? map['document_size']?.toString() ?? '1.8 MB',
+      effectiveFrom: parseDate(map['effectiveFrom'] ?? map['effective_from']),
       lastUpdated: parseDate(map['lastUpdated'] ?? map['last_updated'] ?? map['updatedAt']),
       status: map['status']?.toString() ?? 'published',
+      uploadedBy: map['uploadedBy']?.toString() ?? map['uploaded_by']?.toString() ?? 'HOD / Admin',
+      uploadedAt: parseDate(map['uploadedAt'] ?? map['uploaded_at']),
     );
   }
 
@@ -118,10 +151,14 @@ class SyllabusSubjectModel {
       'subjectName': subjectName,
       'subject_name': subjectName,
       'department': department,
+      'applicableBatch': applicableBatch,
+      'applicable_batch': applicableBatch,
       'year': year,
       'semester': semester,
       'academicYear': academicYear,
       'academic_year': academicYear,
+      'effectiveStartYear': effectiveStartYear,
+      'effectiveAcademicYear': effectiveStartYear,
       'credits': credits,
       'subjectType': subjectType,
       'subject_type': subjectType,
@@ -132,12 +169,17 @@ class SyllabusSubjectModel {
       'documentUrl': documentUrl,
       'document_url': documentUrl,
       'documentFileName': documentFileName,
+      'documentName': documentFileName,
       'document_file_name': documentFileName,
       'documentSize': documentSize,
       'document_size': documentSize,
+      'effectiveFrom': effectiveFrom.toIso8601String(),
+      'effective_from': effectiveFrom.toIso8601String(),
       'lastUpdated': lastUpdated.toIso8601String(),
-      'last_updated': lastUpdated.toIso8601String(),
+      'updatedAt': lastUpdated.toIso8601String(),
       'status': status,
+      'uploadedBy': uploadedBy,
+      'uploadedAt': uploadedAt.toIso8601String(),
     };
   }
 
