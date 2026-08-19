@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/resume_service.dart';
 import 'package:unisphere/widgets/resume/resume_completeness_card.dart';
@@ -56,8 +57,15 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(currentUserProvider);
     final user = authState.value ?? ref.watch(authServiceProvider).currentUser;
+    final overviewData = ref.watch(academicOverviewProvider);
     final resumeAsync = ref.watch(currentStudentResumeStreamProvider);
-    final fallbackResume = ref.read(resumeServiceProvider).generateSyncFallbackResume(user: user);
+    final fallbackResume = ref.read(resumeServiceProvider).generateSyncFallbackResume(
+      user: user,
+      customCgpa: overviewData.cgpa > 0 ? overviewData.cgpa.toStringAsFixed(2) : null,
+      customGithub: overviewData.githubUsername.isNotEmpty ? overviewData.githubUsername : null,
+      customLeetCode: overviewData.leetcodeUsername.isNotEmpty ? overviewData.leetcodeUsername : null,
+      customLinkedin: overviewData.linkedinUrl.isNotEmpty ? overviewData.linkedinUrl : null,
+    );
     final activeResume = resumeAsync.value ?? fallbackResume;
 
     return Scaffold(

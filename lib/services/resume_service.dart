@@ -23,7 +23,7 @@ final currentStudentResumeStreamProvider = StreamProvider.autoDispose<StudentRes
       : (user?.uid.isNotEmpty == true ? user!.uid : 'DEMO-STU');
 
   final resumeService = ref.watch(resumeServiceProvider);
-  return resumeService.watchResumeForStudent(identifier);
+  return resumeService.watchResumeForStudent(identifier, currentUserFallback: user);
 });
 
 /// Future provider to fetch any student's resume by UID or Registration Number
@@ -61,37 +61,50 @@ class ResumeService {
   }
 
   /// Instant zero-latency synchronous resume generation ensuring the UI is never blank
-  StudentResumeModel generateSyncFallbackResume({String? studentId, UserModel? user}) {
-    final cleanId = (studentId ?? user?.metadata?['registerNumber']?.toString() ?? user?.uid ?? 'DEMO-STU').trim();
+  StudentResumeModel generateSyncFallbackResume({
+    String? studentId,
+    UserModel? user,
+    String? customName,
+    String? customDepartment,
+    String? customYear,
+    String? customCgpa,
+    String? customGithub,
+    String? customLeetCode,
+    String? customLinkedin,
+  }) {
+    final cleanId = (studentId ?? user?.metadata?['registerNumber']?.toString() ?? user?.uid ?? '927622BCS045').trim();
     final userMeta = user?.metadata ?? {};
 
-    final rawName = user?.name ?? user?.fullName ?? 'Saravana Selvaraju';
-    final fullName = rawName.trim().isNotEmpty ? rawName.trim() : 'Saravana Selvaraju';
+    String rawName = customName ?? user?.name ?? user?.fullName ?? '';
+    if (rawName.isEmpty || rawName == 'User' || rawName.toLowerCase().contains('official')) {
+      rawName = 'Saravana Selvaraju';
+    }
+    final fullName = rawName.trim();
 
     final headline = userMeta['headline']?.toString().isNotEmpty == true
         ? userMeta['headline'].toString()
         : 'Full-Stack Software Engineer | Flutter & Mobile Systems Specialist';
 
-    final collegeEmail = user?.email.isNotEmpty == true ? user!.email : 'saravanapmvofficial@gmail.com';
+    final collegeEmail = (user?.email.isNotEmpty == true) ? user!.email : 'saravanapmvofficial@gmail.com';
     final personalEmail = userMeta['personalEmail']?.toString();
-    final primaryMobile = user?.phone ?? '+91 98765 43210';
+    final primaryMobile = (user?.phone.isNotEmpty == true) ? user!.phone : '+91 98765 43210';
     final isPhoneVisible = userMeta['isPhoneVisible'] != false;
 
     const location = 'Karur, Tamil Nadu, India';
 
-    final rawLinkedin = userMeta['linkedinUrl']?.toString();
+    final rawLinkedin = customLinkedin ?? userMeta['linkedinUrl']?.toString();
     final linkedinUrl = rawLinkedin != null && rawLinkedin.isNotEmpty
         ? (rawLinkedin.startsWith('http') ? rawLinkedin : 'https://$rawLinkedin')
         : 'https://www.linkedin.com/in/saravana-selvaraju/';
 
-    final githubUser = userMeta['githubUsername']?.toString().isNotEmpty == true
+    final githubUser = customGithub ?? (userMeta['githubUsername']?.toString().isNotEmpty == true
         ? userMeta['githubUsername'].toString()
-        : 'Saravanaofficialpmv';
+        : 'Saravanaofficialpmv');
     final githubUrl = githubUser.startsWith('http') ? githubUser : 'https://github.com/$githubUser';
 
-    final leetcodeUser = userMeta['leetcodeUsername']?.toString().isNotEmpty == true
+    final leetcodeUser = customLeetCode ?? (userMeta['leetcodeUsername']?.toString().isNotEmpty == true
         ? userMeta['leetcodeUsername'].toString()
-        : 'saravanapmv';
+        : 'saravanapmv');
     final leetcodeUrl = leetcodeUser.startsWith('http') ? leetcodeUser : 'https://leetcode.com/u/$leetcodeUser';
 
     final portfolioUrl = userMeta['portfolioUrl']?.toString().isNotEmpty == true
@@ -119,10 +132,10 @@ class ResumeService {
       ],
     );
 
-    final deptName = userMeta['department']?.toString() ?? 'Computer Science & Engineering';
+    final deptName = customDepartment ?? userMeta['department']?.toString() ?? 'Computer Science & Engineering';
     final currentSem = userMeta['semester']?.toString() ?? 'Semester VI';
-    final currentYear = userMeta['year']?.toString() ?? '3rd Year';
-    final cgpa = userMeta['cgpa']?.toString() ?? '8.92';
+    final currentYear = customYear ?? userMeta['year']?.toString() ?? '3rd Year';
+    final cgpa = customCgpa ?? userMeta['cgpa']?.toString() ?? '8.72';
 
     final List<ResumeEducationItem> educationList = [
       ResumeEducationItem(
