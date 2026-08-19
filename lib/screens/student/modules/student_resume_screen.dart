@@ -25,17 +25,17 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
   void _handleCompletenessAction(String actionRoute) {
     if (actionRoute == 'projects') {
       if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(16); // Feature Hub
+        widget.onNavigateToTab!(17); // Feature Hub
       } else {
         _showEditProfileModal();
       }
     } else if (actionRoute == 'certifications') {
       if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(11); // Certifications screen
+        widget.onNavigateToTab!(12); // Certifications screen
       }
     } else if (actionRoute == 'hackathons') {
       if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(10); // Hackathons screen
+        widget.onNavigateToTab!(11); // Hackathons screen
       }
     } else {
       _showEditProfileModal();

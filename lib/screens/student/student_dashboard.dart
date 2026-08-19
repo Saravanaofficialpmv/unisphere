@@ -1622,7 +1622,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     ],
                   ),
                   InkWell(
-                    onTap: () => widget.onNavigateToTab(17),
+                    onTap: () => widget.onNavigateToTab(18),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
