@@ -33,21 +33,28 @@ class NotificationSchedulerService {
   }
 
   /// Execute scheduled jobs: automated condition checks, scheduled manual notifications queue, summary generators, retries
-  Future<void> _runScheduledJobs() async {
+  Future<RuleExecutionSummary> executeSchedulerRun() async {
+    return await _runScheduledJobs();
+  }
+
+  Future<RuleExecutionSummary> _runScheduledJobs() async {
     try {
       debugPrint('NotificationSchedulerService: Executing background rule & deadline checks...');
 
-      // 1. Run automated system condition checks
-      final triggeredCount = await _rulesService.runAllAutomatedRuleChecks();
-      debugPrint('NotificationSchedulerService: Rule checks completed. New notifications dispatched: $triggeredCount');
+      // 1. Run automated system condition checks and print structured breakdown
+      final summary = await _rulesService.runAllAutomatedRuleChecks();
+      summary.printSummary();
 
       // 2. Process pending scheduled notifications queue
       await _processScheduledQueue();
 
       // 3. Retry failed notification deliveries
       await _retryFailedDeliveries();
+
+      return summary;
     } catch (e) {
       debugPrint('NotificationSchedulerService execution error: $e');
+      return RuleExecutionSummary();
     }
   }
 

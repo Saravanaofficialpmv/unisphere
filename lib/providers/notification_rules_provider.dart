@@ -73,9 +73,9 @@ class NotificationRulesNotifier extends StateNotifier<NotificationRulesState> {
 
   Future<int> triggerManualRuleCheck() async {
     state = state.copyWith(isLoading: true);
-    final count = await _rulesService.runAllAutomatedRuleChecks(customRules: state.rules);
+    final summary = await _rulesService.runAllAutomatedRuleChecks(customRules: state.rules);
     state = state.copyWith(isLoading: false);
-    return count;
+    return summary.dispatchedCount;
   }
 }
 

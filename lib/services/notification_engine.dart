@@ -2,10 +2,39 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:unisphere/models/notification_model.dart';
-import 'package:unisphere/models/notification_recipient_model.dart';
-import 'package:unisphere/models/notification_delivery_log_model.dart';
 import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/services/notification_duplicate_preventer.dart';
+
+enum NotificationDecision {
+  dispatch,
+  suppressDuplicate,
+  failed,
+}
+
+class NotificationDispatchResult {
+  final bool success;
+  final NotificationDecision decision;
+  final String deduplicationKey;
+  final String ruleId;
+  final String recipientUserId;
+  final String eventId;
+  final String? reason;
+
+  NotificationDispatchResult({
+    required this.success,
+    required this.decision,
+    required this.deduplicationKey,
+    required this.ruleId,
+    required this.recipientUserId,
+    required this.eventId,
+    this.reason,
+  });
+
+  @override
+  String toString() {
+    return 'NotificationDispatchResult(decision: $decision, key: $deduplicationKey, success: $success)';
+  }
+}
 
 class NotificationEngine {
   final FirebaseFirestore? _firestore;
@@ -25,14 +54,16 @@ class NotificationEngine {
     }
   }
 
-  /// Dispatch an automated notification triggered by a system condition rule.
-  Future<bool> dispatchAutomatedNotification({
+  /// Dispatch an automated notification triggered by a system condition rule for a specific recipient and event.
+  /// Enforces deterministic deduplication key: `${ruleId}_${recipientUserId}_${eventId}`
+  Future<NotificationDispatchResult> dispatchAutomatedNotification({
     required String ruleId,
+    required String recipientUserId,
+    required String eventId,
     required String title,
     required String message,
     required String category,
     required String priority,
-    required List<String> targetUserIds,
     required List<String> targetRoles,
     String? relatedModule,
     String? relatedRecordId,
@@ -41,27 +72,45 @@ class NotificationEngine {
     int cooldownHours = 24,
   }) async {
     final now = DateTime.now();
+    final deduplicationKey = NotificationDuplicatePreventer.buildKey(
+      ruleId: ruleId,
+      recipientUserId: recipientUserId,
+      eventId: eventId,
+    );
 
-    // Check duplicate prevention for each target user or overall rule
-    final allowedRecipients = <String>[];
-    for (final userId in targetUserIds) {
-      final allowed = await _duplicatePreventer.shouldTrigger(
+    // 1. Check duplicate prevention for (ruleId, recipientUserId, eventId)
+    final allowed = await _duplicatePreventer.shouldTrigger(
+      ruleId: ruleId,
+      recipientUserId: recipientUserId,
+      eventId: eventId,
+      cooldownHours: cooldownHours,
+      currentStatusValue: currentStatusValue,
+    );
+
+    if (!allowed) {
+      debugPrint('''
+NotificationEngine:
+ruleId: $ruleId
+recipient: $recipientUserId
+eventId: $eventId
+deduplicationKey: $deduplicationKey
+decision: SUPPRESS_DUPLICATE
+reason: Notification for this exact rule, recipient, and event was already dispatched and is within cooldown.
+''');
+
+      return NotificationDispatchResult(
+        success: false,
+        decision: NotificationDecision.suppressDuplicate,
+        deduplicationKey: deduplicationKey,
         ruleId: ruleId,
-        targetId: userId,
-        cooldownHours: cooldownHours,
-        currentStatusValue: currentStatusValue,
+        recipientUserId: recipientUserId,
+        eventId: eventId,
+        reason: 'Duplicate suppressed for recipient $recipientUserId and event $eventId',
       );
-      if (allowed) {
-        allowedRecipients.add(userId);
-      }
     }
 
-    if (allowedRecipients.isEmpty && targetUserIds.isNotEmpty) {
-      debugPrint('NotificationEngine: Suppressed duplicate automated notification for rule $ruleId');
-      return false;
-    }
-
-    final notifId = 'notif_auto_${now.millisecondsSinceEpoch}_${ruleId.hashCode.abs()}';
+    // 2. FIRESTORE ATOMIC DUPLICATE PROTECTION: Use deterministic document ID notifications/{deduplicationKey}
+    final notifId = deduplicationKey;
     final notification = NotificationModel(
       id: notifId,
       title: title,
@@ -72,31 +121,80 @@ class NotificationEngine {
       senderId: 'system_$ruleId',
       senderName: 'System Automation Engine',
       senderRole: 'system',
-      recipientType: targetUserIds.length == 1 ? 'user' : 'group',
-      recipientUserIds: allowedRecipients.isEmpty ? targetUserIds : allowedRecipients,
+      recipientType: 'user',
+      recipientUserIds: [recipientUserId],
       targetRoles: targetRoles,
       relatedModule: relatedModule,
       relatedRecordId: relatedRecordId,
       deepLink: deepLink,
       createdAt: now,
       sentAt: now,
-      readStatus: {for (var uid in (allowedRecipients.isEmpty ? targetUserIds : allowedRecipients)) uid: false},
+      readStatus: {recipientUserId: false},
       deliveryStatus: {'in_app': 'delivered', 'push': 'sent'},
     );
 
-    // Save & Record execution history
-    await _persistNotification(notification);
+    // 3. Atomically persist & check duplicate in Firestore
+    final success = await _persistNotificationAtomic(notification, deduplicationKey);
 
-    for (final userId in (allowedRecipients.isEmpty ? targetUserIds : allowedRecipients)) {
+    if (!success) {
+      debugPrint('''
+NotificationEngine:
+ruleId: $ruleId
+recipient: $recipientUserId
+eventId: $eventId
+deduplicationKey: $deduplicationKey
+decision: FAILED
+reason: Firestore persistence or atomic creation failed.
+''');
+
       await _duplicatePreventer.recordExecution(
         ruleId: ruleId,
-        targetId: userId,
+        recipientUserId: recipientUserId,
+        eventId: eventId,
+        status: 'failed',
         cooldownHours: cooldownHours,
         currentStatusValue: currentStatusValue,
       );
+
+      return NotificationDispatchResult(
+        success: false,
+        decision: NotificationDecision.failed,
+        deduplicationKey: deduplicationKey,
+        ruleId: ruleId,
+        recipientUserId: recipientUserId,
+        eventId: eventId,
+        reason: 'Persistence failed',
+      );
     }
 
-    return true;
+    // 4. Record successful execution
+    await _duplicatePreventer.recordExecution(
+      ruleId: ruleId,
+      recipientUserId: recipientUserId,
+      eventId: eventId,
+      status: 'sent',
+      cooldownHours: cooldownHours,
+      currentStatusValue: currentStatusValue,
+    );
+
+    debugPrint('''
+NotificationEngine:
+ruleId: $ruleId
+recipient: $recipientUserId
+eventId: $eventId
+deduplicationKey: $deduplicationKey
+decision: DISPATCH
+reason: Successfully dispatched new automated notification.
+''');
+
+    return NotificationDispatchResult(
+      success: true,
+      decision: NotificationDecision.dispatch,
+      deduplicationKey: deduplicationKey,
+      ruleId: ruleId,
+      recipientUserId: recipientUserId,
+      eventId: eventId,
+    );
   }
 
   /// Dispatch a manual notification composed by an authorized user (Admin, HOD, Advisor).
@@ -152,78 +250,66 @@ class NotificationEngine {
       scheduledAt: scheduledAt,
       sentAt: isScheduled ? null : now,
       readStatus: {for (var uid in recipientUserIds) uid: false},
-      deliveryStatus: {'in_app': isScheduled ? 'scheduled' : 'delivered', 'push': isScheduled ? 'pending' : 'sent'},
+      deliveryStatus: isScheduled ? {'in_app': 'scheduled'} : {'in_app': 'delivered', 'push': 'sent'},
     );
 
-    await _persistNotification(notification);
-    return true;
+    return await _persistNotification(notification);
   }
 
-  /// Check RBAC permission for manual notification sending
-  bool _checkManualPermissions(UserModel author, String recipientType, String? targetDepartment) {
-    switch (author.role) {
-      case UserRole.admin:
-        return true; // Admin can target anything
-      case UserRole.hod:
-        // HOD can send only within HOD's department
-        final authorDept = author.metadata?['department'] ?? author.metadata?['department_name'];
-        if (targetDepartment == null || authorDept == null) return true;
-        return targetDepartment.toLowerCase() == authorDept.toString().toLowerCase();
-      case UserRole.staff:
-        // Staff/Advisor can send only to assigned class/students
-        return recipientType != 'all' && recipientType != 'college';
-      case UserRole.student:
-      case UserRole.parent:
-      default:
-        return false; // Regular students/parents cannot compose notifications
+  bool _checkManualPermissions(UserModel author, String recipientType, String? targetDept) {
+    if (author.role == UserRole.admin) return true;
+    final authorDept = author.metadata?['department']?.toString() ?? '';
+    if (author.role == UserRole.hod) {
+      if (targetDept == null || targetDept.isEmpty || authorDept.toLowerCase() == targetDept.toLowerCase()) {
+        return true;
+      }
     }
+    if (author.role == UserRole.advisor || author.role == UserRole.staff) {
+      if (recipientType == 'user' || recipientType == 'class' || recipientType == 'filtered') {
+        return true;
+      }
+    }
+    return false;
   }
 
-  /// Persist notification into Firestore collections (`notifications`, `notification_recipients`, `notification_delivery_logs`)
-  Future<void> _persistNotification(NotificationModel notification) async {
+  /// Atomic persistence using deterministic document ID notifications/{deduplicationKey}
+  Future<bool> _persistNotificationAtomic(NotificationModel notif, String deduplicationKey) async {
     final firestore = _firestore;
     if (firestore == null) {
-      debugPrint('Firestore unavailable, notification saved in-memory: ${notification.id}');
-      return;
+      // Standalone mode / unit test
+      return true;
     }
 
     try {
-      // 1. Write main notification document
-      await firestore.collection('notifications').doc(notification.id).set(notification.toMap(), SetOptions(merge: true));
+      final docRef = firestore.collection('notifications').doc(deduplicationKey);
+      final doc = await docRef.get();
 
-      // 2. Write recipient inbox documents for fast scalable querying
-      final batch = firestore.batch();
-      for (final userId in notification.recipientUserIds) {
-        final recipientId = '${notification.id}_$userId';
-        final recipientDoc = firestore.collection('notification_recipients').doc(recipientId);
-        final recipientModel = NotificationRecipientModel(
-          id: recipientId,
-          notificationId: notification.id,
-          userId: userId,
-          userRole: notification.targetRoles.isNotEmpty ? notification.targetRoles.first : 'user',
-          isRead: false,
-          createdAt: notification.createdAt,
-          priority: notification.priority,
-          category: notification.category,
-          type: notification.type,
-        );
-        batch.set(recipientDoc, recipientModel.toMap(), SetOptions(merge: true));
+      if (doc.exists && doc.data() != null) {
+        final statusVal = doc.data()!['status']?.toString() ?? 'sent';
+        if (statusVal == 'sent' || statusVal == 'pending' || statusVal == 'delivered') {
+          // Document already exists atomically -> SUPPRESS
+          return false;
+        }
       }
-      await batch.commit();
 
-      // 3. Log delivery status
-      final logId = 'log_${notification.id}';
-      final deliveryLog = NotificationDeliveryLogModel(
-        id: logId,
-        notificationId: notification.id,
-        recipientId: notification.recipientUserIds.join(','),
-        channel: 'in_app',
-        status: 'success',
-        timestamp: DateTime.now(),
-      );
-      await firestore.collection('notification_delivery_logs').doc(logId).set(deliveryLog.toMap());
+      await docRef.set(notif.toMap(), SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      debugPrint('NotificationEngine atomic persistence error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> _persistNotification(NotificationModel notif) async {
+    final firestore = _firestore;
+    if (firestore == null) return true;
+
+    try {
+      await firestore.collection('notifications').doc(notif.id).set(notif.toMap(), SetOptions(merge: true));
+      return true;
     } catch (e) {
       debugPrint('NotificationEngine persistence error: $e');
+      return false;
     }
   }
 }

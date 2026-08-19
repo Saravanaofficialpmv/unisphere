@@ -16,36 +16,30 @@ class HackathonReminderEngine {
     required List<HackathonModel> hackathons,
   }) async {
     int sentCount = 0;
-
     final hackathonMap = {for (var h in hackathons) h.id: h};
 
     for (final reg in registrations) {
       final hackathon = hackathonMap[reg.hackathonId];
       final teamLeaderId = reg.teamLeaderId.isNotEmpty ? reg.teamLeaderId : reg.studentId;
 
-      // -----------------------------------------------------------------------
-      // SMART STOPPING RULE:
-      // If team registration is verified or submitted with valid proof and no pending correction,
-      // stop all future registration reminders.
-      // -----------------------------------------------------------------------
-      final isRegistrationComplete = reg.isVerified || (reg.hasExternalRegId && reg.hasScreenshotProof && reg.hasRequiredMembers && !reg.isCorrectionRequired);
+      // SMART STOPPING RULE
+      final isRegistrationComplete = reg.isVerified ||
+          (reg.hasExternalRegId && reg.hasScreenshotProof && reg.hasRequiredMembers && !reg.isCorrectionRequired);
       if (isRegistrationComplete) {
-        // Registration is fully complete & satisfied -> Stop all registration reminders
         continue;
       }
 
-      // -----------------------------------------------------------------------
-      // CORRECTION REMINDER: Send ONLY to Team Leader when Advisor requests correction
-      // -----------------------------------------------------------------------
+      // CORRECTION REMINDER
       if (reg.isCorrectionRequired) {
         final noteText = reg.advisorCorrectionNotes ?? 'Please review and re-upload clear screenshot proof.';
-        final dispatched = await _notificationEngine.dispatchAutomatedNotification(
-          ruleId: 'hackathon_correction_${reg.id}',
+        final res = await _notificationEngine.dispatchAutomatedNotification(
+          ruleId: 'hackathon_correction',
+          recipientUserId: teamLeaderId,
+          eventId: reg.id,
           title: '🔴 Advisor Requested Correction: ${reg.hackathonTitle}',
           message: 'Class Advisor (${reg.assignedAdvisorName}) requested correction for team "${reg.teamName}": "$noteText"',
           category: 'Hackathon',
           priority: 'urgent',
-          targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
           targetRoles: ['student'],
           relatedModule: 'hackathon',
           relatedRecordId: reg.id,
@@ -53,7 +47,7 @@ class HackathonReminderEngine {
           currentStatusValue: 'Correction Required',
           cooldownHours: 12,
         );
-        if (dispatched) sentCount++;
+        if (res.success) sentCount++;
       }
 
       if (hackathon != null) {
@@ -61,19 +55,16 @@ class HackathonReminderEngine {
         final daysUntilDeadline = hackathon.registrationDeadline.difference(now).inDays;
         final hoursUntilDeadline = hackathon.registrationDeadline.difference(now).inHours;
 
-        // -----------------------------------------------------------------------
-        // SCHEDULED DEADLINE REMINDERS (7d, 3d, 1d, 0d) -> Sent ONLY to Team Leader
-        // -----------------------------------------------------------------------
-
         // 7 DAYS BEFORE DEADLINE
         if (daysUntilDeadline == 7 || (daysUntilDeadline > 5 && daysUntilDeadline <= 7)) {
-          final dispatched = await _notificationEngine.dispatchAutomatedNotification(
-            ruleId: 'hackathon_remind_7d_${reg.id}',
+          final res = await _notificationEngine.dispatchAutomatedNotification(
+            ruleId: 'hackathon_remind_7d',
+            recipientUserId: teamLeaderId,
+            eventId: '${reg.hackathonId}_7d',
             title: '📅 7 Days Remaining: ${hackathon.title}',
             message: 'Hackathon registration closes in 7 days. Team Leader ${reg.studentName}, complete your team "${reg.teamName}" registration.',
             category: 'Hackathon',
             priority: 'medium',
-            targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
             targetRoles: ['student'],
             relatedModule: 'hackathon',
             relatedRecordId: reg.id,
@@ -81,18 +72,19 @@ class HackathonReminderEngine {
             currentStatusValue: '7 Days Left',
             cooldownHours: 24,
           );
-          if (dispatched) sentCount++;
+          if (res.success) sentCount++;
         }
 
         // 3 DAYS BEFORE DEADLINE
         if (daysUntilDeadline == 3 || (daysUntilDeadline > 1 && daysUntilDeadline <= 3)) {
-          final dispatched = await _notificationEngine.dispatchAutomatedNotification(
-            ruleId: 'hackathon_remind_3d_${reg.id}',
+          final res = await _notificationEngine.dispatchAutomatedNotification(
+            ruleId: 'hackathon_remind_3d',
+            recipientUserId: teamLeaderId,
+            eventId: '${reg.hackathonId}_3d',
             title: '⏳ 3 Days Remaining: ${hackathon.title}',
             message: 'Your team "${reg.teamName}" hackathon registration is incomplete. Please complete it before the deadline.',
             category: 'Hackathon',
             priority: 'high',
-            targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
             targetRoles: ['student'],
             relatedModule: 'hackathon',
             relatedRecordId: reg.id,
@@ -100,18 +92,19 @@ class HackathonReminderEngine {
             currentStatusValue: '3 Days Left',
             cooldownHours: 24,
           );
-          if (dispatched) sentCount++;
+          if (res.success) sentCount++;
         }
 
         // 1 DAY BEFORE DEADLINE
         if (daysUntilDeadline == 1 || (hoursUntilDeadline > 12 && hoursUntilDeadline <= 24)) {
-          final dispatched = await _notificationEngine.dispatchAutomatedNotification(
-            ruleId: 'hackathon_remind_1d_${reg.id}',
+          final res = await _notificationEngine.dispatchAutomatedNotification(
+            ruleId: 'hackathon_remind_1d',
+            recipientUserId: teamLeaderId,
+            eventId: '${reg.hackathonId}_1d',
             title: '⚠️ Registration Closes Tomorrow: ${hackathon.title}',
             message: 'Your team "${reg.teamName}" registration closes tomorrow. Complete the required details and upload screenshot proof.',
             category: 'Hackathon',
             priority: 'urgent',
-            targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
             targetRoles: ['student'],
             relatedModule: 'hackathon',
             relatedRecordId: reg.id,
@@ -119,18 +112,19 @@ class HackathonReminderEngine {
             currentStatusValue: '1 Day Left',
             cooldownHours: 12,
           );
-          if (dispatched) sentCount++;
+          if (res.success) sentCount++;
         }
 
         // DEADLINE DAY (0 Days Left)
         if (daysUntilDeadline == 0 || (hoursUntilDeadline >= 0 && hoursUntilDeadline <= 12)) {
-          final dispatched = await _notificationEngine.dispatchAutomatedNotification(
-            ruleId: 'hackathon_remind_today_${reg.id}',
+          final res = await _notificationEngine.dispatchAutomatedNotification(
+            ruleId: 'hackathon_remind_today',
+            recipientUserId: teamLeaderId,
+            eventId: '${reg.hackathonId}_today',
             title: '🚨 Deadline Today: ${hackathon.title}',
             message: 'Your team "${reg.teamName}" hackathon registration closes today! Complete the registration before deadline.',
             category: 'Hackathon',
             priority: 'urgent',
-            targetUserIds: [teamLeaderId], // ONLY TEAM LEADER
             targetRoles: ['student'],
             relatedModule: 'hackathon',
             relatedRecordId: reg.id,
@@ -138,7 +132,7 @@ class HackathonReminderEngine {
             currentStatusValue: 'Deadline Today',
             cooldownHours: 6,
           );
-          if (dispatched) sentCount++;
+          if (res.success) sentCount++;
         }
       }
     }

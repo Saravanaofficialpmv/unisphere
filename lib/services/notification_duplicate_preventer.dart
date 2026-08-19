@@ -3,31 +3,37 @@ import 'package:flutter/foundation.dart';
 
 class RuleExecutionRecord {
   final String ruleId;
-  final String targetId; // studentUid, staffUid, etc.
+  final String recipientUserId;
+  final String eventId;
+  final String deduplicationKey;
   final DateTime lastTriggeredAt;
-  final String? lastStatusValue; // e.g. "74.5%" or "ABSENT_2_DAYS" or "OVERDUE_3_DAYS"
+  final String? lastStatusValue;
+  final String status; // 'sent', 'pending', 'failed', 'read'
   final DateTime cooldownUntil;
 
   RuleExecutionRecord({
     required this.ruleId,
-    required this.targetId,
+    required this.recipientUserId,
+    required this.eventId,
+    required this.deduplicationKey,
     required this.lastTriggeredAt,
     this.lastStatusValue,
+    this.status = 'sent',
     required this.cooldownUntil,
   });
 
   factory RuleExecutionRecord.fromMap(Map<String, dynamic> map, String docId) {
-    final parts = docId.split('_');
-    final rId = parts.isNotEmpty ? parts[0] : 'rule';
-    final tId = parts.length > 1 ? parts.sublist(1).join('_') : 'target';
-
+    final key = map['deduplication_key']?.toString() ?? docId;
     return RuleExecutionRecord(
-      ruleId: map['rule_id'] ?? rId,
-      targetId: map['target_id'] ?? tId,
+      ruleId: map['rule_id']?.toString() ?? '',
+      recipientUserId: map['recipient_user_id']?.toString() ?? map['target_id']?.toString() ?? '',
+      eventId: map['event_id']?.toString() ?? '',
+      deduplicationKey: key,
       lastTriggeredAt: map['last_triggered_at'] != null
           ? DateTime.tryParse(map['last_triggered_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
       lastStatusValue: map['last_status_value']?.toString(),
+      status: map['status']?.toString() ?? 'sent',
       cooldownUntil: map['cooldown_until'] != null
           ? DateTime.tryParse(map['cooldown_until'].toString()) ?? DateTime.now()
           : DateTime.now(),
@@ -37,9 +43,12 @@ class RuleExecutionRecord {
   Map<String, dynamic> toMap() {
     return {
       'rule_id': ruleId,
-      'target_id': targetId,
+      'recipient_user_id': recipientUserId,
+      'event_id': eventId,
+      'deduplication_key': deduplicationKey,
       'last_triggered_at': lastTriggeredAt.toIso8601String(),
       'last_status_value': lastStatusValue,
+      'status': status,
       'cooldown_until': cooldownUntil.toIso8601String(),
     };
   }
@@ -60,18 +69,43 @@ class NotificationDuplicatePreventer {
     }
   }
 
-  /// Check if a notification rule should trigger for targetId.
-  /// Returns `true` if allowed, `false` if duplicate/suppressed.
+  static void clearCache() {
+    _localCache.clear();
+  }
+
+  /// Construct the mandatory deterministic deduplication key: `${ruleId}_${recipientUserId}_${eventId}`
+  static String buildKey({
+    required String ruleId,
+    required String recipientUserId,
+    required String eventId,
+  }) {
+    final cleanRule = ruleId.trim();
+    final cleanRecipient = recipientUserId.trim();
+    final cleanEvent = eventId.trim();
+
+    if (cleanEvent.isEmpty) {
+      return '${cleanRule}_$cleanRecipient';
+    }
+    return '${cleanRule}_${cleanRecipient}_$cleanEvent';
+  }
+
+  /// Check if a notification rule should trigger for specific (ruleId, recipientUserId, eventId).
+  /// Returns `true` if allowed (dispatch/retry), `false` if duplicate (suppress).
   Future<bool> shouldTrigger({
     required String ruleId,
-    required String targetId,
+    required String recipientUserId,
+    required String eventId,
     required int cooldownHours,
     String? currentStatusValue,
   }) async {
-    final key = '${ruleId}_$targetId';
+    final key = buildKey(
+      ruleId: ruleId,
+      recipientUserId: recipientUserId,
+      eventId: eventId,
+    );
     final now = DateTime.now();
 
-    // 1. Check local cache or Firestore execution history
+    // 1. Check local cache or Firestore execution history / notifications
     RuleExecutionRecord? record = _localCache[key];
     if (record == null && _firestore != null) {
       try {
@@ -82,49 +116,81 @@ class NotificationDuplicatePreventer {
         if (doc.exists && doc.data() != null) {
           record = RuleExecutionRecord.fromMap(doc.data()!, doc.id);
           _localCache[key] = record;
+        } else {
+          // Check if notification document exists under notifications/{key}
+          final notifDoc = await _firestore.collection('notifications').doc(key).get();
+          if (notifDoc.exists && notifDoc.data() != null) {
+            final statusVal = notifDoc.data()!['status']?.toString() ?? 'sent';
+            record = RuleExecutionRecord(
+              ruleId: ruleId,
+              recipientUserId: recipientUserId,
+              eventId: eventId,
+              deduplicationKey: key,
+              lastTriggeredAt: notifDoc.data()!['created_at'] != null
+                  ? DateTime.tryParse(notifDoc.data()!['created_at'].toString()) ?? DateTime.now()
+                  : DateTime.now(),
+              status: statusVal,
+              cooldownUntil: now.add(Duration(hours: cooldownHours)),
+            );
+            _localCache[key] = record;
+          }
         }
       } catch (e) {
-        debugPrint('Error fetching execution history: $e');
+        debugPrint('NotificationDuplicatePreventer error checking history: $e');
       }
     }
 
     if (record == null) {
-      // Never triggered before -> ALLOW
+      // Never dispatched before -> ALLOW
       return true;
     }
 
-    // 2. Check if status value meaningfully changed (e.g. threshold crossed from warning to critical)
-    if (currentStatusValue != null && record.lastStatusValue != currentStatusValue) {
-      // Status state changed! -> ALLOW
+    // 2. FAILED NOTIFICATION HANDLING: If status is 'failed', allow retry!
+    if (record.status == 'failed') {
       return true;
     }
 
-    // 3. Check if cooldown has passed
+    // 3. Status state changed meaningfully -> ALLOW
+    if (currentStatusValue != null &&
+        record.lastStatusValue != null &&
+        record.lastStatusValue != currentStatusValue) {
+      return true;
+    }
+
+    // 4. Cooldown expired -> ALLOW
     if (now.isAfter(record.cooldownUntil)) {
-      // Cooldown expired -> ALLOW
       return true;
     }
 
-    // Otherwise SUPPRESS (prevent duplicate)
+    // Otherwise SUPPRESS DUPLICATE
     return false;
   }
 
-  /// Log successful rule execution to prevent duplicate notifications until cooldown or status change.
+  /// Log execution to local cache and Firestore execution history / atomic protection table.
   Future<void> recordExecution({
     required String ruleId,
-    required String targetId,
+    required String recipientUserId,
+    required String eventId,
+    String status = 'sent',
     required int cooldownHours,
     String? currentStatusValue,
   }) async {
-    final key = '${ruleId}_$targetId';
+    final key = buildKey(
+      ruleId: ruleId,
+      recipientUserId: recipientUserId,
+      eventId: eventId,
+    );
     final now = DateTime.now();
     final cooldownUntil = now.add(Duration(hours: cooldownHours));
 
     final record = RuleExecutionRecord(
       ruleId: ruleId,
-      targetId: targetId,
+      recipientUserId: recipientUserId,
+      eventId: eventId,
+      deduplicationKey: key,
       lastTriggeredAt: now,
       lastStatusValue: currentStatusValue,
+      status: status,
       cooldownUntil: cooldownUntil,
     );
 
@@ -135,9 +201,9 @@ class NotificationDuplicatePreventer {
         await _firestore
             .collection('notification_rule_execution_history')
             .doc(key)
-            .set(record.toMap());
+            .set(record.toMap(), SetOptions(merge: true));
       } catch (e) {
-        debugPrint('Error saving execution history: $e');
+        debugPrint('NotificationDuplicatePreventer error saving execution history: $e');
       }
     }
   }
