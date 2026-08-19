@@ -114,54 +114,55 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
           children: [
             // Top Controls Bar (Page Indicator & Zoom)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               color: const Color(0xFF1E293B),
-              child: Row(
-                children: [
-                  // Page Navigation Controls
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left_rounded, color: Colors.white),
-                    onPressed: _currentPage > 1 ? _prevPage : null,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF334155),
-                      borderRadius: BorderRadius.circular(12),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    // Page Navigation Controls
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded, color: Colors.white),
+                      onPressed: _currentPage > 1 ? _prevPage : null,
                     ),
-                    child: Text(
-                      'Page $_currentPage of $_totalPages',
-                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF334155),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Page $_currentPage of $_totalPages',
+                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right_rounded, color: Colors.white),
-                    onPressed: _currentPage < _totalPages ? _nextPage : null,
-                  ),
-
-                  const Spacer(),
-
-                  // Zoom Controls
-                  IconButton(
-                    icon: const Icon(Icons.zoom_out_rounded, color: Colors.white, size: 20),
-                    onPressed: _zoomOut,
-                    tooltip: 'Zoom Out',
-                  ),
-                  Text(
-                    '${(_zoomScale * 100).toInt()}%',
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 20),
-                    onPressed: _zoomIn,
-                    tooltip: 'Zoom In',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.restart_alt_rounded, color: Color(0xFF94A3B8), size: 20),
-                    onPressed: _resetZoom,
-                    tooltip: 'Reset Zoom',
-                  ),
-                ],
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right_rounded, color: Colors.white),
+                      onPressed: _currentPage < _totalPages ? _nextPage : null,
+                    ),
+                    const SizedBox(width: 12),
+                    // Zoom Controls
+                    IconButton(
+                      icon: const Icon(Icons.zoom_out_rounded, color: Colors.white, size: 18),
+                      onPressed: _zoomOut,
+                      tooltip: 'Zoom Out',
+                    ),
+                    Text(
+                      '${(_zoomScale * 100).toInt()}%',
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 18),
+                      onPressed: _zoomIn,
+                      tooltip: 'Zoom In',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.restart_alt_rounded, color: Color(0xFF94A3B8), size: 18),
+                      onPressed: _resetZoom,
+                      tooltip: 'Reset Zoom',
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -197,25 +198,30 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      widget.subject.department.toUpperCase(),
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                        letterSpacing: 1.2,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.subject.department.toUpperCase(),
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primary,
+                                          letterSpacing: 1.2,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'ACADEMIC SYLLABUS DOCUMENT · ${widget.subject.academicYear}',
-                                      style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'ACADEMIC SYLLABUS DOCUMENT · ${widget.subject.academicYear}',
+                                        style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
