@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/resume_service.dart';
-import 'package:unisphere/models/student_resume_model.dart';
 import 'package:unisphere/widgets/resume/resume_completeness_card.dart';
 import 'package:unisphere/widgets/resume/resume_document_view.dart';
 import 'package:unisphere/widgets/student/student_profile_completion_sheet.dart';
@@ -13,6 +12,7 @@ void showStudentResumeModalSheet(BuildContext context, {String? studentId}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black54,
     useSafeArea: true,
@@ -292,79 +292,26 @@ class _StudentResumeModalSheetState extends ConsumerState<StudentResumeModalShee
 
           // ── Content Area ──
           Expanded(
-            child: resumeAsync.when(
-              data: (resume) {
-                if (resume == null) {
-                  return const Center(
-                    child: Text(
-                      'Unable to aggregate resume. Please verify profile setup.',
-                      style: TextStyle(color: Color(0xFF64748B)),
-                    ),
-                  );
-                }
-
-                if (_activeSegment == 1) {
-                  return SingleChildScrollView(
+            child: _activeSegment == 1
+                ? SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: ResumeCompletenessCard(
-                      completeness: resume.completeness,
+                      completeness: (resumeAsync.value ?? ref.read(resumeServiceProvider).generateSyncFallbackResume(
+                            studentId: targetId,
+                            user: currentUser,
+                          )).completeness,
                       onActionTap: _handleCompletenessAction,
                     ),
-                  );
-                }
-
-                return ResumeDocumentView(
-                  resume: resume,
-                  onEditRequest: _showEditProfileModal,
-                  showControls: true,
-                );
-              },
-              loading: () {
-                return FutureBuilder<StudentResumeModel?>(
-                  future: ref.read(resumeServiceProvider).generateResumeForStudent(targetId),
-                  builder: (context, snap) {
-                    if (snap.hasData && snap.data != null) {
-                      final resume = snap.data!;
-                      if (_activeSegment == 1) {
-                        return SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: ResumeCompletenessCard(
-                            completeness: resume.completeness,
-                            onActionTap: _handleCompletenessAction,
-                          ),
-                        );
-                      }
-                      return ResumeDocumentView(
-                        resume: resume,
-                        onEditRequest: _showEditProfileModal,
-                        showControls: true,
-                      );
-                    }
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Color(0xFF2563EB),
-                      ),
-                    );
-                  },
-                );
-              },
-              error: (err, _) => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 36),
-                    const SizedBox(height: 8),
-                    Text('Error loading resume: $err', style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () => ref.invalidate(studentResumeProvider(targetId)),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  )
+                : ResumeDocumentView(
+                    resume: resumeAsync.value ??
+                        ref.read(resumeServiceProvider).generateSyncFallbackResume(
+                              studentId: targetId,
+                              user: currentUser,
+                            ),
+                    onEditRequest: _showEditProfileModal,
+                    showControls: true,
+                  ),
           ),
         ],
       ),

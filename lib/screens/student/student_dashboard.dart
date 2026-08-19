@@ -1566,7 +1566,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       child: StatefulBuilder(
-        builder: (context, setCardState) {
+        builder: (cardCtx, setCardState) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [

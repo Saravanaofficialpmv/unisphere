@@ -175,6 +175,8 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
   @override
   Widget build(BuildContext context) {
     final r = widget.resume;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
 
     return Column(
       children: [
@@ -184,12 +186,18 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         // Resume A4 Document Container
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 24,
+              vertical: 16,
+            ),
             child: Center(
-              child: Transform.scale(
-                scale: _zoomScale,
-                alignment: Alignment.topCenter,
-                child: _buildA4Paper(r),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 820),
+                child: Transform.scale(
+                  scale: _zoomScale,
+                  alignment: Alignment.topCenter,
+                  child: _buildA4Paper(r, isMobile),
+                ),
               ),
             ),
           ),
@@ -200,7 +208,6 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
 
   Widget _buildControlsBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         border: const Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
@@ -212,113 +219,126 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Theme Selector
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<ResumeThemeStyle>(
-                value: _selectedTheme,
-                isDense: true,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF64748B)),
-                items: const [
-                  DropdownMenuItem(
-                    value: ResumeThemeStyle.modernTech,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.palette_rounded, size: 14, color: Color(0xFF2563EB)),
-                        SizedBox(width: 6),
-                        Text('Modern Tech Theme'),
-                      ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Theme Selector
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<ResumeThemeStyle>(
+                  value: _selectedTheme,
+                  isDense: true,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF64748B)),
+                  items: const [
+                    DropdownMenuItem(
+                      value: ResumeThemeStyle.modernTech,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.palette_rounded, size: 14, color: Color(0xFF2563EB)),
+                          SizedBox(width: 6),
+                          Text('Modern Tech'),
+                        ],
+                      ),
                     ),
-                  ),
-                  DropdownMenuItem(
-                    value: ResumeThemeStyle.classicExecutive,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.article_rounded, size: 14, color: Color(0xFF0F172A)),
-                        SizedBox(width: 6),
-                        Text('Classic Executive'),
-                      ],
+                    DropdownMenuItem(
+                      value: ResumeThemeStyle.classicExecutive,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.article_rounded, size: 14, color: Color(0xFF0F172A)),
+                          SizedBox(width: 6),
+                          Text('Classic Executive'),
+                        ],
+                      ),
                     ),
-                  ),
-                  DropdownMenuItem(
-                    value: ResumeThemeStyle.minimalistMonochrome,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.terminal_rounded, size: 14, color: Color(0xFF475569)),
-                        SizedBox(width: 6),
-                        Text('Minimalist Developer'),
-                      ],
+                    DropdownMenuItem(
+                      value: ResumeThemeStyle.minimalistMonochrome,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.terminal_rounded, size: 14, color: Color(0xFF475569)),
+                          SizedBox(width: 6),
+                          Text('Minimalist Developer'),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedTheme = val);
-                },
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => _selectedTheme = val);
+                  },
+                ),
               ),
             ),
-          ),
 
-          const Spacer(),
+            const SizedBox(width: 12),
 
-          // Zoom In / Out
-          IconButton(
-            icon: const Icon(Icons.zoom_out_rounded, size: 18, color: Color(0xFF64748B)),
-            tooltip: 'Zoom Out',
-            onPressed: () {
-              if (_zoomScale > 0.7) setState(() => _zoomScale = (_zoomScale - 0.1).clamp(0.7, 1.3));
-            },
-          ),
-          Text(
-            '${(_zoomScale * 100).toInt()}%',
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
-          ),
-          IconButton(
-            icon: const Icon(Icons.zoom_in_rounded, size: 18, color: Color(0xFF64748B)),
-            tooltip: 'Zoom In',
-            onPressed: () {
-              if (_zoomScale < 1.3) setState(() => _zoomScale = (_zoomScale + 0.1).clamp(0.7, 1.3));
-            },
-          ),
-
-          const SizedBox(width: 6),
-
-          // Copy text action
-          IconButton(
-            icon: const Icon(Icons.copy_all_rounded, size: 18, color: Color(0xFF475569)),
-            tooltip: 'Copy Resume Markdown',
-            onPressed: _copyResumeText,
-          ),
-
-          // Print / PDF Button
-          ElevatedButton.icon(
-            onPressed: _showPrintExportModal,
-            icon: const Icon(Icons.picture_as_pdf_rounded, size: 15),
-            label: const Text('Export / Print', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            // Zoom In / Out
+            IconButton(
+              icon: const Icon(Icons.zoom_out_rounded, size: 18, color: Color(0xFF64748B)),
+              tooltip: 'Zoom Out',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              onPressed: () {
+                if (_zoomScale > 0.7) setState(() => _zoomScale = (_zoomScale - 0.1).clamp(0.7, 1.3));
+              },
             ),
-          ),
-        ],
+            Text(
+              '${(_zoomScale * 100).toInt()}%',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+            ),
+            IconButton(
+              icon: const Icon(Icons.zoom_in_rounded, size: 18, color: Color(0xFF64748B)),
+              tooltip: 'Zoom In',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              onPressed: () {
+                if (_zoomScale < 1.3) setState(() => _zoomScale = (_zoomScale + 0.1).clamp(0.7, 1.3));
+              },
+            ),
+
+            const SizedBox(width: 8),
+
+            // Copy text action
+            IconButton(
+              icon: const Icon(Icons.copy_all_rounded, size: 18, color: Color(0xFF475569)),
+              tooltip: 'Copy Resume Markdown',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              onPressed: _copyResumeText,
+            ),
+
+            const SizedBox(width: 8),
+
+            // Print / PDF Button
+            ElevatedButton.icon(
+              onPressed: _showPrintExportModal,
+              icon: const Icon(Icons.picture_as_pdf_rounded, size: 14),
+              label: const Text('Export / Print', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildA4Paper(StudentResumeModel r) {
+  Widget _buildA4Paper(StudentResumeModel r, bool isMobile) {
     // Style configurations based on selected theme
     Color primaryAccent;
     Color secondaryAccent;
@@ -330,39 +350,38 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         primaryAccent = const Color(0xFF2563EB); // Royal Blue
         secondaryAccent = const Color(0xFF3B82F6);
         headingColor = const Color(0xFF1E3A8A);
-        nameStyle = GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A), letterSpacing: -0.5);
+        nameStyle = GoogleFonts.outfit(fontSize: isMobile ? 21 : 24, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A), letterSpacing: -0.5);
         break;
       case ResumeThemeStyle.classicExecutive:
         primaryAccent = const Color(0xFF0F172A); // Slate Navy
         secondaryAccent = const Color(0xFF475569);
         headingColor = const Color(0xFF0F172A);
-        nameStyle = GoogleFonts.cinzel(fontSize: 22, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A), letterSpacing: 1.0);
+        nameStyle = GoogleFonts.cinzel(fontSize: isMobile ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A), letterSpacing: 1.0);
         break;
       case ResumeThemeStyle.minimalistMonochrome:
         primaryAccent = const Color(0xFF18181B); // Zinc 900
         secondaryAccent = const Color(0xFF71717A);
         headingColor = const Color(0xFF18181B);
-        nameStyle = GoogleFonts.jetBrainsMono(fontSize: 20, fontWeight: FontWeight.w800, color: const Color(0xFF18181B));
+        nameStyle = GoogleFonts.jetBrainsMono(fontSize: isMobile ? 18 : 20, fontWeight: FontWeight.w800, color: const Color(0xFF18181B));
         break;
     }
 
     return Container(
-      width: 794, // Standard A4 width in px @ 96 DPI
-      constraints: const BoxConstraints(minHeight: 1123), // Standard A4 height in px @ 96 DPI
-      padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 38),
+      width: isMobile ? double.infinity : 794,
+      constraints: BoxConstraints(minHeight: isMobile ? 600 : 1000),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 18 : 42,
+        vertical: isMobile ? 22 : 38,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
