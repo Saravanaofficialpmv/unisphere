@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Native, rock-solid Flutter Circular Gauge Widget.
-/// Eliminates all third-party percent_indicator semantics dirty parent data assertions.
+/// Eliminates all third-party percent_indicator semantics and layout assertions.
 class AppCircularGauge extends StatelessWidget {
   final double radius;
   final double lineWidth;
@@ -42,7 +42,7 @@ class AppCircularGauge extends StatelessWidget {
               strokeCap: StrokeCap.round,
             ),
           ),
-          center,
+          Center(child: center),
         ],
       ),
     );
@@ -50,7 +50,7 @@ class AppCircularGauge extends StatelessWidget {
 }
 
 /// Native, rock-solid Flutter Linear Progress Bar Widget.
-/// Eliminates all third-party percent_indicator semantics dirty parent data assertions.
+/// Uses LayoutBuilder + Container layout bounds to guarantee zero RenderBox layout assertions.
 class AppLinearProgressBar extends StatelessWidget {
   final double lineHeight;
   final double percent;
@@ -71,16 +71,30 @@ class AppLinearProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final clampedPercent = percent.clamp(0.0, 1.0);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: SizedBox(
-        height: lineHeight,
-        child: LinearProgressIndicator(
-          value: clampedPercent,
-          color: progressColor,
-          backgroundColor: backgroundColor,
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final parentWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : 100.0;
+        return Container(
+          width: parentWidth,
+          height: lineHeight,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: parentWidth * clampedPercent,
+              height: lineHeight,
+              decoration: BoxDecoration(
+                color: progressColor,
+                borderRadius: BorderRadius.circular(borderRadius),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

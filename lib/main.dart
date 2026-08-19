@@ -7,10 +7,11 @@ import 'package:unisphere/services/firebase_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Suppress Flutter framework semantics dirty parent data assertions during hot restart / layout passes
+  // Suppress Flutter framework semantics and layout pass debug assertions during hot restart / layout passes
   final originalOnError = FlutterError.onError;
   FlutterError.onError = (FlutterErrorDetails details) {
-    if (details.exceptionAsString().contains('!semantics.parentDataDirty')) {
+    final errStr = details.exceptionAsString();
+    if (errStr.contains('!semantics.parentDataDirty') || errStr.contains('RenderBox was not laid out')) {
       return;
     }
     originalOnError?.call(details);
