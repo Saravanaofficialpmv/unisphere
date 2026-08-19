@@ -222,9 +222,9 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 }
 
 // ─────────────────────────────────────────
-//  Ultra-Smooth Right-to-Left Slide Transition with Depth Parallax
+//  Smooth Page Switcher
 // ─────────────────────────────────────────
-class SmoothPageTransition extends StatefulWidget {
+class SmoothPageTransition extends StatelessWidget {
   final int currentIndex;
   final List<Widget> children;
 
@@ -235,137 +235,13 @@ class SmoothPageTransition extends StatefulWidget {
   });
 
   @override
-  State<SmoothPageTransition> createState() => _SmoothPageTransitionState();
-}
-
-class _SmoothPageTransitionState extends State<SmoothPageTransition>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  int _oldIndex = 0;
-  int _newIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _oldIndex = widget.currentIndex;
-    _newIndex = widget.currentIndex;
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 480),
-    );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: const Cubic(0.16, 1.0, 0.3, 1.0),
-    );
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        if (mounted) {
-          setState(() {
-            _oldIndex = _newIndex;
-          });
-        }
-      }
-    });
-  }
-
-  @override
-  void didUpdateWidget(SmoothPageTransition oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentIndex != widget.currentIndex) {
-      setState(() {
-        _oldIndex = oldWidget.currentIndex;
-        _newIndex = widget.currentIndex;
-      });
-      _controller.forward(from: 0.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_oldIndex == _newIndex) {
-      return widget.children[_newIndex < widget.children.length
-          ? _newIndex
-          : 0];
-    }
+    final validIndex = (currentIndex >= 0 && currentIndex < children.length) ? currentIndex : 0;
+    final activeScreen = children[validIndex];
 
-    final bool isForward = _newIndex > _oldIndex;
-
-    final Widget underneathScreen = isForward
-        ? widget.children[_oldIndex < widget.children.length ? _oldIndex : 0]
-        : widget.children[_newIndex < widget.children.length ? _newIndex : 0];
-
-    final Widget topScreen = isForward
-        ? widget.children[_newIndex < widget.children.length ? _newIndex : 0]
-        : widget.children[_oldIndex < widget.children.length ? _oldIndex : 0];
-
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        final progress = _animation.value;
-
-        final underneathDx = isForward
-            ? -0.25 * progress
-            : -0.25 * (1.0 - progress);
-
-        final underneathOpacity = isForward
-            ? (1.0 - progress * 0.35)
-            : (0.65 + progress * 0.35);
-
-        final topDx = isForward ? (1.0 - progress) : progress;
-
-        final shadowAlpha = isForward
-            ? (0.18 * progress)
-            : (0.18 * (1.0 - progress));
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final screenWidth = constraints.maxWidth;
-
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                // 1. Underneath Screen (Home Dashboard with parallax & dim)
-                Transform.translate(
-                  offset: Offset(underneathDx * screenWidth, 0),
-                  child: ColoredBox(
-                    color: const Color(0xFFF8FAFC),
-                    child: Opacity(
-                      opacity: underneathOpacity.clamp(0.0, 1.0),
-                      child: underneathScreen,
-                    ),
-                  ),
-                ),
-                // 2. Top Screen (Section Module sliding over Home with drop shadow)
-                Transform.translate(
-                  offset: Offset(topDx * screenWidth, 0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: shadowAlpha.clamp(0.0, 1.0),
-                          ),
-                          blurRadius: 24,
-                          offset: const Offset(-8, 0),
-                        ),
-                      ],
-                    ),
-                    child: topScreen,
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
+    return KeyedSubtree(
+      key: ValueKey('student_tab_$validIndex'),
+      child: activeScreen,
     );
   }
 }
