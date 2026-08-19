@@ -48,7 +48,6 @@ import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart'
 
 
 import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
-import 'package:unisphere/widgets/resume/student_resume_modal_sheet.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -1620,7 +1619,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     ],
                   ),
                   InkWell(
-                    onTap: () => showStudentResumeModalSheet(context),
+                    onTap: () => widget.onNavigateToTab(17),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(

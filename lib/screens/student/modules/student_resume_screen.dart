@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/resume_service.dart';
 import 'package:unisphere/widgets/resume/resume_completeness_card.dart';
 import 'package:unisphere/widgets/resume/resume_document_view.dart';
-import 'package:unisphere/widgets/common/custom_loader.dart';
 import 'package:unisphere/widgets/student/student_profile_edit_request_modal.dart';
 
 class StudentResumeScreen extends ConsumerStatefulWidget {
@@ -54,7 +54,11 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(currentUserProvider);
+    final user = authState.value ?? ref.watch(authServiceProvider).currentUser;
     final resumeAsync = ref.watch(currentStudentResumeStreamProvider);
+    final fallbackResume = ref.read(resumeServiceProvider).generateSyncFallbackResume(user: user);
+    final activeResume = resumeAsync.value ?? fallbackResume;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -159,78 +163,27 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
           ),
         ],
       ),
-      body: resumeAsync.hasValue && resumeAsync.value != null
-          ? Column(
-              children: [
-                // Completeness Card at top
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: ResumeCompletenessCard(
-                    completeness: resumeAsync.value!.completeness,
-                    onActionTap: _handleCompletenessAction,
-                  ),
-                ),
-
-                // A4 Document Preview
-                Expanded(
-                  child: ResumeDocumentView(
-                    resume: resumeAsync.value!,
-                    onEditRequest: _showEditProfileModal,
-                  ),
-                ),
-              ],
-            )
-          : resumeAsync.when(
-              data: (resume) {
-                if (resume == null) {
-                  return const Center(
-                    child: Text(
-                      'Unable to aggregate student resume data. Please ensure student profile is active.',
-                      style: TextStyle(color: Color(0xFF64748B)),
-                    ),
-                  );
-                }
-
-                return Column(
-                  children: [
-                    // Completeness Card at top
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                      child: ResumeCompletenessCard(
-                        completeness: resume.completeness,
-                        onActionTap: _handleCompletenessAction,
-                      ),
-                    ),
-
-                    // A4 Document Preview
-                    Expanded(
-                      child: ResumeDocumentView(
-                        resume: resume,
-                        onEditRequest: _showEditProfileModal,
-                      ),
-                    ),
-                  ],
-                );
-              },
-              loading: () => const Center(
-                child: Loader(label: 'Aggregating student profile & generating resume...'),
-              ),
-              error: (err, stack) => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline_rounded, size: 40, color: Colors.redAccent),
-                    const SizedBox(height: 12),
-                    Text('Error generating resume: $err', style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => ref.invalidate(currentStudentResumeStreamProvider),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              ),
+      body: Column(
+        children: [
+          // Completeness Card at top
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: ResumeCompletenessCard(
+              completeness: activeResume.completeness,
+              onActionTap: _handleCompletenessAction,
             ),
+          ),
+
+          // A4 Document Preview
+          Expanded(
+            child: ResumeDocumentView(
+              resume: activeResume,
+              onEditRequest: _showEditProfileModal,
+              showControls: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
