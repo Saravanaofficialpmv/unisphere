@@ -2107,28 +2107,28 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
     final row2Actions = [
       {
-        'image': 'assets/certification.png',
+        'image': 'assets/certifications.png',
         'label': 'Certifications',
         'color': const Color(0xFF4F46E5),
         'iconBg': const Color(0xFFEEF2FF),
         'type': 'certifications',
       },
       {
-        'image': 'assets/notification.png',
+        'image': 'assets/announcement.png',
         'label': 'Announcement',
         'color': const Color(0xFFEA580C),
         'iconBg': const Color(0xFFFEF3C7),
         'type': 'announcement',
       },
       {
-        'image': 'assets/online-test.png',
+        'image': 'assets/exams.png',
         'label': 'Exams',
         'color': const Color(0xFF0284C7),
         'iconBg': const Color(0xFFE0F2FE),
         'type': 'exams',
       },
       {
-        'image': 'assets/apps.png',
+        'image': 'assets/more.png',
         'label': 'More',
         'color': const Color(0xFF475569),
         'iconBg': const Color(0xFFF1F5F9),
