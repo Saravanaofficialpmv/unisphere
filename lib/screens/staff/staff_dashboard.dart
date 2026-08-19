@@ -12,6 +12,7 @@ import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
 import 'package:unisphere/screens/staff/modules/staff_nptel_verification_screen.dart';
 import 'package:unisphere/screens/staff/modules/class_advisor_edit_requests_screen.dart';
 import 'package:unisphere/screens/staff/modules/hod_student_verifications_screen.dart';
+import 'package:unisphere/screens/staff/modules/advisor_hackathon_verification_screen.dart';
 
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
@@ -52,6 +53,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     SidebarItem(label: 'Profile Edit Requests', icon: Icons.edit_note_rounded, badge: 'Requests'),
     SidebarItem(label: 'Student Verifications', icon: Icons.verified_user_rounded),
     SidebarItem(label: 'NPTEL Certificate Verif.', icon: Icons.workspace_premium_outlined, badge: 'NPTEL'),
+    SidebarItem(label: 'Hackathon Verif. (Advisor)', icon: Icons.verified_outlined, badge: 'Advisor'),
     SidebarItem(label: 'Upload Marks', icon: Icons.upload_file_outlined),
     SidebarItem(label: 'Staff Profile', icon: Icons.person_outline),
     SidebarItem(label: 'Important Days & Schedule', icon: Icons.event_note_rounded, badge: 'Official'),
@@ -70,6 +72,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     const ClassAdvisorEditRequestsScreen(),
     const HodStudentVerificationsScreen(),
     const StaffNptelVerificationScreen(),
+    const AdvisorHackathonVerificationScreen(),
     const StaffMarksUploadModule(),
     ProfileScreen(onBack: () => _handleNavigation(0)),
     AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0)),

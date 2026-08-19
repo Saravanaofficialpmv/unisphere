@@ -153,10 +153,10 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
 
   void _handleBack() {
     if (!mounted) return;
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    } else if (widget.onBack != null) {
+    if (widget.onBack != null) {
       widget.onBack!();
+    } else if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
     }
   }
 

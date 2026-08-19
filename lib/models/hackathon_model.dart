@@ -16,7 +16,7 @@ class HackathonModel {
   final String prizePool;
   final int registeredTeams;
   final int maxTeams;
-  final int maxTeamMembers; // Fixed requirement: max 6 team members
+  final int maxTeamMembers;
   final int teamSize;
   final String status; // 'upcoming', 'ongoing', 'ended'
   final String userRegistrationStatus; // 'registered', 'not_registered', 'pending'
@@ -28,6 +28,13 @@ class HackathonModel {
   final bool isFeatured;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  final String externalRegistrationUrl;
+  final List<String> eligibleYears;
+  final List<String> eligibleSections;
+  final String createdByRole; // 'hod' or 'advisor'
+  final String createdByName;
+  final int minTeamSize;
 
   HackathonModel({
     required this.id,
@@ -47,6 +54,7 @@ class HackathonModel {
     required this.maxTeams,
     this.maxTeamMembers = 6,
     required this.teamSize,
+    this.minTeamSize = 1,
     required this.status,
     required this.userRegistrationStatus,
     this.registrationId,
@@ -57,9 +65,21 @@ class HackathonModel {
     this.isFeatured = false,
     this.createdAt,
     this.updatedAt,
+    this.externalRegistrationUrl = 'https://unstop.com/hackathons',
+    this.eligibleYears = const ['1st Year', '2nd Year', '3rd Year', '4th Year'],
+    this.eligibleSections = const ['Sec A', 'Sec B', 'Sec C', 'Sec D'],
+    this.createdByRole = 'hod',
+    this.createdByName = 'Dr. R. Kumar (HOD)',
   }) : registrationStartDate = registrationStartDate ?? startDate;
 
   bool get isRegistered => userRegistrationStatus.toLowerCase() == 'registered';
+  bool get isDeadlinePassed => DateTime.now().isAfter(registrationDeadline);
+  bool get isDeadlineApproaching => !isDeadlinePassed && registrationDeadline.difference(DateTime.now()).inHours <= 48;
+  int get hoursUntilDeadline => registrationDeadline.difference(DateTime.now()).inHours;
+
+  bool get isDraft => status.toLowerCase() == 'draft';
+  bool get isPublished => status.toLowerCase() == 'published' || status.toLowerCase() == 'upcoming' || status.toLowerCase() == 'ongoing';
+  bool get isRegistrationClosed => status.toLowerCase() == 'registration closed' || status.toLowerCase() == 'ended' || !registrationOpen;
 
   factory HackathonModel.fromMap(Map<String, dynamic> map, [String? docId]) {
     DateTime parseDate(dynamic val, [DateTime? fallback]) {
@@ -89,6 +109,7 @@ class HackathonModel {
       maxTeams: (map['maxTeams'] ?? map['max_teams'] ?? 100) as int,
       maxTeamMembers: (map['maxTeamMembers'] ?? map['max_team_members'] ?? 6) as int,
       teamSize: (map['teamSize'] ?? map['team_size'] ?? 6) as int,
+      minTeamSize: (map['minTeamSize'] ?? map['min_team_size'] ?? 1) as int,
       status: map['status']?.toString() ?? 'upcoming',
       userRegistrationStatus: map['userRegistrationStatus']?.toString() ?? map['user_registration_status']?.toString() ?? 'not_registered',
       registrationId: map['registrationId']?.toString() ?? map['registration_id']?.toString(),
@@ -99,6 +120,11 @@ class HackathonModel {
       isFeatured: map['isFeatured'] ?? map['is_featured'] ?? false,
       createdAt: parseDate(map['createdAt'] ?? map['created_at']),
       updatedAt: parseDate(map['updatedAt'] ?? map['updated_at']),
+      externalRegistrationUrl: map['externalRegistrationUrl']?.toString() ?? map['external_registration_url']?.toString() ?? 'https://unstop.com/hackathons',
+      eligibleYears: (map['eligibleYears'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? ['1st Year', '2nd Year', '3rd Year', '4th Year'],
+      eligibleSections: (map['eligibleSections'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? ['Sec A', 'Sec B', 'Sec C', 'Sec D'],
+      createdByRole: map['createdByRole']?.toString() ?? map['created_by_role']?.toString() ?? 'hod',
+      createdByName: map['createdByName']?.toString() ?? map['created_by_name']?.toString() ?? 'Dr. R. Kumar (HOD)',
     );
   }
 
@@ -138,6 +164,7 @@ class HackathonModel {
       'max_team_members': maxTeamMembers,
       'teamSize': teamSize,
       'team_size': teamSize,
+      'minTeamSize': minTeamSize,
       'status': status,
       'userRegistrationStatus': userRegistrationStatus,
       'user_registration_status': userRegistrationStatus,
@@ -155,6 +182,11 @@ class HackathonModel {
       'created_at': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      'externalRegistrationUrl': externalRegistrationUrl,
+      'eligibleYears': eligibleYears,
+      'eligibleSections': eligibleSections,
+      'createdByRole': createdByRole,
+      'createdByName': createdByName,
     };
   }
 
@@ -178,6 +210,7 @@ class HackathonModel {
     int? maxTeams,
     int? maxTeamMembers,
     int? teamSize,
+    int? minTeamSize,
     String? status,
     String? userRegistrationStatus,
     String? registrationId,
@@ -188,6 +221,11 @@ class HackathonModel {
     bool? isFeatured,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? externalRegistrationUrl,
+    List<String>? eligibleYears,
+    List<String>? eligibleSections,
+    String? createdByRole,
+    String? createdByName,
   }) {
     return HackathonModel(
       id: id ?? this.id,
@@ -207,6 +245,7 @@ class HackathonModel {
       maxTeams: maxTeams ?? this.maxTeams,
       maxTeamMembers: maxTeamMembers ?? this.maxTeamMembers,
       teamSize: teamSize ?? this.teamSize,
+      minTeamSize: minTeamSize ?? this.minTeamSize,
       status: status ?? this.status,
       userRegistrationStatus: userRegistrationStatus ?? this.userRegistrationStatus,
       registrationId: registrationId ?? this.registrationId,
@@ -217,7 +256,11 @@ class HackathonModel {
       isFeatured: isFeatured ?? this.isFeatured,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      externalRegistrationUrl: externalRegistrationUrl ?? this.externalRegistrationUrl,
+      eligibleYears: eligibleYears ?? this.eligibleYears,
+      eligibleSections: eligibleSections ?? this.eligibleSections,
+      createdByRole: createdByRole ?? this.createdByRole,
+      createdByName: createdByName ?? this.createdByName,
     );
   }
 }
-

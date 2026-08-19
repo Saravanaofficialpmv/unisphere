@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:unisphere/models/hackathon_model.dart';
+import 'package:unisphere/models/hackathon_activity_model.dart';
 
 class HackathonRegistrationModel {
   final String id; // registrationId
@@ -7,10 +8,12 @@ class HackathonRegistrationModel {
   final String teamId;
   final String leaderId;
   final String hackathonTitle;
-  final String studentId;
+  final String studentId; // Team Leader ID
+  final String teamLeaderId; // Alias for Team Leader ID
   final String studentName;
   final String department;
   final String year;
+  final String section;
   final String email;
   final String phone;
   final String teamName;
@@ -18,7 +21,7 @@ class HackathonRegistrationModel {
   final DateTime registrationDate;
   final DateTime startDate;
   final DateTime endDate;
-  final String participationStatus;
+  final String participationStatus; // Status flow representation
   final bool registrationCompleted;
   final String externalRegistrationStatus;
   final String hodReviewStatus;
@@ -34,6 +37,13 @@ class HackathonRegistrationModel {
   final String? projectSubmissionNotes;
   final DateTime? submittedAt;
   final DateTime? updatedAt;
+  final String externalRegistrationId;
+  final String registrationScreenshotUrl;
+  final String verificationStatus; // 'Pending Verification', 'Verified', 'Correction Required'
+  final String assignedAdvisorId;
+  final String assignedAdvisorName;
+  final String? advisorCorrectionNotes;
+  final List<HackathonActivityModel> activities;
 
   HackathonRegistrationModel({
     required this.id,
@@ -42,9 +52,11 @@ class HackathonRegistrationModel {
     String? leaderId,
     required this.hackathonTitle,
     required this.studentId,
+    String? teamLeaderId,
     required this.studentName,
     required this.department,
     required this.year,
+    this.section = 'Sec B',
     required this.email,
     required this.phone,
     required this.teamName,
@@ -68,9 +80,18 @@ class HackathonRegistrationModel {
     this.projectSubmissionNotes,
     this.submittedAt,
     this.updatedAt,
+    this.externalRegistrationId = 'EXT-REG-8841',
+    this.registrationScreenshotUrl = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+    this.verificationStatus = 'Pending Verification',
+    this.assignedAdvisorId = 'ADV-CSE-3B',
+    this.assignedAdvisorName = 'Dr. S. Meenakshi',
+    this.advisorCorrectionNotes,
+    this.activities = const [],
   })  : teamId = teamId ?? 'TEAM-$id',
-        leaderId = leaderId ?? studentId;
+        leaderId = leaderId ?? studentId,
+        teamLeaderId = teamLeaderId ?? studentId;
 
+  /// Dynamic lifecycle status based on current date vs start/end dates
   String get status {
     final now = DateTime.now();
     if (now.isBefore(startDate)) {
@@ -85,6 +106,18 @@ class HackathonRegistrationModel {
   bool get isOngoing => status == 'ongoing';
   bool get isPending => status == 'pending';
   bool get isCompleted => status == 'completed';
+
+  /// Status Flow Helper Getters
+  bool get isVerified => verificationStatus.toLowerCase().contains('verified');
+  bool get isCorrectionRequired => verificationStatus.toLowerCase().contains('correction');
+  bool get isPendingVerification => verificationStatus.toLowerCase().contains('pending');
+  bool get isResubmitted => participationStatus.toLowerCase().contains('resubmitted');
+
+  bool get hasExternalRegId => externalRegistrationId.trim().isNotEmpty;
+  bool get hasScreenshotProof => registrationScreenshotUrl.trim().isNotEmpty;
+  bool get hasRequiredMembers => teamMembers.isNotEmpty && teamMembers.length <= 6;
+  bool get isSubmittedToAdvisor => verificationStatus != 'Not Submitted';
+  bool get isCompleteAndVerified => isVerified && hasExternalRegId && hasScreenshotProof;
 
   HackathonModel toHackathonModel() {
     return HackathonModel(
@@ -126,6 +159,7 @@ class HackathonRegistrationModel {
     String? studentName,
     String? department,
     String? year,
+    String? section,
     String? email,
     String? phone,
     String? teamName,
@@ -149,6 +183,13 @@ class HackathonRegistrationModel {
     String? projectSubmissionNotes,
     DateTime? submittedAt,
     DateTime? updatedAt,
+    String? externalRegistrationId,
+    String? registrationScreenshotUrl,
+    String? verificationStatus,
+    String? assignedAdvisorId,
+    String? assignedAdvisorName,
+    String? advisorCorrectionNotes,
+    List<HackathonActivityModel>? activities,
   }) {
     return HackathonRegistrationModel(
       id: id ?? this.id,
@@ -157,9 +198,11 @@ class HackathonRegistrationModel {
       leaderId: leaderId ?? this.leaderId,
       hackathonTitle: hackathonTitle ?? this.hackathonTitle,
       studentId: studentId ?? this.studentId,
+      teamLeaderId: teamLeaderId,
       studentName: studentName ?? this.studentName,
       department: department ?? this.department,
       year: year ?? this.year,
+      section: section ?? this.section,
       email: email ?? this.email,
       phone: phone ?? this.phone,
       teamName: teamName ?? this.teamName,
@@ -183,6 +226,13 @@ class HackathonRegistrationModel {
       projectSubmissionNotes: projectSubmissionNotes ?? this.projectSubmissionNotes,
       submittedAt: submittedAt ?? this.submittedAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      externalRegistrationId: externalRegistrationId ?? this.externalRegistrationId,
+      registrationScreenshotUrl: registrationScreenshotUrl ?? this.registrationScreenshotUrl,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      assignedAdvisorId: assignedAdvisorId ?? this.assignedAdvisorId,
+      assignedAdvisorName: assignedAdvisorName ?? this.assignedAdvisorName,
+      advisorCorrectionNotes: advisorCorrectionNotes ?? this.advisorCorrectionNotes,
+      activities: activities ?? this.activities,
     );
   }
 
@@ -196,16 +246,28 @@ class HackathonRegistrationModel {
     final now = DateTime.now();
     final regId = docId ?? map['registrationId']?.toString() ?? map['id']?.toString() ?? 'REG-${now.millisecondsSinceEpoch}';
 
+    final rawActivities = map['activities'] as List<dynamic>?;
+    List<HackathonActivityModel> parsedActivities = [];
+    if (rawActivities != null) {
+      for (var item in rawActivities) {
+        if (item is Map<String, dynamic>) {
+          parsedActivities.add(HackathonActivityModel.fromMap(item));
+        }
+      }
+    }
+
     return HackathonRegistrationModel(
       id: regId,
       hackathonId: map['hackathonId']?.toString() ?? map['hackathon_id']?.toString() ?? '',
       teamId: map['teamId']?.toString() ?? map['team_id']?.toString() ?? 'TEAM-$regId',
       leaderId: map['leaderId']?.toString() ?? map['leader_id']?.toString() ?? map['studentId']?.toString() ?? map['student_id']?.toString() ?? '',
       hackathonTitle: map['hackathonTitle']?.toString() ?? map['hackathon_title']?.toString() ?? map['hackathonName']?.toString() ?? '',
-      studentId: map['studentId']?.toString() ?? map['student_id']?.toString() ?? 'STU-2026-042',
+      studentId: map['studentId']?.toString() ?? map['student_id']?.toString() ?? map['teamLeaderId']?.toString() ?? 'STU-2026-042',
+      teamLeaderId: map['teamLeaderId']?.toString() ?? map['studentId']?.toString() ?? 'STU-2026-042',
       studentName: map['studentName']?.toString() ?? map['student_name']?.toString() ?? 'Alex Johnson',
       department: map['department']?.toString() ?? 'Computer Science & Engineering',
       year: map['year']?.toString() ?? '3rd Year',
+      section: map['section']?.toString() ?? map['sec']?.toString() ?? 'Sec B',
       email: map['email']?.toString() ?? 'alex.j@unisphere.edu',
       phone: map['phone']?.toString() ?? '+91 98765 43210',
       teamName: map['teamName']?.toString() ?? map['team_name']?.toString() ?? 'Team Innovators',
@@ -231,6 +293,13 @@ class HackathonRegistrationModel {
       projectSubmissionNotes: map['projectSubmissionNotes']?.toString(),
       submittedAt: map['submittedAt'] != null ? parseDate(map['submittedAt'], now) : null,
       updatedAt: map['updatedAt'] != null ? parseDate(map['updatedAt'], now) : null,
+      externalRegistrationId: map['externalRegistrationId']?.toString() ?? map['external_registration_id']?.toString() ?? 'EXT-REG-8841',
+      registrationScreenshotUrl: map['registrationScreenshotUrl']?.toString() ?? map['registration_screenshot_url']?.toString() ?? 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      verificationStatus: map['verificationStatus']?.toString() ?? map['verification_status']?.toString() ?? 'Pending Verification',
+      assignedAdvisorId: map['assignedAdvisorId']?.toString() ?? map['assigned_advisor_id']?.toString() ?? 'ADV-CSE-3B',
+      assignedAdvisorName: map['assignedAdvisorName']?.toString() ?? map['assigned_advisor_name']?.toString() ?? 'Dr. S. Meenakshi',
+      advisorCorrectionNotes: map['advisorCorrectionNotes']?.toString() ?? map['advisor_correction_notes']?.toString(),
+      activities: parsedActivities,
     );
   }
 
@@ -247,9 +316,11 @@ class HackathonRegistrationModel {
       'hackathonTitle': hackathonTitle,
       'studentId': studentId,
       'student_id': studentId,
+      'teamLeaderId': teamLeaderId,
       'studentName': studentName,
       'department': department,
       'year': year,
+      'section': section,
       'email': email,
       'phone': phone,
       'teamName': teamName,
@@ -258,7 +329,6 @@ class HackathonRegistrationModel {
       'registrationDate': registrationDate.toIso8601String(),
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
-      'status': status,
       'participationStatus': participationStatus,
       'registrationCompleted': registrationCompleted,
       'registration_completed': registrationCompleted,
@@ -279,6 +349,13 @@ class HackathonRegistrationModel {
       'submittedAt': (submittedAt ?? registrationDate).toIso8601String(),
       'submitted_at': (submittedAt ?? registrationDate).toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'externalRegistrationId': externalRegistrationId,
+      'registrationScreenshotUrl': registrationScreenshotUrl,
+      'verificationStatus': verificationStatus,
+      'assignedAdvisorId': assignedAdvisorId,
+      'assignedAdvisorName': assignedAdvisorName,
+      'advisorCorrectionNotes': advisorCorrectionNotes,
+      'activities': activities.map((a) => a.toMap()).toList(),
     };
   }
 

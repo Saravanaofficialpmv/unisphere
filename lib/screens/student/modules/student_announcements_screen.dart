@@ -123,10 +123,10 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
 
   void _handleBack(BuildContext context) {
     if (!mounted) return;
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    } else if (widget.onBack != null) {
+    if (widget.onBack != null) {
       widget.onBack!();
+    } else if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
     }
   }
 
@@ -455,9 +455,8 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
   @override
   Widget build(BuildContext context) {
     final annService = AnnouncementService();
-    final bool canPopRoute = ModalRoute.of(context)?.canPop ?? false;
     return PopScope(
-      canPop: canPopRoute,
+      canPop: widget.onBack == null && (ModalRoute.of(context)?.canPop ?? false),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop || !mounted) return;
         if (widget.onBack != null) {

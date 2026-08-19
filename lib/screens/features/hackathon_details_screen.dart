@@ -254,6 +254,90 @@ class HackathonDetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
+                  // External Hackathon Registration Link Banner Button (Workflow Step 2 & 3)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEEF2FF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFC7D2FE)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.open_in_new_rounded, color: Color(0xFF4F46E5), size: 20),
+                            SizedBox(width: 8),
+                            Text('External Registration Portal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF4F46E5))),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Register on the official external platform (${hackathon.externalRegistrationUrl}), then return to CMS to submit team details and upload registration screenshot proof.',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF475569), height: 1.4),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                title: const Row(
+                                  children: [
+                                    Icon(Icons.open_in_new_rounded, color: Color(0xFF4F46E5)),
+                                    SizedBox(width: 8),
+                                    Text('External Registration Link'),
+                                  ],
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Opening official portal link for "${hackathon.title}":', style: const TextStyle(fontSize: 13)),
+                                    const SizedBox(height: 10),
+                                    SelectableText(
+                                      hackathon.externalRegistrationUrl,
+                                      style: const TextStyle(color: Color(0xFF4F46E5), fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    const Text('After completing registration on the external platform, return to CMS to enter your team members and upload screenshot proof.', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(ctx).pop();
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('🌐 Redirecting to ${hackathon.externalRegistrationUrl}'),
+                                          backgroundColor: const Color(0xFF4F46E5),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4F46E5), foregroundColor: Colors.white),
+                                    child: const Text('Open Portal'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.launch_rounded, size: 16),
+                          label: const Text('Click to Register on External Portal', style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF4F46E5),
+                            side: const BorderSide(color: Color(0xFF4F46E5)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
                   // Registered Team Info Card if Registered
                   if (registration != null) ...[
                     Container(
@@ -291,15 +375,19 @@ class HackathonDetailsScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.15),
+                                  color: registration.isVerified
+                                      ? const Color(0xFF10B981)
+                                      : registration.isCorrectionRequired
+                                          ? const Color(0xFFEF4444)
+                                          : const Color(0xFFF59E0B),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  'ID: ${registration.id}',
+                                  registration.verificationStatus,
                                   style: const TextStyle(
-                                    color: Colors.white70,
+                                    color: Colors.white,
                                     fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
@@ -320,29 +408,39 @@ class HackathonDetailsScreen extends ConsumerWidget {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Year & Section: ${registration.year} (${registration.section}) • Ext Reg ID: ${registration.externalRegistrationId}',
+                            style: const TextStyle(color: Color(0xFFC7D2FE), fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Assigned Class Advisor: ${registration.assignedAdvisorName}',
+                            style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 8),
                           Text(
-                            'Members: ${registration.teamMembers.join(', ')}',
+                            'Members (Max 6): ${registration.teamMembers.join(', ')}',
                             style: const TextStyle(
                               color: Color(0xFFC7D2FE),
-                              fontSize: 13,
+                              fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.info_outline_rounded, color: Color(0xFF818CF8), size: 14),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Status: ${registration.participationStatus}',
-                                style: const TextStyle(
-                                  color: Color(0xFF818CF8),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          if (registration.isCorrectionRequired && registration.advisorCorrectionNotes != null) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFFCA5A5)),
                               ),
-                            ],
-                          ),
+                              child: Text(
+                                'Advisor Note: "${registration.advisorCorrectionNotes}"',
+                                style: const TextStyle(color: Color(0xFFFECACA), fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                           if (registration.projectSubmissionUrl != null) ...[
                             const SizedBox(height: 12),
                             Container(
@@ -372,6 +470,122 @@ class HackathonDetailsScreen extends ConsumerWidget {
                             ),
                           ],
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Activity Log Timeline Section (Requirement #13)
+                  if (registration != null && registration.activities.isNotEmpty) ...[
+                    const Text(
+                      'Hackathon Activity Timeline',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Chronological history of team actions, advisor reviews, and status transitions:',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        children: registration!.activities.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final act = entry.value;
+                          final isLast = idx == registration!.activities.length - 1;
+                          final timeStr = DateFormat('hh:mm a').format(act.timestamp);
+                          final dateStr = DateFormat('MMM dd').format(act.timestamp);
+
+                          Color iconBg;
+                          IconData iconData;
+                          if (act.activityType.contains('verified')) {
+                            iconBg = const Color(0xFF10B981);
+                            iconData = Icons.verified_rounded;
+                          } else if (act.activityType.contains('correction')) {
+                            iconBg = const Color(0xFFEF4444);
+                            iconData = Icons.warning_amber_rounded;
+                          } else if (act.activityType.contains('submitted')) {
+                            iconBg = const Color(0xFF3B82F6);
+                            iconData = Icons.send_rounded;
+                          } else if (act.activityType.contains('created')) {
+                            iconBg = const Color(0xFF8B5CF6);
+                            iconData = Icons.groups_rounded;
+                          } else {
+                            iconBg = const Color(0xFF6366F1);
+                            iconData = Icons.history_rounded;
+                          }
+
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: iconBg.withValues(alpha: 0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(iconData, color: iconBg, size: 16),
+                                  ),
+                                  if (!isLast)
+                                    Container(
+                                      width: 2,
+                                      height: 32,
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '$timeStr ($dateStr)',
+                                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                                          ),
+                                          if (act.newStatus != null)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: iconBg.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                act.newStatus!,
+                                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: iconBg),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        act.description,
+                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -524,9 +738,9 @@ class HackathonDetailsScreen extends ConsumerWidget {
                         ),
                         child: Text(
                           isRegistered
-                              ? '✓ Registered (Manage Team)'
+                              ? '✓ CMS Registered (Manage Team)'
                               : hackathon.registrationOpen
-                                  ? 'Register Team Now'
+                                  ? 'Enter CMS Registration & Upload Screenshot'
                                   : 'Registration Closed',
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),

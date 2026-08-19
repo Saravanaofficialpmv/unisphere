@@ -16,20 +16,31 @@ class HackathonRegistrationScreen extends ConsumerStatefulWidget {
 
 class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final _studentIdController = TextEditingController(text: 'STU-2026-042');
   final _studentNameController = TextEditingController(text: 'Alex Johnson');
   final _departmentController = TextEditingController(text: 'Computer Science & Engineering');
-  final _yearController = TextEditingController(text: '3rd Year');
   final _leaderEmailController = TextEditingController(text: 'alex.j@unisphere.edu');
   final _phoneController = TextEditingController(text: '+91 98765 43210');
-  final _teamNameController = TextEditingController();
+  final _teamNameController = TextEditingController(text: 'CodeCatalysts');
+  final _externalRegIdController = TextEditingController(text: 'UNSTOP-2026-8841');
+  final _screenshotUrlController = TextEditingController(text: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80');
+
+  String _selectedYear = '3rd Year';
+  String _selectedSection = 'Sec B';
+
+  final List<String> _years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+  final List<String> _sections = ['Sec A', 'Sec B', 'Sec C', 'Sec D'];
+
   final List<TextEditingController> _memberControllers = [];
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    for (int i = 1; i < widget.hackathon.teamSize; i++) {
+    // Default up to 5 additional members (Max team size 6 total)
+    final initialExtraMembers = (widget.hackathon.teamSize - 1).clamp(1, 5);
+    for (int i = 0; i < initialExtraMembers; i++) {
       _memberControllers.add(TextEditingController());
     }
   }
@@ -39,25 +50,106 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
     _studentIdController.dispose();
     _studentNameController.dispose();
     _departmentController.dispose();
-    _yearController.dispose();
     _leaderEmailController.dispose();
     _phoneController.dispose();
     _teamNameController.dispose();
+    _externalRegIdController.dispose();
+    _screenshotUrlController.dispose();
     for (var controller in _memberControllers) {
       controller.dispose();
     }
     super.dispose();
   }
 
+  void _addMemberField() {
+    if (_memberControllers.length < 5) {
+      setState(() {
+        _memberControllers.add(TextEditingController());
+      });
+    }
+  }
+
+  void _removeMemberField(int index) {
+    if (_memberControllers.isNotEmpty) {
+      setState(() {
+        _memberControllers[index].dispose();
+        _memberControllers.removeAt(index);
+      });
+    }
+  }
+
+  String _getAdvisorName() {
+    if (_selectedYear.contains('3rd') && _selectedSection.contains('B')) {
+      return 'Dr. S. Meenakshi (Class Advisor 3rd Year Sec B)';
+    } else if (_selectedYear.contains('3rd') && _selectedSection.contains('A')) {
+      return 'Prof. Robert Vance (Class Advisor 3rd Year Sec A)';
+    } else if (_selectedYear.contains('2nd')) {
+      return 'Dr. Anita Sharma (Class Advisor 2nd Year Sec A)';
+    } else if (_selectedYear.contains('4th')) {
+      return 'Prof. David Miller (Class Advisor 4th Year Sec A)';
+    }
+    return 'Dr. S. Meenakshi (Department Advisor)';
+  }
+
   Future<void> _submitRegistration() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSubmitting = true);
+    final leaderName = _studentNameController.text.trim();
 
     final membersList = _memberControllers
         .map((c) => c.text.trim())
         .where((e) => e.isNotEmpty)
         .toList();
+
+    // 1. Validation: Self-duplication check
+    for (var m in membersList) {
+      if (m.toLowerCase().contains(leaderName.toLowerCase())) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Team Leader is automatically pinned as lead. Do not add yourself as an additional teammate.'),
+            backgroundColor: Color(0xFFEF4444),
+          ),
+        );
+        return;
+      }
+    }
+
+    // 2. Validation: Duplicate members check
+    final lowercaseMembers = membersList.map((m) => m.toLowerCase()).toList();
+    if (lowercaseMembers.length != lowercaseMembers.toSet().length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Duplicate team members detected. Please remove duplicate entries.'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
+    // 3. Validation: Max 6 total members (1 Leader + 5 members max)
+    final totalMembers = 1 + membersList.length;
+    if (totalMembers > 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Maximum team size exceeded! Up to 6 total members allowed (1 Team Leader + 5 Teammates).'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
+    // 4. Validation: Minimum team size requirement
+    if (widget.hackathon.minTeamSize > 1 && totalMembers < widget.hackathon.minTeamSize) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('⚠️ Minimum team size requirement not satisfied! Minimum ${widget.hackathon.minTeamSize} members required.'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
 
     try {
       // 1. Dispatch registration to local reactive registration provider
@@ -68,25 +160,31 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
             studentId: _studentIdController.text.trim(),
             studentName: _studentNameController.text.trim(),
             department: _departmentController.text.trim(),
-            year: _yearController.text.trim(),
+            year: _selectedYear,
+            section: _selectedSection,
             email: _leaderEmailController.text.trim(),
             phone: _phoneController.text.trim(),
             teamName: _teamNameController.text.trim(),
             teamMembers: membersList,
+            externalRegistrationId: _externalRegIdController.text.trim(),
+            registrationScreenshotUrl: _screenshotUrlController.text.trim(),
           );
 
-      // 2. Also inform API controller
+      // 2. Inform API controller
       final payload = {
         'studentId': _studentIdController.text.trim(),
         'studentName': _studentNameController.text.trim(),
         'department': _departmentController.text.trim(),
-        'year': _yearController.text.trim(),
+        'year': _selectedYear,
+        'section': _selectedSection,
         'email': _leaderEmailController.text.trim(),
         'phone': _phoneController.text.trim(),
         'teamName': _teamNameController.text.trim(),
         'members': membersList,
+        'externalRegistrationId': _externalRegIdController.text.trim(),
+        'registrationScreenshotUrl': _screenshotUrlController.text.trim(),
         'registrationDate': DateTime.now().toIso8601String(),
-        'status': 'Registered',
+        'status': 'Pending Verification',
       };
 
       await ref.read(hackathonControllerProvider.notifier).registerTeam(widget.hackathon.id, payload);
@@ -100,7 +198,7 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('🎉 Registration successful for ${widget.hackathon.title}!'),
+          content: Text('🎉 Registration submitted to ${_getAdvisorName()} for verification!'),
           backgroundColor: const Color(0xFF10B981),
         ),
       );
@@ -119,6 +217,8 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
 
   @override
   Widget build(BuildContext context) {
+    final assignedAdvisorText = _getAdvisorName();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -129,7 +229,7 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Register Team',
+          'CMS Hackathon Team Registration',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
         ),
       ),
@@ -140,10 +240,10 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Banner Box
+              // Header Banner Card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
@@ -155,13 +255,42 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
                   children: [
                     Text(widget.hackathon.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                     const SizedBox(height: 4),
-                    Text('Max Team Size: ${widget.hackathon.teamSize} Members • ${widget.hackathon.mode}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                    Text('Maximum Team Size: 6 Members (1 Leader + 5 Members) • ${widget.hackathon.mode}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Auto-Identified Advisor Callout Banner
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.verified_user_rounded, color: Color(0xFF059669), size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('System Auto-Identified Advisor', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF047857))),
+                          const SizedBox(height: 2),
+                          Text(assignedAdvisorText, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF065F46))),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
 
-              const Text('Student Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+              // Student & Academic Information Section
+              const Text('1. Student & Academic Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
               const SizedBox(height: 12),
 
               Row(
@@ -170,10 +299,11 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
                     child: TextFormField(
                       controller: _studentIdController,
                       decoration: InputDecoration(
-                        labelText: 'Student ID',
+                        labelText: 'Student Register No / ID',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         prefixIcon: const Icon(Icons.badge_rounded, color: Color(0xFF64748B)),
                       ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -181,36 +311,42 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
                     child: TextFormField(
                       controller: _studentNameController,
                       decoration: InputDecoration(
-                        labelText: 'Student Name',
+                        labelText: 'Team Leader Name',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF64748B)),
                       ),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
 
+              // Year & Section Dropdowns (Key Node for Advisor Identification)
               Row(
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      controller: _departmentController,
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedYear,
+                      items: _years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
+                      onChanged: (val) => setState(() => _selectedYear = val!),
                       decoration: InputDecoration(
-                        labelText: 'Department',
+                        labelText: 'Academic Year',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        prefixIcon: const Icon(Icons.domain_rounded, color: Color(0xFF64748B)),
+                        prefixIcon: const Icon(Icons.school_rounded, color: Color(0xFF64748B)),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextFormField(
-                      controller: _yearController,
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedSection,
+                      items: _sections.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                      onChanged: (val) => setState(() => _selectedSection = val!),
                       decoration: InputDecoration(
-                        labelText: 'Year',
+                        labelText: 'Class Section',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        prefixIcon: const Icon(Icons.school_rounded, color: Color(0xFF64748B)),
+                        prefixIcon: const Icon(Icons.class_rounded, color: Color(0xFF64748B)),
                       ),
                     ),
                   ),
@@ -224,7 +360,7 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
                     child: TextFormField(
                       controller: _leaderEmailController,
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Leader Email',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF64748B)),
                       ),
@@ -235,7 +371,7 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
                     child: TextFormField(
                       controller: _phoneController,
                       decoration: InputDecoration(
-                        labelText: 'Phone',
+                        labelText: 'Contact Phone',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF64748B)),
                       ),
@@ -245,7 +381,94 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
               ),
               const SizedBox(height: 24),
 
-              const Text('Team Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+              // External Registration Details & Proof Section
+              const Text('2. External Registration & Proof Upload', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+              const SizedBox(height: 12),
+
+              TextFormField(
+                controller: _externalRegIdController,
+                decoration: InputDecoration(
+                  labelText: 'External Registration ID / Reference No.',
+                  hintText: 'e.g. UNSTOP-88412 or DEVFOLIO-9921',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(Icons.confirmation_number_outlined, color: Color(0xFF4F46E5)),
+                ),
+                validator: (val) => (val == null || val.trim().isEmpty) ? 'External registration ID is required' : null,
+              ),
+              const SizedBox(height: 12),
+
+              // Registration Screenshot Proof Upload Box
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.camera_alt_outlined, color: Color(0xFF4F46E5), size: 20),
+                        SizedBox(width: 8),
+                        Text('Upload Registration Screenshot Proof', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _screenshotUrlController,
+                      decoration: InputDecoration(
+                        hintText: 'Paste image URL or attachment path...',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Please attach registration screenshot proof' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    // Image Preview Box
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        _screenshotUrlController.text.trim(),
+                        height: 140,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 100,
+                          color: const Color(0xFFF1F5F9),
+                          child: const Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image_rounded, color: Color(0xFF94A3B8)),
+                                SizedBox(width: 8),
+                                Text('Registration Proof Preview Attached', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Team Details & Members (Max 6)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('3. Team Details & Members (Max 6 Total)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                  if (_memberControllers.length < 5)
+                    TextButton.icon(
+                      onPressed: _addMemberField,
+                      icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                      label: const Text('Add Member', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
 
               TextFormField(
@@ -256,50 +479,59 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.groups_rounded, color: Color(0xFF64748B)),
                 ),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Please enter a team name';
-                  return null;
-                },
+                validator: (val) => (val == null || val.trim().isEmpty) ? 'Please enter team name' : null,
               ),
               const SizedBox(height: 16),
 
-              Text('Teammate Emails (Up to ${widget.hackathon.teamSize - 1} optional)', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-              const SizedBox(height: 12),
+              Text('Additional Teammates (${_memberControllers.length} added / Up to 5 max):',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+              const SizedBox(height: 10),
 
               ...List.generate(_memberControllers.length, (index) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: TextFormField(
-                    controller: _memberControllers[index],
-                    decoration: InputDecoration(
-                      labelText: 'Member ${index + 2} Email',
-                      hintText: 'student${index + 2}@unisphere.edu',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.alternate_email_rounded, color: Color(0xFF64748B)),
-                    ),
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _memberControllers[index],
+                          decoration: InputDecoration(
+                            labelText: 'Member ${index + 2} Name & Email',
+                            hintText: 'Student ${index + 2} (student${index + 2}@unisphere.edu)',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            prefixIcon: const Icon(Icons.person_add_alt_1_outlined, color: Color(0xFF64748B)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline_rounded, color: Color(0xFFEF4444)),
+                        onPressed: () => _removeMemberField(index),
+                      ),
+                    ],
                   ),
                 );
               }),
 
               const SizedBox(height: 24),
 
+              // Submit Button
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: _isSubmitting ? null : _submitRegistration,
+                  icon: _isSubmitting
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Icon(Icons.send_rounded, size: 20),
+                  label: _isSubmitting
+                      ? const SizedBox.shrink()
+                      : const Text('Submit Team Registration to Advisor', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C3AED),
+                    backgroundColor: const Color(0xFF4F46E5),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                        )
-                      : const Text('Confirm Team Registration', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

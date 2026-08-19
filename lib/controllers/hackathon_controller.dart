@@ -114,4 +114,11 @@ class HackathonController extends StateNotifier<HackathonState> {
       rethrow;
     }
   }
+
+  void addHackathon(HackathonModel newHackathon) {
+    state = state.copyWith(
+      hackathons: [newHackathon, ...state.hackathons],
+      status: HackathonStatus.success,
+    );
+  }
 }

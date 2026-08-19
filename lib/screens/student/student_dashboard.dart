@@ -10,6 +10,9 @@ import 'package:unisphere/screens/student/gradebook_screen.dart';
 import 'package:unisphere/screens/features/feature_hub_screen.dart';
 import 'package:unisphere/screens/features/fees_screen.dart';
 import 'package:unisphere/screens/features/hackathons_screen.dart';
+import 'package:unisphere/models/hackathon_registration_model.dart';
+import 'package:unisphere/controllers/hackathon_controller.dart';
+import 'package:unisphere/controllers/hackathon_registration_controller.dart';
 import 'package:unisphere/screens/features/certifications_screen.dart';
 import 'package:unisphere/screens/features/achievements_screen.dart';
 import 'package:unisphere/screens/features/events_screen.dart';
@@ -381,6 +384,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   void initState() {
     super.initState();
     _checkFirstTimeLogin();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final hackathons = ref.read(hackathonControllerProvider).hackathons;
+      ref.read(hackathonRegistrationProvider.notifier).runAutomatedRemindersCheck(hackathons);
+    });
   }
 
   Future<void> _checkFirstTimeLogin() async {
@@ -466,6 +473,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       // Profile Verification Banner (Prompt to complete profile & submit to HOD)
                       _buildProfileCompletionBanner(),
                       _buildMembershipReminderBanner(),
+                      _buildHackathonTeamLeaderActionBanner(),
 
                       // 2. Academic Overview Card with background glow
                       Stack(
@@ -791,6 +799,95 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
               minimumSize: const Size(0, 34),
             ),
             child: const Text('Update →', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHackathonTeamLeaderActionBanner() {
+    final registrations = ref.watch(hackathonRegistrationProvider);
+    final user = ref.watch(authServiceProvider).currentUser;
+
+    final studentId = user?.uid ?? 'STU-2026-042';
+    final leaderRegs = registrations.where((r) => r.studentId == studentId || r.studentId == 'STU-2026-042').toList();
+
+    if (leaderRegs.isEmpty) return const SizedBox.shrink();
+
+    // Find any registration that requires Team Leader action
+    HackathonRegistrationModel? actionReq;
+    for (final r in leaderRegs) {
+      if (r.isCorrectionRequired || !r.hasExternalRegId || !r.hasScreenshotProof || !r.hasRequiredMembers) {
+        actionReq = r;
+        break;
+      }
+    }
+
+    if (actionReq == null) return const SizedBox.shrink();
+
+    String reasonTitle = '⚠️ Hackathon Team Leader Action Required';
+    String reasonMessage = 'Please complete your team details for "${actionReq.hackathonTitle}".';
+
+    if (actionReq.isCorrectionRequired) {
+      reasonTitle = '🔴 Advisor Requested Correction: ${actionReq.hackathonTitle}';
+      reasonMessage = 'Note: "${actionReq.advisorCorrectionNotes ?? "Please update screenshot proof."}"';
+    } else if (!actionReq.hasExternalRegId) {
+      reasonTitle = '📝 Enter External Reg ID: ${actionReq.hackathonTitle}';
+      reasonMessage = 'Please submit your external portal registration ID for team "${actionReq.teamName}".';
+    } else if (!actionReq.hasScreenshotProof) {
+      reasonTitle = '📸 Upload Registration Proof: ${actionReq.hackathonTitle}';
+      reasonMessage = 'Upload your external portal screenshot proof to verify team "${actionReq.teamName}".';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFDBA74)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF97316).withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.notifications_active_rounded, color: Color(0xFFC2410C), size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  reasonTitle,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF9A3412)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            reasonMessage,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF7C2D12), height: 1.3),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: () => widget.onNavigateToTab(7), // Navigate to Hackathons Tab
+            icon: const Icon(Icons.touch_app_rounded, size: 16),
+            label: const Text('Complete Team Details (Manage Team)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEA580C),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              elevation: 0,
+            ),
           ),
         ],
       ),
