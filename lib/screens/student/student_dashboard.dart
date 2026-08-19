@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 import 'package:unisphere/screens/student/modules/student_upcoming_tasks_screen.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/screens/student/gradebook_screen.dart';
@@ -1571,7 +1571,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
                                 return Row(
                                   children: [
-                                    CircularPercentIndicator(
+                                    AppCircularGauge(
                                       radius: 22.0,
                                       lineWidth: 4.5,
                                       percent: (semPercentage / 100.0).clamp(0.0, 1.0),
@@ -1587,7 +1587,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                       backgroundColor: const Color(
                                         0xFF3F51B5,
                                       ).withValues(alpha: 0.12),
-                                      circularStrokeCap: CircularStrokeCap.round,
                                     ),
                                     const SizedBox(width: 6),
                                     Expanded(

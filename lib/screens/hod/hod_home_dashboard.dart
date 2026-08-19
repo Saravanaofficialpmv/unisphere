@@ -1,8 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/common/apple_glass_card.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 
 class HodHomeDashboard extends StatelessWidget {
   final Function(int)? onNavigate;
@@ -312,13 +313,12 @@ class HodHomeDashboard extends StatelessWidget {
       children: [
         SizedBox(width: 34, child: Text(day, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
         Expanded(
-          child: LinearPercentIndicator(
+          child: AppLinearProgressBar(
             lineHeight: 10.0,
             percent: pct,
             progressColor: color,
             backgroundColor: AppColors.background,
-            barRadius: const Radius.circular(10),
-            padding: EdgeInsets.zero,
+            borderRadius: 10.0,
           ),
         ),
         const SizedBox(width: 12),

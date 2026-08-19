@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 import 'package:unisphere/models/student_resume_model.dart';
 
 class ResumeCompletenessCard extends StatefulWidget {
@@ -59,7 +59,7 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
         ),
         child: Row(
           children: [
-            CircularPercentIndicator(
+            AppCircularGauge(
               radius: 18,
               lineWidth: 3.5,
               percent: (score / 100).clamp(0.0, 1.0),
@@ -73,7 +73,6 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
               ),
               progressColor: scoreColor,
               backgroundColor: const Color(0xFFF1F5F9),
-              circularStrokeCap: CircularStrokeCap.round,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -143,10 +142,9 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircularPercentIndicator(
+                AppCircularGauge(
                   radius: 36,
                   lineWidth: 7.0,
-                  animation: true,
                   percent: (score / 100).clamp(0.0, 1.0),
                   center: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -172,7 +170,6 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
                   ),
                   progressColor: scoreColor,
                   backgroundColor: const Color(0xFFF1F5F9),
-                  circularStrokeCap: CircularStrokeCap.round,
                 ),
                 const SizedBox(width: 16),
                 Expanded(

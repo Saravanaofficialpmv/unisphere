@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/providers/attendance_system_provider.dart';
 import 'package:unisphere/providers/post_od_provider.dart';
@@ -1044,7 +1044,7 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
       ),
       child: Row(
         children: [
-          CircularPercentIndicator(
+          AppCircularGauge(
             radius: 42.0,
             lineWidth: 7.0,
             percent: overallPercentage.clamp(0.0, 1.0),
@@ -1058,7 +1058,6 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
             ),
             progressColor: const Color(0xFF34D399),
             backgroundColor: Colors.white.withValues(alpha: 0.2),
-            circularStrokeCap: CircularStrokeCap.round,
           ),
           const SizedBox(width: 14),
           Expanded(

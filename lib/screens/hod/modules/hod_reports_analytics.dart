@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 
 class HodReportsAnalytics extends StatefulWidget {
   const HodReportsAnalytics({super.key});
@@ -156,13 +156,12 @@ class _HodReportsAnalyticsState extends State<HodReportsAnalytics> {
           ],
         ),
         const SizedBox(height: 6),
-        LinearPercentIndicator(
+        AppLinearProgressBar(
           lineHeight: 8.0,
           percent: val,
           progressColor: color,
           backgroundColor: AppColors.background,
-          barRadius: const Radius.circular(10),
-          padding: EdgeInsets.zero,
+          borderRadius: 10.0,
         ),
       ],
     );

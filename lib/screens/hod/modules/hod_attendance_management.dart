@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/providers/attendance_system_provider.dart';
 import 'package:unisphere/models/attendance_model.dart';
@@ -400,14 +400,13 @@ class _HodAttendanceManagementState extends ConsumerState<HodAttendanceManagemen
           Row(
             children: [
               Expanded(
-                child: CircularPercentIndicator(
+                child: AppCircularGauge(
                   radius: 45.0,
                   lineWidth: 9.0,
                   percent: 0.942,
                   center: const Text("94.2%", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   progressColor: AppColors.primary,
                   backgroundColor: AppColors.background,
-                  circularStrokeCap: CircularStrokeCap.round,
                 ),
               ),
               Expanded(
