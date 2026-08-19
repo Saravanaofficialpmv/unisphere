@@ -194,7 +194,7 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
                 indicatorWeight: 3,
                 tabs: [
                   Tab(icon: Icon(Icons.code_rounded, size: 18), text: 'LeetCode Analytics'),
-                  Tab(icon: Icon(Icons.integration_instructions_rounded, size: 18), text: 'GitHub & Repos'),
+                  Tab(icon: Icon(Icons.terminal_rounded, size: 18), text: 'GitHub & Repos'),
                   Tab(icon: Icon(Icons.description_rounded, size: 18), text: 'Resume & Links'),
                   Tab(icon: Icon(Icons.workspace_premium_rounded, size: 18), text: 'Certifications Portfolio'),
                   Tab(icon: Icon(Icons.school_rounded, size: 18), text: 'Academic Record'),
@@ -499,7 +499,7 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
                     color: Colors.white.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.integration_instructions_rounded, color: Colors.white, size: 26),
+                  child: const Icon(Icons.terminal_rounded, color: Colors.white, size: 26),
                 ),
                 const SizedBox(width: 14),
                 Expanded(

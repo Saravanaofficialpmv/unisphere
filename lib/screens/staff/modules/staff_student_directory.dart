@@ -334,7 +334,7 @@ class _StaffStudentDirectoryState extends ConsumerState<StaffStudentDirectory> {
             children: [
               _buildTagPill('@$leetcodeHandle', Icons.code_rounded, const Color(0xFFEA580C), const Color(0xFFFFF7ED)),
               _buildTagPill('CGPA: ${item['cgpa']}', Icons.school_rounded, AppColors.primary, const Color(0xFFEFF6FF)),
-              _buildTagPill('${item['githubRepos']} Repos', Icons.integration_instructions_rounded, const Color(0xFF0F172A), const Color(0xFFF1F5F9)),
+              _buildTagPill('${item['githubRepos']} Repos', Icons.terminal_rounded, const Color(0xFF0F172A), const Color(0xFFF1F5F9)),
               _buildTagPill('$streak Days Streak 🔥', Icons.local_fire_department_rounded, const Color(0xFFF59E0B), const Color(0xFFFFFBEB)),
             ],
           ),

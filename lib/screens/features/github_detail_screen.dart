@@ -112,7 +112,7 @@ class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           title: const Row(
             children: [
-              Icon(Icons.integration_instructions_rounded, color: Color(0xFF2563EB)),
+              Icon(Icons.terminal_rounded, color: Color(0xFF2563EB)),
               SizedBox(width: 8),
               Text('Update GitHub Handle', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ],
@@ -290,17 +290,25 @@ class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFF38BDF8), width: 2),
-                  color: Colors.white.withValues(alpha: 0.1),
-                  image: _fullStats.avatarUrl.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(_fullStats.avatarUrl),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
+                  color: const Color(0xFF1E293B),
                 ),
-                child: _fullStats.avatarUrl.isEmpty
-                    ? const Icon(Icons.integration_instructions_rounded, color: Colors.white, size: 30)
-                    : null,
+                child: ClipOval(
+                  child: _fullStats.avatarUrl.isNotEmpty
+                      ? Image.network(
+                          _fullStats.avatarUrl,
+                          fit: BoxFit.cover,
+                          width: 58,
+                          height: 58,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(Icons.terminal_rounded, color: Colors.white, size: 28),
+                            );
+                          },
+                        )
+                      : const Center(
+                          child: Icon(Icons.terminal_rounded, color: Colors.white, size: 28),
+                        ),
+                ),
               ),
               const SizedBox(width: 14),
 

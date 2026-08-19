@@ -1931,7 +1931,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                     border: Border.all(color: const Color(0xFFCBD5E1)),
                                   ),
                                   child: const Icon(
-                                    Icons.integration_instructions_rounded,
+                                    Icons.terminal_rounded,
                                     color: Color(0xFF0F172A),
                                     size: 18,
                                   ),

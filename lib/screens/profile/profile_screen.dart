@@ -447,7 +447,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                   subtitle: hasGithub
                       ? '${overviewData.githubRepos} Public Repos • ${overviewData.githubCommits} Commits'
                       : 'Click here to submit your GitHub Username to view repositories',
-                  icon: Icons.integration_instructions_rounded,
+                  icon: Icons.terminal_rounded,
                   brandColor: const Color(0xFF0F172A),
                   onOpenUrl: () async {
                     if (!hasGithub) {
@@ -785,7 +785,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
               subtitle: '${overviewData.githubRepos} Public Repositories • ${overviewData.githubCommits} Commits in 2026',
               statusBadge: 'Auto-Syncing ⚡',
               statusColor: const Color(0xFF059669),
-              icon: Icons.integration_instructions_rounded,
+              icon: Icons.terminal_rounded,
               onVisit: () async {
                 final uri = Uri.parse('https://github.com/${overviewData.githubUsername}');
                 if (await canLaunchUrl(uri)) {
@@ -2476,7 +2476,7 @@ class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
                         controller: _githubController,
                         decoration: InputDecoration(
                           hintText: 'e.g. johndoe-dev',
-                          prefixIcon: const Icon(Icons.integration_instructions_rounded, color: Color(0xFF0F172A), size: 18),
+                          prefixIcon: const Icon(Icons.terminal_rounded, color: Color(0xFF0F172A), size: 18),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
