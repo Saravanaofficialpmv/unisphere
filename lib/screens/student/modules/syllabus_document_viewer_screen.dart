@@ -84,7 +84,6 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
-          tooltip: 'Return to Subject Details',
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +103,6 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded, color: Colors.white),
-            tooltip: 'Download Document',
             onPressed: _isDownloading ? null : _handleDownload,
           ),
         ],
@@ -145,7 +143,6 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
                   IconButton(
                     icon: const Icon(Icons.zoom_out_rounded, color: Colors.white, size: 20),
                     onPressed: _zoomOut,
-                    tooltip: 'Zoom Out',
                   ),
                   Text(
                     '${(_zoomScale * 100).toInt()}%',
@@ -154,12 +151,10 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
                   IconButton(
                     icon: const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 20),
                     onPressed: _zoomIn,
-                    tooltip: 'Zoom In',
                   ),
                   IconButton(
                     icon: const Icon(Icons.restart_alt_rounded, color: Color(0xFF94A3B8), size: 20),
                     onPressed: _resetZoom,
-                    tooltip: 'Reset Zoom',
                   ),
                 ],
               ),
@@ -196,36 +191,28 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
                             // Document Watermark Header
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        widget.subject.department.toUpperCase(),
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.primary,
-                                          letterSpacing: 1.2,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.subject.department.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                        letterSpacing: 1.2,
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'ACADEMIC SYLLABUS DOCUMENT · ${widget.subject.academicYear}',
-                                        style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'ACADEMIC SYLLABUS DOCUMENT · ${widget.subject.academicYear}',
+                                      style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFDCFCE7),
                                     borderRadius: BorderRadius.circular(8),
@@ -278,13 +265,9 @@ class _SyllabusDocumentViewerScreenState extends State<SyllabusDocumentViewerScr
                                   'Page $_currentPage of $_totalPages',
                                   style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
                                 ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    'UniSphere Academic Portal · ${widget.subject.subjectCode}',
-                                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                Text(
+                                  'UniSphere Academic Portal · ${widget.subject.subjectCode}',
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
                                 ),
                               ],
                             ),

@@ -323,7 +323,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                 color: AppColors.primary,
                                 size: 24,
                               ),
-                              tooltip: 'Department Vision & Outcomes',
                               onPressed: () => showDepartmentVisionSheet(context),
                             ),
                             const SizedBox(width: 4),
