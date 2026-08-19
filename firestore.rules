@@ -3,27 +3,192 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Firestore Security Rules for Syllabi Collection
-    // Enforces strict student access controls on client queries
+    // HELPER FUNCTIONS FOR ROLE-BASED ACCESS CONTROL (RBAC) & SECURITY
+    // ──────────────────────────────────────────────────────────────────────────
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return request.auth.token.role != null 
+        ? request.auth.token.role 
+        : get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (getUserRole() == 'admin');
+    }
+
+    function isHOD() {
+      return isSignedIn() && (getUserRole() == 'hod');
+    }
+
+    function isStaff() {
+      return isSignedIn() && (getUserRole() == 'staff' || getUserRole() == 'advisor' || isHOD() || isAdmin());
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isPublished(docData) {
+      return docData.status == 'published' || docData.status == 'Published';
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 1. SYLLABI COLLECTION (CURRENT, PREVIOUS, FUTURE & DRAFT SECURITY)
     // ──────────────────────────────────────────────────────────────────────────
     match /syllabi/{syllabusId} {
-      // Admin and HOD have full management access (create, update, delete, write)
-      allow write, create, update, delete: if request.auth != null && 
-        (request.auth.token.role in ['admin', 'hod']);
+      // HOD and Admin have full control (create, update, delete)
+      allow create, update, delete, write: if isHOD() || isAdmin();
 
-      // Read permissions:
-      // 1. HOD and Admin can read all records (Current, Previous, Future, Draft, Published)
-      // 2. Students can ONLY read records where:
-      //    - status == 'published' AND
-      //    - effectiveStartYear <= student's current start year
-      //    (Future and Draft syllabus documents are strictly blocked at the Firebase database level)
-      allow read: if request.auth != null && (
-        request.auth.token.role in ['admin', 'hod'] ||
+      // Read rules:
+      // - HOD and Admin can read ALL records (Current, Previous, Future, Draft, Published)
+      // - Students & Staff can ONLY read records where:
+      //   1. status == 'published'
+      //   2. effectiveStartYear <= student's applicable academic year
+      //   (Future & Draft syllabus records are strictly BLOCKED at the database level)
+      allow read: if isSignedIn() && (
+        isHOD() || 
+        isAdmin() || 
         (
-          resource.data.status == 'published' &&
-          resource.data.effectiveStartYear <= request.auth.token.effectiveStartYear
+          isPublished(resource.data) &&
+          (
+            !('effectiveStartYear' in resource.data) ||
+            !('effectiveStartYear' in request.auth.token) ||
+            resource.data.effectiveStartYear <= request.auth.token.effectiveStartYear
+          )
         )
       );
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 2. USERS COLLECTION
+    // ──────────────────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) || isStaff();
+      allow delete: if isAdmin();
+
+      // User Notification Sub-collection
+      match /notifications/{notifId} {
+        allow read, write: if isOwner(userId) || isStaff();
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 3. STUDENTS & STUDENT PROFILES COLLECTIONS
+    // ──────────────────────────────────────────────────────────────────────────
+    match /students/{studentId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(studentId) || isStaff();
+      allow delete: if isAdmin() || isHOD();
+    }
+
+    match /student_profiles/{profileId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(profileId) || isStaff();
+      allow delete: if isAdmin() || isHOD();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 4. HACKATHONS & REGISTRATIONS COLLECTIONS
+    // ──────────────────────────────────────────────────────────────────────────
+    match /hackathons/{hackathonId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isStaff();
+
+      match /teams/{teamId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
+      }
+    }
+
+    match /hackathonRegistrations/{regId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isStaff();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 5. CERTIFICATIONS COLLECTION
+    // ──────────────────────────────────────────────────────────────────────────
+    match /certifications/{certId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isStaff();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 6. OFFICIAL ANNOUNCEMENTS COLLECTION
+    // ──────────────────────────────────────────────────────────────────────────
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isStaff();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 7. CAMPUS EVENTS & FESTS COLLECTION
+    // ──────────────────────────────────────────────────────────────────────────
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isStaff();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 8. ACADEMIC SCHEDULES & CALENDARS COLLECTION
+    // ──────────────────────────────────────────────────────────────────────────
+    match /academicSchedules/{scheduleId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isHOD() || isAdmin();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 9. FEES & PAYMENT RECEIPTS COLLECTION
+    // ──────────────────────────────────────────────────────────────────────────
+    match /fees/{feeId} {
+      allow read: if isSignedIn() && (
+        isOwner(resource.data.studentId) ||
+        isStaff() ||
+        getUserRole() == 'parent'
+      );
+      allow create, update, delete: if isHOD() || isAdmin();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 10. NOTIFICATION ENGINE COLLECTIONS
+    // ──────────────────────────────────────────────────────────────────────────
+    match /notifications/{notifId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isStaff();
+    }
+
+    match /notification_recipients/{recipId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /notification_delivery_logs/{logId} {
+      allow read, write: if isStaff();
+    }
+
+    match /notification_rules/{ruleId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isHOD() || isAdmin();
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 11. AUDIT & ACTIVITY LOGS COLLECTION
+    // ──────────────────────────────────────────────────────────────────────────
+    match /activityLogs/{logId} {
+      allow read: if isStaff();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // Default Fallback: Authenticated access required
+    match /{document=**} {
+      allow read, write: if isSignedIn();
     }
   }
 }
