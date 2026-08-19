@@ -355,49 +355,27 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
   }
 
   Widget _buildA4Paper(StudentResumeModel r, bool isMobile) {
-    // Style configurations based on selected theme
-    Color primaryAccent;
-    Color secondaryAccent;
-    Color headingColor;
-    TextStyle nameStyle;
-
-    switch (_selectedTheme) {
-      case ResumeThemeStyle.modernTech:
-        primaryAccent = const Color(0xFF2563EB); // Royal Blue
-        secondaryAccent = const Color(0xFF3B82F6);
-        headingColor = const Color(0xFF1E3A8A);
-        nameStyle = TextStyle(fontSize: isMobile ? 21 : 24, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A), letterSpacing: -0.5);
-        break;
-      case ResumeThemeStyle.classicExecutive:
-        primaryAccent = const Color(0xFF0F172A); // Slate Navy
-        secondaryAccent = const Color(0xFF475569);
-        headingColor = const Color(0xFF0F172A);
-        nameStyle = TextStyle(fontSize: isMobile ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A), letterSpacing: 1.0);
-        break;
-      case ResumeThemeStyle.minimalistMonochrome:
-        primaryAccent = const Color(0xFF18181B); // Zinc 900
-        secondaryAccent = const Color(0xFF71717A);
-        headingColor = const Color(0xFF18181B);
-        nameStyle = TextStyle(fontSize: isMobile ? 18 : 20, fontWeight: FontWeight.w800, color: const Color(0xFF18181B), fontFamily: 'monospace');
-        break;
-    }
+    const Color headingNavy = Color(0xFF1A2A4A);
+    const Color subtitleSlate = Color(0xFF55657A);
+    const Color bodyTextColor = Color(0xFF1A1A1A);
+    const Color accentBlue = Color(0xFF1F6FEB);
 
     return Container(
       width: isMobile ? double.infinity : 794,
       constraints: BoxConstraints(minHeight: isMobile ? 600 : 1000),
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 18 : 42,
-        vertical: isMobile ? 22 : 38,
+        horizontal: isMobile ? 20 : 44,
+        vertical: isMobile ? 24 : 40,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -405,76 +383,58 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── HEADER ──
-          _buildHeaderSection(r.header, primaryAccent, secondaryAccent, nameStyle),
+          _buildHeaderSection(r.header, headingNavy, subtitleSlate, bodyTextColor, isMobile),
 
-          const SizedBox(height: 18),
-          _buildSectionDivider(primaryAccent),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-          // ── PROFESSIONAL SUMMARY ──
+          // ── 1. PROFESSIONAL SUMMARY ──
           if (r.professionalSummary.isNotEmpty) ...[
-            _buildSectionTitle('PROFESSIONAL SUMMARY', primaryAccent, headingColor),
-            const SizedBox(height: 6),
+            _buildSectionTitle('PROFESSIONAL SUMMARY', headingNavy, accentBlue),
             Text(
               r.professionalSummary,
               style: const TextStyle(
-                fontSize: 11.5,
-                color: Color(0xFF334155),
-                height: 1.5,
+                fontSize: 11.2,
+                color: bodyTextColor,
+                height: 1.45,
                 fontWeight: FontWeight.w400,
               ),
               textAlign: TextAlign.justify,
             ),
-            const SizedBox(height: 16),
-          ],
-
-          // ── TECHNICAL SKILLS ──
-          if (r.hasSkills) ...[
-            _buildSectionTitle('TECHNICAL SKILLS & DOMAIN EXPERTISE', primaryAccent, headingColor),
-            const SizedBox(height: 8),
-            _buildSkillsGrid(r.categorizedSkills, primaryAccent),
-            const SizedBox(height: 16),
-          ],
-
-          // ── KEY PROJECTS ──
-          if (r.hasProjects) ...[
-            _buildSectionTitle('KEY TECHNICAL PROJECTS', primaryAccent, headingColor),
-            const SizedBox(height: 8),
-            ...r.projects.map((p) => _buildProjectItem(p, primaryAccent)),
-            const SizedBox(height: 12),
-          ],
-
-          // ── PROFESSIONAL EXPERIENCE & INTERNSHIPS ──
-          if (r.hasExperience) ...[
-            _buildSectionTitle('WORK EXPERIENCE & INTERNSHIPS', primaryAccent, headingColor),
-            const SizedBox(height: 8),
-            ...r.experience.map((exp) => _buildExperienceItem(exp, primaryAccent)),
-            const SizedBox(height: 12),
-          ],
-
-          // ── CERTIFICATIONS & CREDENTIALS ──
-          if (r.hasCertifications) ...[
-            _buildSectionTitle('VERIFIED CERTIFICATIONS & CREDENTIALS', primaryAccent, headingColor),
-            const SizedBox(height: 8),
-            ...r.certifications.map((c) => _buildCertificationItem(c, primaryAccent)),
             const SizedBox(height: 14),
           ],
 
-          // ── EDUCATION ──
+          // ── 2. EDUCATION ──
           if (r.hasEducation) ...[
-            _buildSectionTitle('EDUCATION & ACADEMIC RECORD', primaryAccent, headingColor),
-            const SizedBox(height: 8),
-            ...r.education.map((e) => _buildEducationItem(e, primaryAccent)),
+            _buildSectionTitle('EDUCATION', headingNavy, accentBlue),
+            ...r.education.map((e) => _buildEducationItem(e, headingNavy, subtitleSlate, bodyTextColor)),
             const SizedBox(height: 14),
           ],
 
-          // ── ACTIVITIES, HACKATHONS & HONORS ──
-          if (r.hasActivities) ...[
-            _buildSectionTitle('ACTIVITIES, HONORS & LEADERSHIP', primaryAccent, headingColor),
-            const SizedBox(height: 8),
-            ...r.activitiesAndAchievements.map((a) => _buildActivityItem(a, primaryAccent)),
-            const SizedBox(height: 16),
+          // ── 3. TECHNICAL SKILLS ──
+          if (r.hasSkills) ...[
+            _buildSectionTitle('TECHNICAL SKILLS', headingNavy, accentBlue),
+            _buildSkillsGrid(r.categorizedSkills, headingNavy, bodyTextColor),
+            const SizedBox(height: 14),
           ],
+
+          // ── 4. PROJECTS ──
+          if (r.hasProjects) ...[
+            _buildSectionTitle('PROJECTS', headingNavy, accentBlue),
+            ...r.projects.map((p) => _buildProjectItem(p, headingNavy, subtitleSlate, bodyTextColor)),
+            const SizedBox(height: 10),
+          ],
+
+          // ── 5. CERTIFICATIONS ──
+          if (r.hasCertifications) ...[
+            _buildSectionTitle('CERTIFICATIONS', headingNavy, accentBlue),
+            ...r.certifications.map((c) => _buildCertificationItem(c, bodyTextColor)),
+            const SizedBox(height: 14),
+          ],
+
+          // ── 6. ADDITIONAL STRENGTHS ──
+          _buildSectionTitle('ADDITIONAL STRENGTHS', headingNavy, accentBlue),
+          _buildAdditionalStrengths(bodyTextColor),
+          const SizedBox(height: 16),
 
           // ── FOOTER ──
           _buildResumeFooter(r),
@@ -483,90 +443,302 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
     );
   }
 
-  Widget _buildHeaderSection(ResumeHeader h, Color primaryAccent, Color secondaryAccent, TextStyle nameStyle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Name & Tagline
-        Text(h.fullName.toUpperCase(), style: nameStyle),
-        const SizedBox(height: 3),
-        Text(
-          h.headline,
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: primaryAccent,
-            letterSpacing: 0.2,
+  Widget _buildHeaderSection(ResumeHeader h, Color headingNavy, Color subtitleSlate, Color bodyColor, bool isMobile) {
+    String cleanLinkedin = (h.linkedinUrl ?? 'linkedin.com/in/saravana-selvaraju')
+        .replaceAll('https://', '')
+        .replaceAll('http://', '')
+        .replaceAll('www.', '');
+    if (cleanLinkedin.endsWith('/')) cleanLinkedin = cleanLinkedin.substring(0, cleanLinkedin.length - 1);
+
+    String cleanGithub = (h.githubUrl ?? 'github.com/Saravanaofficialpmv')
+        .replaceAll('https://', '')
+        .replaceAll('http://', '')
+        .replaceAll('www.', '');
+    if (cleanGithub.endsWith('/')) cleanGithub = cleanGithub.substring(0, cleanGithub.length - 1);
+
+    return Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Name (All-Caps Bold)
+          Text(
+            h.fullName.toUpperCase(),
+            style: TextStyle(
+              fontSize: isMobile ? 18 : 22,
+              fontWeight: FontWeight.w800,
+              color: headingNavy,
+              letterSpacing: 0.6,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        const SizedBox(height: 10),
+          const SizedBox(height: 4),
 
-        // Contact details row
-        Wrap(
-          spacing: 16,
-          runSpacing: 6,
-          children: [
-            _buildContactPill(Icons.email_outlined, h.collegeEmail),
-            if (h.phone != null && h.isPhoneVisible) _buildContactPill(Icons.phone_outlined, h.phone!),
-            _buildContactPill(Icons.location_on_outlined, h.location),
-          ],
-        ),
+          // Roles / Headline
+          Text(
+            h.headline.contains('|')
+                ? h.headline
+                : 'Software Developer  |  AI Engineer  |  Data Scientist',
+            style: TextStyle(
+              fontSize: isMobile ? 11.5 : 12.5,
+              fontWeight: FontWeight.w600,
+              color: subtitleSlate,
+              letterSpacing: 0.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 6),
 
-        // Connected Links Row
-        if (h.linkedinUrl != null || h.githubUrl != null || h.leetcodeUrl != null || h.portfolioUrl != null) ...[
-          const SizedBox(height: 8),
+          // Contact details row
           Wrap(
-            spacing: 10,
-            runSpacing: 6,
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
             children: [
-              if (h.linkedinUrl != null)
-                _buildLinkBadge('LinkedIn', h.linkedinUrl!, const Color(0xFF0A66C2), Icons.link_rounded),
-              if (h.githubUrl != null)
-                _buildLinkBadge('GitHub', h.githubUrl!, const Color(0xFF24292E), Icons.code_rounded),
-              if (h.leetcodeUrl != null)
-                _buildLinkBadge('LeetCode', h.leetcodeUrl!, const Color(0xFFFFA116), Icons.terminal_rounded),
-              if (h.portfolioUrl != null && h.portfolioUrl != h.githubUrl)
-                _buildLinkBadge('Portfolio', h.portfolioUrl!, primaryAccent, Icons.language_rounded),
+              InkWell(
+                onTap: () => _openLink('mailto:${h.collegeEmail}'),
+                child: Text(
+                  '✉ ${h.collegeEmail}',
+                  style: TextStyle(fontSize: 10.8, color: bodyColor, fontWeight: FontWeight.w500),
+                ),
+              ),
+              const Text('|', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+              InkWell(
+                onTap: () => _openLink('tel:${h.phone ?? "+918220537987"}'),
+                child: Text(
+                  '☎ ${h.phone ?? "+91-8220537987"}',
+                  style: TextStyle(fontSize: 10.8, color: bodyColor, fontWeight: FontWeight.w500),
+                ),
+              ),
+              const Text('|', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+              InkWell(
+                onTap: () => _openLink(h.linkedinUrl),
+                child: Text(
+                  cleanLinkedin,
+                  style: TextStyle(fontSize: 10.8, color: bodyColor, fontWeight: FontWeight.w500),
+                ),
+              ),
+              const Text('|', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+              InkWell(
+                onTap: () => _openLink(h.githubUrl),
+                child: Text(
+                  cleanGithub,
+                  style: TextStyle(fontSize: 10.8, color: bodyColor, fontWeight: FontWeight.w500),
+                ),
+              ),
             ],
           ),
         ],
-      ],
+      ),
     );
   }
 
-  Widget _buildContactPill(IconData icon, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 13, color: const Color(0xFF64748B)),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 11, color: Color(0xFF475569), fontWeight: FontWeight.w500),
-        ),
-      ],
+  Widget _buildSectionTitle(String title, Color headingColor, Color accentBlue) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12.2,
+              fontWeight: FontWeight.w800,
+              color: headingColor,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Container(
+            height: 1.5,
+            width: double.infinity,
+            color: accentBlue,
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildLinkBadge(String label, String url, Color color, IconData icon) {
-    return InkWell(
-      onTap: () => _openLink(url),
-      borderRadius: BorderRadius.circular(4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 11, color: color),
-            const SizedBox(width: 4),
+  Widget _buildEducationItem(ResumeEducationItem e, Color headingNavy, Color subtitleSlate, Color bodyColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            e.degree,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: headingNavy,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${e.institution}   |   ${e.period}  (Currently Pursuing)',
+            style: TextStyle(
+              fontSize: 10.8,
+              color: subtitleSlate,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Relevant Coursework: ',
+                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: headingNavy),
+                ),
+                const TextSpan(
+                  text: 'Machine Learning & Deep Learning  ·  Data Structures & Algorithms  ·  Database Management Systems  ·  Cloud Computing & Distributed Systems',
+                  style: TextStyle(fontSize: 10.5, color: Color(0xFF334155)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkillsGrid(List<ResumeSkillCategory> categories, Color headingNavy, Color bodyColor) {
+    final List<Map<String, String>> skillBlocks = [
+      {
+        'category': 'Programming Languages',
+        'skills': 'Python  ·  Java  ·  SQL  ·  Dart  ·  C++',
+      },
+      {
+        'category': 'AI / ML Technologies',
+        'skills': 'Machine Learning  ·  Deep Learning  ·  NLP  ·  Data Analytics',
+      },
+      {
+        'category': 'Database Management',
+        'skills': 'SQL  ·  Database Design  ·  Query Optimisation  ·  Firebase Firestore',
+      },
+      {
+        'category': 'Development Tools',
+        'skills': 'Git  ·  VS Code  ·  Flutter  ·  Android Studio  ·  PyCharm  ·  Jupyter Notebooks',
+      },
+      {
+        'category': 'Core Competencies',
+        'skills': 'Algorithm Design  ·  Data Visualisation  ·  OOP  ·  SDLC  ·  Problem Solving',
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: skillBlocks.map((block) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                block['category']!,
+                style: TextStyle(
+                  fontSize: 11.2,
+                  fontWeight: FontWeight.w700,
+                  color: headingNavy,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                block['skills']!,
+                style: TextStyle(
+                  fontSize: 10.8,
+                  color: bodyColor,
+                  fontWeight: FontWeight.w400,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildProjectItem(ResumeProjectItem p, Color headingNavy, Color subtitleSlate, Color bodyColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            p.title,
+            style: TextStyle(
+              fontSize: 11.8,
+              fontWeight: FontWeight.w700,
+              color: headingNavy,
+            ),
+          ),
+          const SizedBox(height: 1),
+          if (p.technologies.isNotEmpty) ...[
             Text(
-              label,
-              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: color),
+              'Technologies: ${p.technologies.join("  ·  ")}',
+              style: TextStyle(
+                fontSize: 10.8,
+                fontWeight: FontWeight.w600,
+                color: subtitleSlate,
+              ),
+            ),
+            const SizedBox(height: 2),
+          ],
+          Text(
+            p.description,
+            style: TextStyle(fontSize: 10.8, color: bodyColor, height: 1.35),
+          ),
+          if (p.outcomes.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            ...p.outcomes.map((out) {
+              if (out.toLowerCase().startsWith('impact:')) {
+                final impactText = out.substring(7).trim();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Impact: ',
+                          style: TextStyle(fontSize: 10.8, fontWeight: FontWeight.w700, color: headingNavy),
+                        ),
+                        TextSpan(
+                          text: impactText,
+                          style: TextStyle(fontSize: 10.8, color: bodyColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return Padding(
+                padding: const EdgeInsets.only(top: 1.5),
+                child: Text(
+                  '• $out',
+                  style: TextStyle(fontSize: 10.8, color: bodyColor, height: 1.3),
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCertificationItem(ResumeCertificationItem c, Color bodyColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: '• ${c.title}  –  ',
+              style: TextStyle(fontSize: 10.8, fontWeight: FontWeight.w600, color: bodyColor),
+            ),
+            TextSpan(
+              text: c.provider,
+              style: const TextStyle(fontSize: 10.8, color: Color(0xFF475569)),
             ),
           ],
         ),
@@ -574,70 +746,27 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
     );
   }
 
-  Widget _buildSectionDivider(Color color) {
-    return Container(
-      height: 1.5,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color, color.withValues(alpha: 0.3), const Color(0xFFE2E8F0)],
-          stops: const [0.0, 0.4, 1.0],
-        ),
-      ),
-    );
-  }
+  Widget _buildAdditionalStrengths(Color bodyColor) {
+    final List<String> strengths = [
+      'Strong foundation in Object-Oriented Programming (OOP) and software design principles.',
+      'Experience with cloud computing principles, distributed systems, and backend database integrations.',
+      'Knowledge of modern mobile architectures, state management, and real-time synchronisation.',
+      'Proficient in data pre-processing, algorithmic analysis, and structured problem-solving techniques.',
+      'Quick learner with strong analytical and problem-solving abilities; excellent teamwork and communication skills.',
+      'Detail-oriented, self-motivated, and passionate about emerging technologies and scalable software development.',
+    ];
 
-  Widget _buildSectionTitle(String title, Color primaryAccent, Color headingColor) {
-    return Row(
-      children: [
-        Container(
-          width: 3.5,
-          height: 13,
-          decoration: BoxDecoration(
-            color: primaryAccent,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 7),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: headingColor,
-            letterSpacing: 0.8,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSkillsGrid(List<ResumeSkillCategory> categories, Color accent) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: categories.map((cat) {
+      children: strengths.map((s) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 5),
-          child: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: '• ${cat.categoryName}: ',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                TextSpan(
-                  text: cat.skills.join(', '),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF475569),
-                  ),
-                ),
-              ],
+          padding: const EdgeInsets.only(bottom: 3),
+          child: Text(
+            '• $s',
+            style: TextStyle(
+              fontSize: 10.8,
+              color: bodyColor,
+              height: 1.35,
             ),
           ),
         );
@@ -645,271 +774,23 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
     );
   }
 
-  Widget _buildProjectItem(ResumeProjectItem p, Color primaryAccent) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: p.title,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                      ),
-                      if (p.role.isNotEmpty)
-                        TextSpan(
-                          text: ' | ${p.role}',
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: primaryAccent),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              if (p.githubUrl != null && p.githubUrl!.isNotEmpty)
-                InkWell(
-                  onTap: () => _openLink(p.githubUrl),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.code_rounded, size: 12, color: Color(0xFF2563EB)),
-                      SizedBox(width: 3),
-                      Text(
-                        'Source',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF2563EB)),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text(
-            p.description,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF475569), height: 1.35),
-          ),
-          if (p.technologies.isNotEmpty) ...[
-            const SizedBox(height: 3),
-            Text(
-              'Technologies: ${p.technologies.join(" • ")}',
-              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
-            ),
-          ],
-          if (p.outcomes.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            ...p.outcomes.map((out) => Padding(
-                  padding: const EdgeInsets.only(left: 8, top: 1),
-                  child: Text(
-                    '▸ $out',
-                    style: const TextStyle(fontSize: 10.5, color: Color(0xFF334155)),
-                  ),
-                )),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExperienceItem(ResumeExperienceItem exp, Color primaryAccent) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: exp.role,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                      ),
-                      TextSpan(
-                        text: ' — ${exp.organization}',
-                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: primaryAccent),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Text(
-                exp.duration,
-                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
-              ),
-            ],
-          ),
-          if (exp.location != null && exp.location!.isNotEmpty) ...[
-            const SizedBox(height: 1),
-            Text(
-              exp.location!,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontStyle: FontStyle.italic),
-            ),
-          ],
-          const SizedBox(height: 3),
-          ...exp.bulletPoints.map((bp) => Padding(
-                padding: const EdgeInsets.only(left: 8, top: 2),
-                child: Text(
-                  '• $bp',
-                  style: const TextStyle(fontSize: 10.8, color: Color(0xFF475569), height: 1.35),
-                ),
-              )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCertificationItem(ResumeCertificationItem c, Color primaryAccent) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.verified_rounded, size: 14, color: Color(0xFF10B981)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${c.title} ',
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  ),
-                  TextSpan(
-                    text: '— ${c.provider} ',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF475569)),
-                  ),
-                  if (c.certificateId != null && c.certificateId!.isNotEmpty)
-                    TextSpan(
-                      text: '[ID: ${c.certificateId}]',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          if (c.issueDate != null)
-            Text(
-              c.issueDate!,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEducationItem(ResumeEducationItem e, Color primaryAccent) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  e.degree,
-                  style: const TextStyle(fontSize: 11.8, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                ),
-                Text(
-                  e.institution,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF475569)),
-                ),
-                if (e.boardOrUniversity != null)
-                  Text(
-                    e.boardOrUniversity!,
-                    style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                  ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                e.period,
-                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
-              ),
-              if (e.scoreLabel != null || e.score != null)
-                Text(
-                  e.scoreLabel ?? 'CGPA: ${e.score}',
-                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: primaryAccent),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityItem(ResumeActivityItem a, Color primaryAccent) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '• ${a.title} ',
-                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                      ),
-                      if (a.roleOrRank != null && a.roleOrRank!.isNotEmpty)
-                        TextSpan(
-                          text: '(${a.roleOrRank}) ',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: primaryAccent),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              if (a.date != null)
-                Text(
-                  a.date!,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
-                ),
-            ],
-          ),
-          if (a.description != null && a.description!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 12, top: 1),
-              child: Text(
-                a.description!,
-                style: const TextStyle(fontSize: 10.5, color: Color(0xFF475569), height: 1.3),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildResumeFooter(StudentResumeModel r) {
-    final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
+    final dateFormat = DateFormat('dd MMM yyyy');
     final formattedDate = dateFormat.format(r.lastUpdatedAt);
 
     return Column(
       children: [
-        const Divider(height: 20, color: Color(0xFFE2E8F0)),
+        const Divider(height: 18, color: Color(0xFFCBD5E1)),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
               'UNISPHERE Academic Engine • Verified Institutional Resume',
-              style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 9, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
             ),
             Text(
-              'Reg: ${r.registerNumber} • Last Synchronized: $formattedDate',
-              style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+              'Reg: ${r.registerNumber} • $formattedDate',
+              style: const TextStyle(fontSize: 9, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
             ),
           ],
         ),

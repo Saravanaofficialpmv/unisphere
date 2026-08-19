@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/resume_service.dart';
-import 'package:unisphere/widgets/resume/resume_completeness_card.dart';
 import 'package:unisphere/widgets/resume/resume_document_view.dart';
 import 'package:unisphere/widgets/student/student_profile_edit_request_modal.dart';
 
@@ -22,26 +21,6 @@ class StudentResumeScreen extends ConsumerStatefulWidget {
 }
 
 class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
-
-  void _handleCompletenessAction(String actionRoute) {
-    if (actionRoute == 'projects') {
-      if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(17); // Feature Hub
-      } else {
-        _showEditProfileModal();
-      }
-    } else if (actionRoute == 'certifications') {
-      if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(12); // Certifications screen
-      }
-    } else if (actionRoute == 'hackathons') {
-      if (widget.onNavigateToTab != null) {
-        widget.onNavigateToTab!(11); // Hackathons screen
-      }
-    } else {
-      _showEditProfileModal();
-    }
-  }
 
   void _showEditProfileModal() {
     showModalBottomSheet(
@@ -171,28 +150,10 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Completeness Card at top
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: ResumeCompletenessCard(
-                completeness: activeResume.completeness,
-                onActionTap: _handleCompletenessAction,
-              ),
-            ),
-
-            // A4 Document Preview
-            ResumeDocumentView(
-              resume: activeResume,
-              onEditRequest: _showEditProfileModal,
-              showControls: true,
-              shrinkWrap: true,
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
+      body: ResumeDocumentView(
+        resume: activeResume,
+        onEditRequest: _showEditProfileModal,
+        showControls: true,
       ),
     );
   }
