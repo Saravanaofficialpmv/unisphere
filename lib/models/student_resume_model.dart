@@ -388,6 +388,7 @@ class StudentResumeModel {
   final List<ResumeSkillCategory> categorizedSkills;
   final List<String> allSkills;
   final ResumeCompleteness completeness;
+  final List<String> strengths;
   final DateTime lastUpdatedAt;
   final int version;
 
@@ -407,6 +408,14 @@ class StudentResumeModel {
     required this.categorizedSkills,
     required this.allSkills,
     required this.completeness,
+    this.strengths = const [
+      'Strong foundation in Object-Oriented Programming (OOP) and software design principles.',
+      'Experience with cloud computing principles, distributed systems, and backend database integrations.',
+      'Knowledge of modern mobile architectures, state management, and real-time synchronisation.',
+      'Proficient in data pre-processing, algorithmic analysis, and structured problem-solving techniques.',
+      'Quick learner with strong analytical and problem-solving abilities; excellent teamwork and communication skills.',
+      'Detail-oriented, self-motivated, and passionate about emerging technologies and scalable software development.',
+    ],
     required this.lastUpdatedAt,
     this.version = 1,
   });
@@ -417,4 +426,105 @@ class StudentResumeModel {
   bool get hasActivities => activitiesAndAchievements.isNotEmpty;
   bool get hasSkills => categorizedSkills.any((cat) => cat.skills.isNotEmpty);
   bool get hasEducation => education.isNotEmpty;
+  bool get hasStrengths => strengths.isNotEmpty;
+
+  StudentResumeModel copyWith({
+    String? studentUid,
+    String? registerNumber,
+    String? department,
+    String? academicYear,
+    String? section,
+    ResumeHeader? header,
+    String? professionalSummary,
+    List<ResumeEducationItem>? education,
+    List<ResumeExperienceItem>? experience,
+    List<ResumeProjectItem>? projects,
+    List<ResumeCertificationItem>? certifications,
+    List<ResumeActivityItem>? activitiesAndAchievements,
+    List<ResumeSkillCategory>? categorizedSkills,
+    List<String>? allSkills,
+    List<String>? strengths,
+    ResumeCompleteness? completeness,
+    DateTime? lastUpdatedAt,
+    int? version,
+  }) {
+    return StudentResumeModel(
+      studentUid: studentUid ?? this.studentUid,
+      registerNumber: registerNumber ?? this.registerNumber,
+      department: department ?? this.department,
+      academicYear: academicYear ?? this.academicYear,
+      section: section ?? this.section,
+      header: header ?? this.header,
+      professionalSummary: professionalSummary ?? this.professionalSummary,
+      education: education ?? this.education,
+      experience: experience ?? this.experience,
+      projects: projects ?? this.projects,
+      certifications: certifications ?? this.certifications,
+      activitiesAndAchievements: activitiesAndAchievements ?? this.activitiesAndAchievements,
+      categorizedSkills: categorizedSkills ?? this.categorizedSkills,
+      allSkills: allSkills ?? this.allSkills,
+      strengths: strengths ?? this.strengths,
+      completeness: completeness ?? this.completeness,
+      lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+      version: version ?? this.version,
+    );
+  }
+
+  String toPlainText() {
+    final buffer = StringBuffer();
+    buffer.writeln(header.fullName.toUpperCase());
+    buffer.writeln(header.headline);
+    buffer.writeln('${header.collegeEmail} | ${header.phone ?? ""} | ${header.linkedinUrl ?? ""} | ${header.githubUrl ?? ""}');
+    buffer.writeln('\n${"=" * 40}');
+    buffer.writeln('PROFESSIONAL SUMMARY');
+    buffer.writeln(professionalSummary);
+
+    if (hasEducation) {
+      buffer.writeln('\n${"=" * 40}');
+      buffer.writeln('EDUCATION');
+      for (final e in education) {
+        buffer.writeln('${e.degree} - ${e.institution} (${e.period})');
+        if (e.scoreLabel != null) buffer.writeln(e.scoreLabel);
+      }
+    }
+
+    if (hasSkills) {
+      buffer.writeln('\n${"=" * 40}');
+      buffer.writeln('TECHNICAL SKILLS');
+      for (final cat in categorizedSkills) {
+        buffer.writeln('${cat.categoryName}: ${cat.skills.join(" · ")}');
+      }
+    }
+
+    if (hasProjects) {
+      buffer.writeln('\n${"=" * 40}');
+      buffer.writeln('PROJECTS');
+      for (final p in projects) {
+        buffer.writeln(p.title);
+        if (p.technologies.isNotEmpty) buffer.writeln('Technologies: ${p.technologies.join(" · ")}');
+        buffer.writeln(p.description);
+        for (final out in p.outcomes) {
+          buffer.writeln('• $out');
+        }
+      }
+    }
+
+    if (hasCertifications) {
+      buffer.writeln('\n${"=" * 40}');
+      buffer.writeln('CERTIFICATIONS');
+      for (final c in certifications) {
+        buffer.writeln('• ${c.title} - ${c.provider}');
+      }
+    }
+
+    if (hasStrengths) {
+      buffer.writeln('\n${"=" * 40}');
+      buffer.writeln('ADDITIONAL STRENGTHS');
+      for (final s in strengths) {
+        buffer.writeln('• $s');
+      }
+    }
+
+    return buffer.toString();
+  }
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unisphere/models/student_resume_model.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/resume_service.dart';
 import 'package:unisphere/widgets/resume/resume_document_view.dart';
-import 'package:unisphere/widgets/student/student_profile_edit_request_modal.dart';
+import 'package:unisphere/widgets/resume/resume_editor_modal.dart';
 
 class StudentResumeScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -21,14 +22,22 @@ class StudentResumeScreen extends ConsumerStatefulWidget {
 }
 
 class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
+  StudentResumeModel? _customizedResume;
 
-  void _showEditProfileModal() {
+  void _openEditorModal(StudentResumeModel currentResume) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const StudentProfileEditRequestModal(),
+      builder: (_) => ResumeEditorModal(
+        resume: currentResume,
+        onSave: (updated) {
+          setState(() {
+            _customizedResume = updated;
+          });
+        },
+      ),
     );
   }
 
@@ -45,7 +54,8 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
       customLeetCode: overviewData.leetcodeUsername.isNotEmpty ? overviewData.leetcodeUsername : null,
       customLinkedin: overviewData.linkedinUrl.isNotEmpty ? overviewData.linkedinUrl : null,
     );
-    final activeResume = resumeAsync.value ?? fallbackResume;
+    final baseResume = resumeAsync.value ?? fallbackResume;
+    final activeResume = _customizedResume ?? baseResume;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -129,13 +139,16 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
             icon: const Icon(Icons.edit_note_rounded, color: Color(0xFF2563EB), size: 22),
             padding: const EdgeInsets.symmetric(horizontal: 4),
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: _showEditProfileModal,
+            onPressed: () => _openEditorModal(activeResume),
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF475569), size: 20),
             padding: const EdgeInsets.only(left: 4, right: 8),
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: () {
+              setState(() {
+                _customizedResume = null;
+              });
               ref.invalidate(currentStudentResumeStreamProvider);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -150,7 +163,12 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
       ),
       body: ResumeDocumentView(
         resume: activeResume,
-        onEditRequest: _showEditProfileModal,
+        onEditRequest: () => _openEditorModal(activeResume),
+        onResumeUpdated: (updated) {
+          setState(() {
+            _customizedResume = updated;
+          });
+        },
         showControls: true,
       ),
     );

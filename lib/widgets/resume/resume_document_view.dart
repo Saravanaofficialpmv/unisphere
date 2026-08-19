@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:unisphere/models/student_resume_model.dart';
+import 'package:unisphere/services/resume_pdf_service.dart';
+import 'package:unisphere/widgets/resume/resume_editor_modal.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-enum ResumeThemeStyle { modernTech, classicExecutive, minimalistMonochrome }
 
 class ResumeDocumentView extends StatefulWidget {
   final StudentResumeModel resume;
@@ -12,6 +12,7 @@ class ResumeDocumentView extends StatefulWidget {
   final bool showControls;
   final bool shrinkWrap;
   final VoidCallback? onEditRequest;
+  final Function(StudentResumeModel updatedResume)? onResumeUpdated;
 
   const ResumeDocumentView({
     super.key,
@@ -20,6 +21,7 @@ class ResumeDocumentView extends StatefulWidget {
     this.showControls = true,
     this.shrinkWrap = false,
     this.onEditRequest,
+    this.onResumeUpdated,
   });
 
   @override
@@ -27,7 +29,6 @@ class ResumeDocumentView extends StatefulWidget {
 }
 
 class _ResumeDocumentViewState extends State<ResumeDocumentView> {
-  ResumeThemeStyle _selectedTheme = ResumeThemeStyle.modernTech;
   double _zoomScale = 1.0;
 
   Future<void> _openLink(String? url) async {
@@ -41,44 +42,30 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
   }
 
   void _copyResumeText() {
-    final r = widget.resume;
-    final buffer = StringBuffer();
-    buffer.writeln(r.header.fullName.toUpperCase());
-    buffer.writeln(r.header.headline);
-    buffer.writeln('${r.header.collegeEmail} | ${r.header.phone ?? ""} | ${r.header.location}');
-    if (r.header.linkedinUrl != null) buffer.writeln('LinkedIn: ${r.header.linkedinUrl}');
-    if (r.header.githubUrl != null) buffer.writeln('GitHub: ${r.header.githubUrl}');
-    buffer.writeln('\n--- PROFESSIONAL SUMMARY ---');
-    buffer.writeln(r.professionalSummary);
-    buffer.writeln('\n--- TECHNICAL SKILLS ---');
-    for (var cat in r.categorizedSkills) {
-      buffer.writeln('${cat.categoryName}: ${cat.skills.join(", ")}');
-    }
-    buffer.writeln('\n--- KEY PROJECTS ---');
-    for (var p in r.projects) {
-      buffer.writeln('${p.title} (${p.role})');
-      buffer.writeln(p.description);
-      buffer.writeln('Technologies: ${p.technologies.join(", ")}');
-      for (var out in p.outcomes) {
-        buffer.writeln('- $out');
-      }
-      buffer.writeln('');
-    }
-    buffer.writeln('\n--- CERTIFICATIONS ---');
-    for (var c in r.certifications) {
-      buffer.writeln('${c.title} - ${c.provider} (${c.certificateId ?? "Verified"})');
-    }
-    buffer.writeln('\n--- EDUCATION ---');
-    for (var e in r.education) {
-      buffer.writeln('${e.degree} - ${e.institution} (${e.period}) [${e.scoreLabel ?? e.score ?? ""}]');
-    }
-
-    Clipboard.setData(ClipboardData(text: buffer.toString()));
+    final text = widget.resume.toPlainText();
+    Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Resume text copied to clipboard in standard Markdown format!'),
+        content: Text('Resume text copied to clipboard in standard ATS format!'),
         backgroundColor: Color(0xFF10B981),
         duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _openEditorModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ResumeEditorModal(
+        resume: widget.resume,
+        onSave: (updated) {
+          if (widget.onResumeUpdated != null) {
+            widget.onResumeUpdated!(updated);
+          }
+        },
       ),
     );
   }
@@ -100,8 +87,8 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Your dynamic resume is formatted according to international A4 dimensions (210 × 297 mm) and is print-ready for placement drives and recruiter portals.',
-              style: TextStyle(fontSize: 13, color: Color(0xFF475569), height: 1.4),
+              'Your dynamic resume is formatted according to international A4 dimensions (210 × 297 mm) and is ready for export, PDF download, and placement drives.',
+              style: TextStyle(fontSize: 12.5, color: Color(0xFF475569), height: 1.4),
             ),
             const SizedBox(height: 16),
             Container(
@@ -113,20 +100,35 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
               ),
               child: Column(
                 children: [
-                  _buildExportOption(Icons.picture_as_pdf_rounded, 'Export as PDF Document', 'Generate high-res vector PDF for applications', () {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Preparing A4 PDF download... Document is ready for print.'),
-                        backgroundColor: Color(0xFF2563EB),
-                      ),
-                    );
-                  }),
+                  _buildExportOption(
+                    Icons.picture_as_pdf_rounded,
+                    'Print & Save as PDF',
+                    'Open native OS print preview dialog to save or print A4 PDF',
+                    () async {
+                      Navigator.pop(ctx);
+                      await ResumePdfService.printOrExportResume(widget.resume);
+                    },
+                  ),
                   const Divider(height: 16),
-                  _buildExportOption(Icons.copy_all_rounded, 'Copy Markdown / Plain Text', 'Copy ATS-friendly structured resume text', () {
-                    Navigator.pop(ctx);
-                    _copyResumeText();
-                  }),
+                  _buildExportOption(
+                    Icons.share_rounded,
+                    'Share PDF File',
+                    'Directly share the PDF document via AirDrop, Email or Apps',
+                    () async {
+                      Navigator.pop(ctx);
+                      await ResumePdfService.shareResumePdf(widget.resume);
+                    },
+                  ),
+                  const Divider(height: 16),
+                  _buildExportOption(
+                    Icons.copy_all_rounded,
+                    'Copy Plain Text / Markdown',
+                    'Copy ATS-friendly structured resume text to clipboard',
+                    () {
+                      Navigator.pop(ctx);
+                      _copyResumeText();
+                    },
+                  ),
                 ],
               ),
             ),
@@ -241,62 +243,24 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Theme Selector
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<ResumeThemeStyle>(
-                  value: _selectedTheme,
-                  isDense: true,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF64748B)),
-                  items: const [
-                    DropdownMenuItem(
-                      value: ResumeThemeStyle.modernTech,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.palette_rounded, size: 14, color: Color(0xFF2563EB)),
-                          SizedBox(width: 6),
-                          Text('Modern Tech'),
-                        ],
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: ResumeThemeStyle.classicExecutive,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.article_rounded, size: 14, color: Color(0xFF0F172A)),
-                          SizedBox(width: 6),
-                          Text('Classic Executive'),
-                        ],
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: ResumeThemeStyle.minimalistMonochrome,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.terminal_rounded, size: 14, color: Color(0xFF475569)),
-                          SizedBox(width: 6),
-                          Text('Minimalist Developer'),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedTheme = val);
-                  },
+            // Customize Resume Button
+            ElevatedButton.icon(
+              onPressed: _openEditorModal,
+              icon: const Icon(Icons.edit_note_rounded, size: 16),
+              label: const Text('Customize Resume', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEFF6FF),
+                foregroundColor: const Color(0xFF2563EB),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(color: Color(0xFFBFDBFE)),
                 ),
               ),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
 
             // Zoom In / Out
             IconButton(
@@ -336,12 +300,12 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             ElevatedButton.icon(
               onPressed: _showPrintExportModal,
               icon: const Icon(Icons.picture_as_pdf_rounded, size: 14),
-              label: const Text('Export / Print', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+              label: const Text('Export / Print PDF', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
