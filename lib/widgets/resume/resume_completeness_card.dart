@@ -191,16 +191,25 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
                           ),
                           const Spacer(),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 3.5,
+                            ),
                             decoration: BoxDecoration(
                               color: scoreColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: scoreColor.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                color: scoreColor.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.verified_rounded, size: 12, color: scoreColor),
+                                Icon(
+                                  Icons.verified_rounded,
+                                  size: 12,
+                                  color: scoreColor,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   scoreStatus,
@@ -232,7 +241,9 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
                           _buildStatPill(
                             'Required Info',
                             '${comp.requiredCompleted}/${comp.requiredTotal}',
-                            comp.requiredCompleted == comp.requiredTotal ? Colors.green : Colors.orange,
+                            comp.requiredCompleted == comp.requiredTotal
+                                ? Colors.green
+                                : Colors.orange,
                           ),
                           const SizedBox(width: 8),
                           _buildStatPill(
@@ -255,12 +266,16 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
           // Expansion Toggle Bar
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(20),
+            ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
-                borderRadius: _isExpanded ? null : const BorderRadius.vertical(bottom: Radius.circular(20)),
+                borderRadius: _isExpanded
+                    ? null
+                    : const BorderRadius.vertical(bottom: Radius.circular(20)),
               ),
               child: Row(
                 children: [
@@ -282,7 +297,9 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
                   ),
                   const Spacer(),
                   Icon(
-                    _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    _isExpanded
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
                     color: const Color(0xFF64748B),
                     size: 20,
                   ),
@@ -309,7 +326,9 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...comp.requiredItems.map((item) => _buildChecklistItem(item)),
+                  ...comp.requiredItems.map(
+                    (item) => _buildChecklistItem(item),
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     'RECOMMENDED RESUME ENHANCEMENTS',
@@ -321,7 +340,9 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...comp.recommendedItems.map((item) => _buildChecklistItem(item)),
+                  ...comp.recommendedItems.map(
+                    (item) => _buildChecklistItem(item),
+                  ),
                 ],
               ),
             ),
@@ -350,11 +371,19 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
           const SizedBox(width: 6),
           Text(
             '$label: ',
-            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 11,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w500,
+            ),
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 11,
+              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -391,7 +420,9 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isDone ? const Color(0xFF334155) : const Color(0xFF92400E),
+                    color: isDone
+                        ? const Color(0xFF334155)
+                        : const Color(0xFF92400E),
                     decoration: isDone ? TextDecoration.none : null,
                   ),
                 ),
@@ -413,14 +444,22 @@ class _ResumeCompletenessCardState extends State<ResumeCompletenessCard> {
                 backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
               child: Text(
                 item.actionLabel,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
