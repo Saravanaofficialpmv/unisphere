@@ -339,69 +339,6 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
           const SizedBox(height: 16),
 
-          // Year Navigation Controls
-          const Text('Select Year:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _availableYears.map((yr) {
-                final isSelected = yr == _currentSelectedYear;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(yr),
-                    selected: isSelected,
-                    selectedColor: AppColors.primary,
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF475569),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                    onSelected: (_) {
-                      setState(() {
-                        _currentSelectedYear = yr;
-                        _currentSelectedSemester = _getAvailableSemesters(yr).first;
-                      });
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Semester Navigation Controls
-          const Text('Select Semester:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _getAvailableSemesters(_currentSelectedYear).map((sem) {
-                final isSelected = sem == _currentSelectedSemester;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(sem),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFF312E81),
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF475569),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                    onSelected: (_) {
-                      setState(() => _currentSelectedSemester = sem);
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 16),
-
           // Search Input & Type Filter Chips
           _buildSearchAndFilterRow(),
           const SizedBox(height: 16),
