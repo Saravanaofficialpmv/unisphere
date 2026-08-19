@@ -163,26 +163,28 @@ class _StudentResumeScreenState extends ConsumerState<StudentResumeScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Completeness Card at top
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: ResumeCompletenessCard(
-              completeness: activeResume.completeness,
-              onActionTap: _handleCompletenessAction,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Completeness Card at top
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: ResumeCompletenessCard(
+                completeness: activeResume.completeness,
+                onActionTap: _handleCompletenessAction,
+              ),
             ),
-          ),
 
-          // A4 Document Preview
-          Expanded(
-            child: ResumeDocumentView(
+            // A4 Document Preview
+            ResumeDocumentView(
               resume: activeResume,
               onEditRequest: _showEditProfileModal,
               showControls: true,
+              shrinkWrap: true,
             ),
-          ),
-        ],
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

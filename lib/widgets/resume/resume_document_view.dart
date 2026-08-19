@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:unisphere/models/student_resume_model.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,6 +10,7 @@ class ResumeDocumentView extends StatefulWidget {
   final StudentResumeModel resume;
   final bool isInteractive;
   final bool showControls;
+  final bool shrinkWrap;
   final VoidCallback? onEditRequest;
 
   const ResumeDocumentView({
@@ -18,6 +18,7 @@ class ResumeDocumentView extends StatefulWidget {
     required this.resume,
     this.isInteractive = true,
     this.showControls = true,
+    this.shrinkWrap = false,
     this.onEditRequest,
   });
 
@@ -178,12 +179,31 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768;
 
-    return Column(
-      children: [
-        // Controls Bar
-        if (widget.showControls) _buildControlsBar(),
+    if (widget.shrinkWrap) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.showControls) _buildControlsBar(),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 24,
+              vertical: 16,
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 820),
+                child: _buildA4Paper(r, isMobile),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
-        // Resume A4 Document Container
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.showControls) _buildControlsBar(),
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(
@@ -193,11 +213,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 820),
-                child: Transform.scale(
-                  scale: _zoomScale,
-                  alignment: Alignment.topCenter,
-                  child: _buildA4Paper(r, isMobile),
-                ),
+                child: _buildA4Paper(r, isMobile),
               ),
             ),
           ),
@@ -350,19 +366,19 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         primaryAccent = const Color(0xFF2563EB); // Royal Blue
         secondaryAccent = const Color(0xFF3B82F6);
         headingColor = const Color(0xFF1E3A8A);
-        nameStyle = GoogleFonts.outfit(fontSize: isMobile ? 21 : 24, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A), letterSpacing: -0.5);
+        nameStyle = TextStyle(fontSize: isMobile ? 21 : 24, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A), letterSpacing: -0.5);
         break;
       case ResumeThemeStyle.classicExecutive:
         primaryAccent = const Color(0xFF0F172A); // Slate Navy
         secondaryAccent = const Color(0xFF475569);
         headingColor = const Color(0xFF0F172A);
-        nameStyle = GoogleFonts.cinzel(fontSize: isMobile ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A), letterSpacing: 1.0);
+        nameStyle = TextStyle(fontSize: isMobile ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A), letterSpacing: 1.0);
         break;
       case ResumeThemeStyle.minimalistMonochrome:
         primaryAccent = const Color(0xFF18181B); // Zinc 900
         secondaryAccent = const Color(0xFF71717A);
         headingColor = const Color(0xFF18181B);
-        nameStyle = GoogleFonts.jetBrainsMono(fontSize: isMobile ? 18 : 20, fontWeight: FontWeight.w800, color: const Color(0xFF18181B));
+        nameStyle = TextStyle(fontSize: isMobile ? 18 : 20, fontWeight: FontWeight.w800, color: const Color(0xFF18181B), fontFamily: 'monospace');
         break;
     }
 
@@ -401,9 +417,9 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             const SizedBox(height: 6),
             Text(
               r.professionalSummary,
-              style: GoogleFonts.inter(
+              style: const TextStyle(
                 fontSize: 11.5,
-                color: const Color(0xFF334155),
+                color: Color(0xFF334155),
                 height: 1.5,
                 fontWeight: FontWeight.w400,
               ),
@@ -476,7 +492,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         const SizedBox(height: 3),
         Text(
           h.headline,
-          style: GoogleFonts.inter(
+          style: TextStyle(
             fontSize: 12.5,
             fontWeight: FontWeight.w600,
             color: primaryAccent,
@@ -526,7 +542,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         const SizedBox(width: 4),
         Text(
           text,
-          style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF475569), fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 11, color: Color(0xFF475569), fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -550,7 +566,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             const SizedBox(width: 4),
             Text(
               label,
-              style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.bold, color: color),
+              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: color),
             ),
           ],
         ),
@@ -585,7 +601,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         const SizedBox(width: 7),
         Text(
           title,
-          style: GoogleFonts.inter(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
             color: headingColor,
@@ -607,18 +623,18 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
               children: [
                 TextSpan(
                   text: '• ${cat.categoryName}: ',
-                  style: GoogleFonts.inter(
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1E293B),
+                    color: Color(0xFF1E293B),
                   ),
                 ),
                 TextSpan(
                   text: cat.skills.join(', '),
-                  style: GoogleFonts.inter(
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w400,
-                    color: const Color(0xFF475569),
+                    color: Color(0xFF475569),
                   ),
                 ),
               ],
@@ -643,12 +659,12 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
                     children: [
                       TextSpan(
                         text: p.title,
-                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                       ),
                       if (p.role.isNotEmpty)
                         TextSpan(
                           text: ' | ${p.role}',
-                          style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: primaryAccent),
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: primaryAccent),
                         ),
                     ],
                   ),
@@ -657,14 +673,14 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
               if (p.githubUrl != null && p.githubUrl!.isNotEmpty)
                 InkWell(
                   onTap: () => _openLink(p.githubUrl),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.code_rounded, size: 12, color: Color(0xFF2563EB)),
-                      const SizedBox(width: 3),
+                      Icon(Icons.code_rounded, size: 12, color: Color(0xFF2563EB)),
+                      SizedBox(width: 3),
                       Text(
                         'Source',
-                        style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF2563EB)),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF2563EB)),
                       ),
                     ],
                   ),
@@ -674,13 +690,13 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
           const SizedBox(height: 2),
           Text(
             p.description,
-            style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF475569), height: 1.35),
+            style: const TextStyle(fontSize: 11, color: Color(0xFF475569), height: 1.35),
           ),
           if (p.technologies.isNotEmpty) ...[
             const SizedBox(height: 3),
             Text(
               'Technologies: ${p.technologies.join(" • ")}',
-              style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
             ),
           ],
           if (p.outcomes.isNotEmpty) ...[
@@ -689,7 +705,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
                   padding: const EdgeInsets.only(left: 8, top: 1),
                   child: Text(
                     '▸ $out',
-                    style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF334155)),
+                    style: const TextStyle(fontSize: 10.5, color: Color(0xFF334155)),
                   ),
                 )),
           ],
@@ -712,11 +728,11 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
                     children: [
                       TextSpan(
                         text: exp.role,
-                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                       ),
                       TextSpan(
                         text: ' — ${exp.organization}',
-                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: primaryAccent),
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: primaryAccent),
                       ),
                     ],
                   ),
@@ -724,7 +740,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
               ),
               Text(
                 exp.duration,
-                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
               ),
             ],
           ),
@@ -732,7 +748,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             const SizedBox(height: 1),
             Text(
               exp.location!,
-              style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF94A3B8), fontStyle: FontStyle.italic),
+              style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontStyle: FontStyle.italic),
             ),
           ],
           const SizedBox(height: 3),
@@ -740,7 +756,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
                 padding: const EdgeInsets.only(left: 8, top: 2),
                 child: Text(
                   '• $bp',
-                  style: GoogleFonts.inter(fontSize: 10.8, color: const Color(0xFF475569), height: 1.35),
+                  style: const TextStyle(fontSize: 10.8, color: Color(0xFF475569), height: 1.35),
                 ),
               )),
         ],
@@ -762,16 +778,16 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
                 children: [
                   TextSpan(
                     text: '${c.title} ',
-                    style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                   ),
                   TextSpan(
                     text: '— ${c.provider} ',
-                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: const Color(0xFF475569)),
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF475569)),
                   ),
                   if (c.certificateId != null && c.certificateId!.isNotEmpty)
                     TextSpan(
                       text: '[ID: ${c.certificateId}]',
-                      style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
                     ),
                 ],
               ),
@@ -780,7 +796,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
           if (c.issueDate != null)
             Text(
               c.issueDate!,
-              style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
             ),
         ],
       ),
@@ -799,16 +815,16 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
               children: [
                 Text(
                   e.degree,
-                  style: GoogleFonts.inter(fontSize: 11.8, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                  style: const TextStyle(fontSize: 11.8, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 ),
                 Text(
                   e.institution,
-                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: const Color(0xFF475569)),
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF475569)),
                 ),
                 if (e.boardOrUniversity != null)
                   Text(
                     e.boardOrUniversity!,
-                    style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF64748B)),
+                    style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                   ),
               ],
             ),
@@ -818,12 +834,12 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             children: [
               Text(
                 e.period,
-                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: const Color(0xFF334155)),
+                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
               ),
               if (e.scoreLabel != null || e.score != null)
                 Text(
                   e.scoreLabel ?? 'CGPA: ${e.score}',
-                  style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.bold, color: primaryAccent),
+                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: primaryAccent),
                 ),
             ],
           ),
@@ -846,12 +862,12 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
                     children: [
                       TextSpan(
                         text: '• ${a.title} ',
-                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                       ),
                       if (a.roleOrRank != null && a.roleOrRank!.isNotEmpty)
                         TextSpan(
                           text: '(${a.roleOrRank}) ',
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: primaryAccent),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: primaryAccent),
                         ),
                     ],
                   ),
@@ -860,7 +876,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
               if (a.date != null)
                 Text(
                   a.date!,
-                  style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
                 ),
             ],
           ),
@@ -869,7 +885,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
               padding: const EdgeInsets.only(left: 12, top: 1),
               child: Text(
                 a.description!,
-                style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF475569), height: 1.3),
+                style: const TextStyle(fontSize: 10.5, color: Color(0xFF475569), height: 1.3),
               ),
             ),
         ],
@@ -887,13 +903,13 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            const Text(
               'UNISPHERE Academic Engine • Verified Institutional Resume',
-              style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
             ),
             Text(
               'Reg: ${r.registerNumber} • Last Synchronized: $formattedDate',
-              style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
             ),
           ],
         ),
