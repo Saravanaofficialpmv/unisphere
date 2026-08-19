@@ -272,7 +272,7 @@ reason: Successfully dispatched new automated notification.
     return false;
   }
 
-  /// Atomic persistence using deterministic document ID notifications/{deduplicationKey}
+  /// Atomic persistence using deterministic document ID notifications/{deduplicationKey} and Firestore transaction
   Future<bool> _persistNotificationAtomic(NotificationModel notif, String deduplicationKey) async {
     final firestore = _firestore;
     if (firestore == null) {
@@ -282,21 +282,35 @@ reason: Successfully dispatched new automated notification.
 
     try {
       final docRef = firestore.collection('notifications').doc(deduplicationKey);
-      final doc = await docRef.get();
-
-      if (doc.exists && doc.data() != null) {
-        final statusVal = doc.data()!['status']?.toString() ?? 'sent';
-        if (statusVal == 'sent' || statusVal == 'pending' || statusVal == 'delivered') {
-          // Document already exists atomically -> SUPPRESS
-          return false;
+      return await firestore.runTransaction<bool>((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        if (snapshot.exists && snapshot.data() != null) {
+          final statusVal = snapshot.data()!['status']?.toString() ?? 'sent';
+          if (statusVal == 'sent' || statusVal == 'pending' || statusVal == 'delivered') {
+            // Document already exists atomically -> SUPPRESS
+            return false;
+          }
         }
-      }
-
-      await docRef.set(notif.toMap(), SetOptions(merge: true));
-      return true;
+        transaction.set(docRef, notif.toMap(), SetOptions(merge: true));
+        return true;
+      });
     } catch (e) {
-      debugPrint('NotificationEngine atomic persistence error: $e');
-      return false;
+      debugPrint('NotificationEngine atomic persistence transaction fallback: $e');
+      try {
+        final docRef = firestore.collection('notifications').doc(deduplicationKey);
+        final doc = await docRef.get();
+        if (doc.exists && doc.data() != null) {
+          final statusVal = doc.data()!['status']?.toString() ?? 'sent';
+          if (statusVal == 'sent' || statusVal == 'pending' || statusVal == 'delivered') {
+            return false;
+          }
+        }
+        await docRef.set(notif.toMap(), SetOptions(merge: true));
+        return true;
+      } catch (err) {
+        debugPrint('NotificationEngine atomic persistence error: $err');
+        return false;
+      }
     }
   }
 

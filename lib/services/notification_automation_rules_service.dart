@@ -7,6 +7,7 @@ import 'package:unisphere/services/notification_engine.dart';
 class RuleExecutionSummary {
   int rulesChecked = 0;
   int eligibleRecipients = 0;
+  int notificationsCreated = 0;
   int dispatchedCount = 0;
   int duplicatesSuppressed = 0;
   int failedCount = 0;
@@ -17,6 +18,7 @@ class RuleExecutionSummary {
     eligibleRecipients++;
     dispatchResults.add(result);
     if (result.decision == NotificationDecision.dispatch && result.success) {
+      notificationsCreated++;
       dispatchedCount++;
     } else if (result.decision == NotificationDecision.suppressDuplicate) {
       duplicatesSuppressed++;
@@ -32,7 +34,8 @@ class RuleExecutionSummary {
 NotificationSchedulerService:
 Rules checked: $rulesChecked
 Eligible recipients: $eligibleRecipients
-New notifications dispatched: $dispatchedCount
+Notifications created: $notificationsCreated
+Notifications dispatched: $dispatchedCount
 Duplicates suppressed: $duplicatesSuppressed
 Failed: $failedCount
 Skipped: $skippedCount
