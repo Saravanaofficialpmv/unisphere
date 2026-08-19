@@ -14,6 +14,8 @@ import 'package:unisphere/core/constants/app_departments.dart';
 import 'package:unisphere/widgets/student/student_profile_edit_request_modal.dart';
 import 'package:unisphere/widgets/student/student_membership_modal.dart';
 
+import 'package:unisphere/widgets/resume/student_resume_modal_sheet.dart';
+
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
 
@@ -92,9 +94,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                           ),
                         const Spacer(),
                         IconButton(
-                          icon: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 24),
-                          tooltip: 'Digital ID Card',
-                          onPressed: () => _showDigitalIdModal(context),
+                          icon: const Icon(Icons.description_rounded, color: Colors.white, size: 22),
+                          tooltip: 'Professional Resume',
+                          onPressed: () => showStudentResumeModalSheet(context),
                         ),
                       ],
                     ),
@@ -142,31 +144,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 11.5),
                   ),
                   const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 8,
+                    runSpacing: 6,
                     children: [
                       _buildHeaderBadge(Icons.circle, 'Active Student', Colors.greenAccent),
-                      const SizedBox(width: 8),
                       InkWell(
-                        onTap: () => _showDigitalIdModal(context),
+                        onTap: () => showStudentResumeModalSheet(context),
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: const Color(0xFF2563EB),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
                           ),
                           child: const Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.badge_outlined, size: 13, color: Colors.white),
+                              Icon(Icons.description_rounded, size: 13, color: Colors.white),
                               SizedBox(width: 4),
-                              Text('Digital ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                              Text('View Resume', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+
                       InkWell(
                         onTap: () {
                           showModalBottomSheet(
@@ -185,6 +189,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.edit_note_rounded, size: 13, color: Colors.white),
                               SizedBox(width: 4),
@@ -1789,124 +1794,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     );
   }
 
-  // ================= DIGITAL ID MODAL =================
-  void _showDigitalIdModal(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          width: 340,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.white,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.school_rounded, color: AppColors.primary, size: 22),
-                      SizedBox(width: 8),
-                      Text('UNISPHERE UNIVERSITY', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary)),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const Divider(),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primaryDark, AppColors.primary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 36,
-                      backgroundColor: Colors.white24,
-                      child: Icon(Icons.person, size: 45, color: Colors.white),
-                    ),
-                    const SizedBox(height: 8),
-                    Consumer(
-                      builder: (context, ref, _) {
-                        final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
-                        final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'STUDENT USER';
-                        final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true ? currentUser!.metadata!['registerNumber'].toString() : (currentUser?.uid ?? 'RA2111003010001');
-                        final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true ? currentUser!.metadata!['department'].toString() : 'COMPUTER SCIENCE';
-                        return Column(
-                          children: [
-                            Text(name.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text('REG NO: $regNo', style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 4),
-                            Text(dept.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 11)),
-                          ],
-                        );
-                      },
-                    ),
-                    const Text('UNISPHERE CAMPUS • VERIFIED STUDENT', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // QR Code Graphic Box
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(
-                  children: [
-                    const Icon(Icons.qr_code_2_rounded, size: 110, color: AppColors.primaryDark),
-                    const SizedBox(height: 6),
-                    const Text('Campus Entry & Library Scan', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 4),
-                    Text('Valid Until: 30 JUNE 2026', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green.shade800)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: () async {
-                  final uri = Uri.parse('tel:+914422500100');
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri);
-                  }
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.phone_in_talk_outlined, size: 14, color: Colors.red.shade700),
-                      const SizedBox(width: 4),
-                      Text('Emergency Hotline: +91 44 2250 0100 📞', style: TextStyle(fontSize: 11, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 
   // ================= EDIT PROFILE REQUEST DIALOG =================
   void _showEditProfileRequestDialog() {

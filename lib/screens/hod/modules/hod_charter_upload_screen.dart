@@ -261,9 +261,9 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
               labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               tabs: const [
-                Tab(text: '📤 PDF Uploads'),
-                Tab(text: '📝 Edit Vision & Outcomes'),
-                Tab(text: '📊 CO-PO Matrix'),
+                Tab(text: 'PDF Uploads'),
+                Tab(text: 'Edit Vision & Outcomes'),
+                Tab(text: 'CO-PO Matrix'),
               ],
             ),
           ),
@@ -453,7 +453,7 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
       padding: const EdgeInsets.all(20),
       children: [
         // Institute Vision & Mission Section
-        _buildSectionTitle('🏛️ Institute Vision & Mission'),
+        _buildSectionTitle('Institute Vision & Mission'),
         const SizedBox(height: 8),
         TextField(
           controller: _instVisionController,
@@ -480,7 +480,7 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
         const SizedBox(height: 24),
 
         // Department Vision Section
-        _buildSectionTitle('🎯 Department Vision'),
+        _buildSectionTitle('Department Vision'),
         const SizedBox(height: 8),
         TextField(
           controller: _visionController,
@@ -496,7 +496,7 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
         const SizedBox(height: 24),
 
         // Mission Section
-        _buildSectionTitle('🚀 Department Mission (4 Pillars M1–M4)'),
+        _buildSectionTitle('Department Mission (4 Pillars M1–M4)'),
         const SizedBox(height: 8),
         ...List.generate(_missionControllers.length, (i) {
           return Padding(
@@ -517,7 +517,7 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
         const SizedBox(height: 24),
 
         // PEO Section
-        _buildSectionTitle('🎓 Programme Educational Objectives (PEOs 1-3)'),
+        _buildSectionTitle('Programme Educational Objectives (PEOs 1-3)'),
         const SizedBox(height: 8),
         ...List.generate(_peoControllers.length, (i) {
           return Padding(
@@ -538,7 +538,7 @@ class _HodCharterUploadScreenState extends State<HodCharterUploadScreen> with Si
         const SizedBox(height: 24),
 
         // PSO Section
-        _buildSectionTitle('⚡ Program Specific Outcomes (PSOs 1-3)'),
+        _buildSectionTitle('Program Specific Outcomes (PSOs 1-3)'),
         const SizedBox(height: 8),
         ...List.generate(_psoControllers.length, (i) {
           return Padding(

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
+import 'package:unisphere/services/resume_service.dart';
+import 'package:unisphere/models/student_resume_model.dart';
+import 'package:unisphere/widgets/resume/resume_document_view.dart';
+import 'package:unisphere/widgets/resume/resume_completeness_card.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Comprehensive Modal Sheet allowing Staff & HOD to view full student details:
@@ -81,13 +86,7 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
       s['githubTopTech'] ?? ['Flutter/Dart', 'C++', 'Java', 'Python'],
     );
 
-    final String resumeFileName = s['resumeFileName'] ?? '${name.replaceAll(' ', '_')}_Resume_2026.pdf';
-    final String resumeUpdated = s['resumeUpdated'] ?? 'Updated 2 weeks ago';
-    final String portfolioUrl = s['portfolioUrl'] ?? 'https://$leetcodeUsername.dev';
-    final String linkedinUrl = s['linkedinUrl'] ?? 'https://www.linkedin.com/in/saravana-selvaraju/';
-    final List<String> skills = List<String>.from(
-      s['skills'] ?? ['Data Structures', 'Algorithms', 'Flutter App Dev', 'REST APIs', 'System Design', 'Git'],
-    );
+
 
     return DefaultTabController(
       length: 7,
@@ -230,13 +229,7 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
                   ),
 
                   // 3. Resume & Links Tab
-                  _buildResumeTab(
-                    resumeFileName,
-                    resumeUpdated,
-                    portfolioUrl,
-                    linkedinUrl,
-                    skills,
-                  ),
+                  _buildResumeTab(s),
 
                   // 4. Certifications Portfolio Tab (NPTEL & Industry Certifications)
                   _buildCertificationsPortfolioTab(s),
@@ -671,131 +664,120 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
     );
   }
 
-  // ── Tab 3: Resume & Links ────────────────────
-  Widget _buildResumeTab(
-    String fileName,
-    String updated,
-    String portfolioUrl,
-    String linkedinUrl,
-    List<String> skills,
-  ) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Resume PDF Card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 4))],
-            ),
-            child: Row(
+  // ── Tab 3: Dedicated Dynamic Resume & Links ────────────────────
+  Widget _buildResumeTab(Map<String, dynamic> s) {
+    final regNo = s['regNo']?.toString() ?? s['registerNumber']?.toString() ?? s['id']?.toString() ?? '';
+
+    return FutureBuilder<StudentResumeModel?>(
+      future: ResumeService().generateResumeForStudent(regNo),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Loader(label: 'Aggregating live student resume records...'),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEF4444).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFEF4444), size: 30),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        fileName,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(updated, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                    ],
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _showNotification('Opening Student PDF Resume...'),
-                  icon: const Icon(Icons.visibility_rounded, size: 14),
-                  label: const Text('View PDF'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
+                const Icon(Icons.description_outlined, size: 48, color: Color(0xFF94A3B8)),
+                const SizedBox(height: 12),
+                Text(
+                  'No verified resume records found for $regNo.',
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
+          );
+        }
 
-          // External Links
-          const Text('Online Portfolios & Links', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-          const SizedBox(height: 10),
-          _buildLinkItem('Personal Portfolio Website', portfolioUrl, Icons.language_rounded, const Color(0xFF2563EB)),
-          const SizedBox(height: 8),
-          _buildLinkItem('LinkedIn Professional Network', linkedinUrl, Icons.work_rounded, const Color(0xFF0284C7)),
-          const SizedBox(height: 16),
+        final resume = snapshot.data!;
 
-          // Verified Skills
-          const Text('Verified Core Skills', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: skills.map((s) {
-              return Chip(
-                avatar: const Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF10B981)),
-                label: Text(s, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLinkItem(String title, String url, IconData icon, Color color) {
-    return InkWell(
-      onTap: () => _launchURL(url),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                  Text(url, style: TextStyle(fontSize: 11, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
-                ],
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Completeness Summary Card
+              ResumeCompletenessCard(
+                completeness: resume.completeness,
+                isCompact: true,
               ),
-            ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF94A3B8)),
-          ],
-        ),
-      ),
+              const SizedBox(height: 16),
+
+              // Full A4 Document Preview Card
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.picture_as_pdf_rounded, size: 18, color: Color(0xFF2563EB)),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Institutional Verified Resume (A4 Preview)',
+                            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECFDF5),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFA7F3D0)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.verified_rounded, size: 11, color: Color(0xFF059669)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Live Synchronized',
+                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                    SizedBox(
+                      height: 520,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                        child: ResumeDocumentView(
+                          resume: resume,
+                          showControls: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
+
 
   // ── Tab 4: Certifications Portfolio (NPTEL & Industry) ─────
   Widget _buildCertificationsPortfolioTab(Map<String, dynamic> s) {

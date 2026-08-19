@@ -15,6 +15,7 @@ import 'package:unisphere/screens/hod/hod_shell.dart';
 import 'package:unisphere/screens/student/cgpa_details_screen.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
+import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
 
 import 'package:unisphere/widgets/common/custom_loader.dart';
 
@@ -158,6 +159,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/github-details',
         builder: (context, state) => const GitHubDetailScreen(),
+      ),
+      GoRoute(
+        path: '/resume',
+        builder: (context, state) => const StudentResumeScreen(),
       ),
     ],
   );

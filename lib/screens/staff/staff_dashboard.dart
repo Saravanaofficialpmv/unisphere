@@ -25,6 +25,8 @@ import 'package:unisphere/screens/student/modules/student_library_screen.dart';
 import 'package:unisphere/widgets/schedule/academic_schedule_card.dart';
 import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart';
 
+import 'package:unisphere/screens/staff/modules/adviser_resume_bank_screen.dart';
+
 class StaffDashboard extends ConsumerStatefulWidget {
   const StaffDashboard({super.key});
 
@@ -50,6 +52,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     SidebarItem(label: 'Give Assignment', icon: Icons.add_task_outlined),
     SidebarItem(label: 'Review Submissions', icon: Icons.checklist_outlined, badge: '12'),
     SidebarItem(label: 'Student Directory & Portfolios', icon: Icons.people_alt_outlined),
+    SidebarItem(label: 'Student Resume Bank', icon: Icons.description_outlined, badge: 'Resumes'),
     SidebarItem(label: 'Profile Edit Requests', icon: Icons.edit_note_rounded, badge: 'Requests'),
     SidebarItem(label: 'Student Verifications', icon: Icons.verified_user_rounded),
     SidebarItem(label: 'NPTEL Certificate Verif.', icon: Icons.workspace_premium_outlined, badge: 'NPTEL'),
@@ -69,6 +72,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 2)),
     const StaffSubmissionReview(),
     const StaffStudentDirectory(),
+    AdviserResumeBankScreen(onBack: () => _handleNavigation(0)),
     const ClassAdvisorEditRequestsScreen(),
     const HodStudentVerificationsScreen(),
     const StaffNptelVerificationScreen(),
@@ -282,12 +286,20 @@ class StaffHomeScreen extends StatelessWidget {
             onTap: () => onNavigate?.call(3),
           ),
           _buildActionCard(
+            'Student Resume Bank',
+            'Review dynamic A4 student resumes & placement readiness.',
+            Icons.description_rounded,
+            const Color(0xFFEFF6FF),
+            const Color(0xFF1D4ED8),
+            onTap: () => onNavigate?.call(4),
+          ),
+          _buildActionCard(
             'Create Announcement',
             'Broadcast to all students or specific departments.',
             Icons.campaign_rounded,
             const Color(0xFFE0E7FF),
             const Color(0xFF4338CA),
-            onTap: () => onNavigate?.call(13),
+            onTap: () => onNavigate?.call(14),
           ),
           _buildActionCard(
             'Upload Marks',
@@ -295,7 +307,7 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.upload_file_rounded,
             const Color(0xFFFEF3C7),
             const Color(0xFF92400E),
-            onTap: () => onNavigate?.call(7),
+            onTap: () => onNavigate?.call(8),
           ),
           _buildActionCard(
             'HOD Profile Verifications',
@@ -303,7 +315,7 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.verified_user_rounded,
             const Color(0xFFF0FDF4),
             const Color(0xFF16A34A),
-            onTap: () => onNavigate?.call(5),
+            onTap: () => onNavigate?.call(6),
           ),
           _buildActionCard(
             'Profile Edit Requests',
@@ -311,7 +323,7 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.edit_note_rounded,
             const Color(0xFFEFF6FF),
             const Color(0xFF2563EB),
-            onTap: () => onNavigate?.call(4),
+            onTap: () => onNavigate?.call(5),
           ),
           _buildActionCard(
             'Review Submissions',

@@ -14,6 +14,7 @@ import 'package:unisphere/screens/student/modules/student_announcements_screen.d
 import 'package:unisphere/screens/student/modules/student_upcoming_tasks_screen.dart';
 import 'package:unisphere/screens/student/modules/student_library_screen.dart';
 import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart';
+import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
 
 class FeatureRegistry {
   static final List<FeatureItem> _registeredFeatures = [
@@ -100,6 +101,18 @@ class FeatureRegistry {
       category: 'Career & Credentials',
       badge: 'Git',
       routeBuilder: (context) => const GitHubDetailScreen(),
+    ),
+    FeatureItem(
+      id: 'professional_resume',
+      title: 'Professional Resume',
+      subtitle: 'Dynamic A4 resume generated from verified campus records',
+      icon: Icons.description_rounded,
+      imageAsset: 'assets/certificate.png',
+      color: const Color(0xFF2563EB),
+      pastelBg: const Color(0xFFEFF6FF),
+      category: 'Career & Credentials',
+      badge: 'Live',
+      routeBuilder: (context) => const StudentResumeScreen(),
     ),
     FeatureItem(
       id: 'achievements',

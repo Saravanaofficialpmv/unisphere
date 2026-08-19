@@ -66,15 +66,6 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.school_rounded, color: AppColors.primary, size: 26),
-                ),
-                const SizedBox(width: 14),
                 const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,10 +331,10 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
             unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             labelPadding: const EdgeInsets.symmetric(horizontal: 14),
             tabs: const [
-              Tab(text: '🎯 Vision & Mission'),
-              Tab(text: '🎓 PEOs (3)'),
-              Tab(text: '📊 POs (11)'),
-              Tab(text: '⚡ PSOs (3)'),
+              Tab(text: 'Vision & Mission'),
+              Tab(text: 'PEOs (3)'),
+              Tab(text: 'POs (11)'),
+              Tab(text: 'PSOs (3)'),
             ],
           ),
         ),

@@ -47,6 +47,9 @@ import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart'
 
 
 
+import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
+import 'package:unisphere/widgets/resume/student_resume_modal_sheet.dart';
+
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
 
@@ -83,6 +86,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem(label: 'Achievements & Badges', icon: Icons.emoji_events_outlined),
     SidebarItem(label: 'Campus Events & Fests', icon: Icons.event_outlined),
     SidebarItem(label: 'Feature Hub & Tools', icon: Icons.grid_view_rounded),
+    SidebarItem(label: 'Professional Resume', icon: Icons.description_outlined, badge: 'Resume'),
     SidebarItem.divider('CAMPUS LIFE'),
     SidebarItem(label: 'Campus Photo Gallery', icon: Icons.collections_outlined, badge: 'New'),
     SidebarItem(label: 'Official Announcements', icon: Icons.campaign_outlined),
@@ -122,12 +126,17 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
         onNavigateToTab: _handleNavigation,
         onBack: () => _handleNavigation(0),
       ),
-      const SizedBox.shrink(), // 17: Divider CAMPUS LIFE
-      FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)), // 18: Photo Gallery
-      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 19: Announcements
-      StudentLibraryScreen(onBack: () => _handleNavigation(0)), // 20: Library Status
-      const SizedBox.shrink(), // 21: Divider ACCOUNT
-      ProfileScreen(onBack: () => _handleNavigation(0)), // 22: My Profile
+      StudentResumeScreen(
+        // 17: Professional Resume
+        onBack: () => _handleNavigation(0),
+        onNavigateToTab: _handleNavigation,
+      ),
+      const SizedBox.shrink(), // 18: Divider CAMPUS LIFE
+      FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)), // 19: Photo Gallery
+      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 20: Announcements
+      StudentLibraryScreen(onBack: () => _handleNavigation(0)), // 21: Library Status
+      const SizedBox.shrink(), // 22: Divider ACCOUNT
+      ProfileScreen(onBack: () => _handleNavigation(0)), // 23: My Profile
     ];
   }
 
@@ -1218,9 +1227,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
       {'title': 'GitHub Dev Portfolio', 'subtitle': 'Repositories & commit contributions', 'icon': Icons.terminal_rounded, 'color': const Color(0xFF0F172A), 'tabIndex': 13},
       {'title': 'Achievements & Honors', 'subtitle': 'Academic & sports trophies', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 14},
       {'title': 'Campus Events & Symposia', 'subtitle': 'Department fests & cultural events', 'icon': Icons.event_rounded, 'color': const Color(0xFFEC4899), 'tabIndex': 15},
-      {'title': 'Campus Photo Gallery', 'subtitle': 'Event photos & fest highlights', 'icon': Icons.collections_rounded, 'color': const Color(0xFF0284C7), 'tabIndex': 18},
-      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 19},
-      {'title': 'Digital Library Status', 'subtitle': 'Issued books, catalogs & renewals', 'icon': Icons.local_library_rounded, 'color': const Color(0xFF059669), 'tabIndex': 20},
+      {'title': 'Professional Resume', 'subtitle': 'Auto-generated dynamic A4 resume & completeness', 'icon': Icons.description_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 17},
+      {'title': 'Campus Photo Gallery', 'subtitle': 'Event photos & fest highlights', 'icon': Icons.collections_rounded, 'color': const Color(0xFF0284C7), 'tabIndex': 19},
+      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 20},
+      {'title': 'Digital Library Status', 'subtitle': 'Issued books, catalogs & renewals', 'icon': Icons.local_library_rounded, 'color': const Color(0xFF059669), 'tabIndex': 21},
     ];
 
     showModalBottomSheet(
@@ -1610,7 +1620,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     ],
                   ),
                   InkWell(
-                    onTap: () => _showStudentIDCardModal(context),
+                    onTap: () => showStudentResumeModalSheet(context),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -1618,28 +1628,28 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3F51B5).withValues(alpha: 0.12),
+                        color: const Color(0xFF2563EB).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: const Color(0xFF3F51B5).withValues(alpha: 0.2),
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.2),
                         ),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Details',
+                            'Resume',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF3F51B5),
+                              color: Color(0xFF2563EB),
                             ),
                           ),
                           SizedBox(width: 2),
                           Icon(
                             Icons.chevron_right_rounded,
                             size: 14,
-                            color: Color(0xFF3F51B5),
+                            color: Color(0xFF2563EB),
                           ),
                         ],
                       ),
@@ -2295,7 +2305,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
           } else if (type == 'certifications') {
             widget.onNavigateToTab(11);
           } else if (type == 'announcement') {
-            widget.onNavigateToTab(19);
+            widget.onNavigateToTab(20);
           } else if (type == 'exams') {
             widget.onNavigateToTab(5);
           } else if (type == 'more') {
@@ -2449,15 +2459,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     );
   }
 
-  // ── Digital Student ID Card (CR80 Flippable 3D Card Modal) ──
-  void _showStudentIDCardModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const StudentIDCardFlipModal(),
-    );
-  }
 }
 
 class StudentIDCardFlipModal extends ConsumerStatefulWidget {
