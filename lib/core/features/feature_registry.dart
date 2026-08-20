@@ -5,6 +5,9 @@ import 'package:unisphere/screens/features/events_screen.dart';
 import 'package:unisphere/screens/features/fees_screen.dart';
 import 'package:unisphere/screens/features/hackathons_screen.dart';
 import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
+import 'package:unisphere/screens/student/modules/student_pyq_screen.dart';
+import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
+import 'package:unisphere/screens/common/loader_preview_screen.dart';
 
 class FeatureRegistry {
   static final List<FeatureItem> _registeredFeatures = [
@@ -25,7 +28,7 @@ class FeatureRegistry {
       title: 'Certifications',
       subtitle: 'Upload, manage, verify & download certificates',
       icon: Icons.workspace_premium_rounded,
-      imageAsset: 'assets/certification.png',
+      imageAsset: 'assets/certificate.png',
       color: const Color(0xFF2563EB),
       pastelBg: const Color(0xFFEFF6FF),
       category: 'Career & Credentials',
@@ -33,11 +36,23 @@ class FeatureRegistry {
       routeBuilder: (context) => const CertificationsScreen(),
     ),
     FeatureItem(
+      id: 'resume',
+      title: 'Professional Resume',
+      subtitle: 'Dynamic ATS-ready verified student CV & A4 document',
+      icon: Icons.description_rounded,
+      imageAsset: 'assets/certificate.png',
+      color: const Color(0xFF2563EB),
+      pastelBg: const Color(0xFFEFF6FF),
+      category: 'Career & Credentials',
+      badge: 'Resume',
+      routeBuilder: (context) => const StudentResumeScreen(),
+    ),
+    FeatureItem(
       id: 'announcements',
       title: 'Official Announcements',
       subtitle: 'Department circulars, alerts & campus news',
       icon: Icons.campaign_rounded,
-      imageAsset: 'assets/notification.png',
+      imageAsset: 'assets/announcement.png',
       color: const Color(0xFFD97706),
       pastelBg: const Color(0xFFFEF3C7),
       category: 'Campus Life',
@@ -67,6 +82,30 @@ class FeatureRegistry {
       category: 'Campus Life',
       badge: 'Finance',
       routeBuilder: (context) => const FeesScreen(),
+    ),
+    FeatureItem(
+      id: 'pyq_question_papers',
+      title: 'Question Papers & PYQ',
+      subtitle: 'University previous years papers, IATs & solved question banks',
+      icon: Icons.quiz_rounded,
+      imageAsset: 'assets/certificate.png',
+      color: const Color(0xFF4F46E5),
+      pastelBg: const Color(0xFFEEF2FF),
+      category: 'Academic & Learning',
+      badge: 'Official PYQ',
+      routeBuilder: (context) => const StudentPyqScreen(),
+    ),
+    FeatureItem(
+      id: 'loader_preview',
+      title: 'Loader Preview',
+      subtitle: 'Preview & test the animated bloub GIF loader',
+      icon: Icons.hourglass_top_rounded,
+      imageAsset: 'assets/bloub-default-cycle-4.gif',
+      color: const Color(0xFF6366F1),
+      pastelBg: const Color(0xFFEEF2FF),
+      category: 'Campus Life',
+      badge: 'Preview',
+      routeBuilder: (context) => const LoaderPreviewScreen(),
     ),
   ];
 

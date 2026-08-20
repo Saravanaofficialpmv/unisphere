@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/models/syllabus_model.dart';
 import 'package:unisphere/screens/student/modules/subject_details_screen.dart';
-import 'package:unisphere/screens/student/modules/syllabus_document_viewer_screen.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/syllabus_service.dart';
 
@@ -791,7 +790,6 @@ class _AddEditSubjectModalState extends State<AddEditSubjectModal> {
   late TextEditingController _docNameController;
 
   String _subjectType = 'Theory';
-  String _status = 'published';
   bool _isSubmitting = false;
   String? _duplicateError;
 
@@ -815,7 +813,6 @@ class _AddEditSubjectModalState extends State<AddEditSubjectModal> {
     _docNameController = TextEditingController(text: ex?.documentFileName ?? 'syllabus_document.pdf');
 
     _subjectType = ex?.subjectType ?? 'Theory';
-    _status = ex?.status ?? 'published';
   }
 
   @override
@@ -963,7 +960,7 @@ class _AddEditSubjectModalState extends State<AddEditSubjectModal> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _academicYear,
+                      initialValue: _academicYear,
                       decoration: InputDecoration(
                         labelText: 'Academic Year',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -978,7 +975,7 @@ class _AddEditSubjectModalState extends State<AddEditSubjectModal> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _year,
+                      initialValue: _year,
                       decoration: InputDecoration(
                         labelText: 'Year',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -999,7 +996,7 @@ class _AddEditSubjectModalState extends State<AddEditSubjectModal> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _semester,
+                      initialValue: _semester,
                       decoration: InputDecoration(
                         labelText: 'Semester',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -1014,7 +1011,7 @@ class _AddEditSubjectModalState extends State<AddEditSubjectModal> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _subjectType,
+                      initialValue: _subjectType,
                       decoration: InputDecoration(
                         labelText: 'Subject Type',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

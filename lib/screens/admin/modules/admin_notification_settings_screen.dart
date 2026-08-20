@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/models/notification_rule_model.dart';
 import 'package:unisphere/providers/notification_rules_provider.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class AdminNotificationSettingsScreen extends ConsumerStatefulWidget {
   const AdminNotificationSettingsScreen({super.key});
@@ -75,7 +76,7 @@ class _AdminNotificationSettingsScreenState
         ),
       ),
       body: rulesState.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: Loader(label: 'Loading automation rules...'))
           : TabBarView(
               controller: _tabController,
               children: [
@@ -143,7 +144,7 @@ class _AdminNotificationSettingsScreenState
                 ),
                 Switch(
                   value: rule.enabled,
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                   onChanged: (val) => notifier.toggleRule(rule.ruleId, val),
                 ),
               ],

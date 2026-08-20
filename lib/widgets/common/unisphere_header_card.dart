@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 /// Reusable Unisphere Section Header Card Widget matching the exact royal blue
 /// gradient, rounded corners, back button, typography, and optional tab/action controls.
@@ -60,15 +61,8 @@ class UnisphereHeaderCard extends StatelessWidget {
             child: Row(
               children: [
                 if (showBackButton)
-                  IconButton(
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    onPressed: () {
+                  AppPressable(
+                    onTap: () {
                       if (onBack != null) {
                         onBack!();
                       } else if (context.mounted && Navigator.canPop(context)) {
@@ -77,6 +71,17 @@ class UnisphereHeaderCard extends StatelessWidget {
                         Navigator.of(context, rootNavigator: true).pop();
                       }
                     },
+                    scaleFactor: 0.90,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   )
                 else
                   const SizedBox(width: 8),
@@ -118,16 +123,22 @@ class UnisphereHeaderCard extends StatelessWidget {
                   children: [
                     if (rightActions != null) ...rightActions!,
                     if (onInfoPressed != null)
-                      IconButton(
-                        tooltip: infoTooltip ?? 'Section Information',
-                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(
-                          Icons.info_outline_rounded,
-                          color: Colors.white70,
-                          size: 22,
+                      AppPressable(
+                        onTap: onInfoPressed,
+                        scaleFactor: 0.90,
+                        child: Tooltip(
+                          message: infoTooltip ?? 'Section Information',
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.info_outline_rounded,
+                              color: Colors.white70,
+                              size: 22,
+                            ),
+                          ),
                         ),
-                        onPressed: onInfoPressed,
                       )
                     else if (rightActions == null && showBackButton)
                       const SizedBox(width: 36),

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 import 'package:unisphere/screens/student/modules/student_upcoming_tasks_screen.dart';
@@ -42,12 +43,14 @@ import 'package:unisphere/widgets/common/recent_photos_section.dart';
 import 'package:unisphere/screens/gallery/full_photo_gallery_screen.dart';
 import 'package:unisphere/screens/student/cgpa_details_screen.dart';
 import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 
 
 
 
 import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
+import 'package:unisphere/screens/student/modules/student_pyq_screen.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -58,7 +61,7 @@ class StudentDashboard extends ConsumerStatefulWidget {
 
 class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   int _currentIndex = 0;
-  bool _openGpaPlannerInGradebook = true;
+  bool _openGpaPlannerInGradebook = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -77,6 +80,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem(label: 'Important Days & Schedule', icon: Icons.event_note_rounded, badge: 'Official'),
     SidebarItem(label: 'CGPA & Target Planner', icon: Icons.calculate_outlined),
     SidebarItem(label: 'Academic Syllabus', icon: Icons.menu_book_outlined, badge: 'Official'),
+    SidebarItem(label: 'Question Papers & PYQ', icon: Icons.quiz_outlined, badge: 'PYQ'),
     SidebarItem(label: 'Fees & Payments', icon: Icons.payments_outlined),
     SidebarItem.divider('CAREER & SKILLS'),
     SidebarItem(label: 'Hackathons', icon: Icons.sports_score_outlined, badge: 'Live'),
@@ -94,49 +98,71 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     SidebarItem(label: 'My Profile', icon: Icons.person_outline),
   ];
 
-  List<Widget> _getScreens() {
-    return [
-      StudentHomeScreen(
-        onNavigateToTab: _handleNavigation,
-        onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
-      ), // 0: Home
-      InteractiveTimetableScreen(onBack: () => _handleNavigation(0)), // 1: Timetable
-      StudentUpcomingTasksScreen(onBack: () => _handleNavigation(0)), // 2: Upcoming Tasks
-      StudentAttendanceScreen(onBack: () => _handleNavigation(0)), // 3: Attendance
-      GradebookScreen(
-        // 4: Academic Marks
-        key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
-        initialShowPlanner: _openGpaPlannerInGradebook,
-        onBack: () => _handleNavigation(0),
-      ),
-      ExamsDetailScreen(onBack: () => _handleNavigation(0)), // 5: Examinations & Hall Ticket
-      AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0)), // 6: Important Days & Schedule
-      CgpaDetailsScreen(onBack: () => _handleNavigation(0)), // 7: CGPA & Target Planner
-      StudentSyllabusScreen(onBack: () => _handleNavigation(0)), // 8: Academic Syllabus
-      FeesScreen(onBack: () => _handleNavigation(0)), // 9: Fees & Payments
-      const SizedBox.shrink(), // 10: Divider CAREER & SKILLS
-      HackathonsScreen(onBack: () => _handleNavigation(0)), // 11: Hackathons
-      CertificationsScreen(onBack: () => _handleNavigation(0)), // 12: Certifications
-      LeetCodeDetailScreen(onBack: () => _handleNavigation(0)), // 13: LeetCode Tracker
-      GitHubDetailScreen(onBack: () => _handleNavigation(0)), // 14: GitHub Dev Portfolio
-      AchievementsScreen(onBack: () => _handleNavigation(0)), // 15: Achievements
-      EventsScreen(onBack: () => _handleNavigation(0)), // 16: Campus Events
-      FeatureHubScreen(
-        // 17: Feature Hub
-        onNavigateToTab: _handleNavigation,
-        onBack: () => _handleNavigation(0),
-      ),
-      StudentResumeScreen(
-        // 18: Professional Resume
-        onBack: () => _handleNavigation(0),
-        onNavigateToTab: _handleNavigation,
-      ),
-      const SizedBox.shrink(), // 19: Divider CAMPUS LIFE
-      FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)), // 19: Photo Gallery
-      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)), // 21: Announcements
-      const SizedBox.shrink(), // 22: Divider ACCOUNT
-      ProfileScreen(onBack: () => _handleNavigation(0)), // 23: My Profile
-    ];
+  Widget _buildScreen(int index) {
+    switch (index) {
+      case 0:
+        return StudentHomeScreen(
+          onNavigateToTab: _handleNavigation,
+          onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+        );
+      case 1:
+        return InteractiveTimetableScreen(onBack: () => _handleNavigation(0));
+      case 2:
+        return StudentUpcomingTasksScreen(onBack: () => _handleNavigation(0));
+      case 3:
+        return StudentAttendanceScreen(onBack: () => _handleNavigation(0));
+      case 4:
+        return GradebookScreen(
+          key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
+          initialShowPlanner: _openGpaPlannerInGradebook,
+          onBack: () => _handleNavigation(0),
+        );
+      case 5:
+        return ExamsDetailScreen(onBack: () => _handleNavigation(0));
+      case 6:
+        return AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0));
+      case 7:
+        return CgpaDetailsScreen(onBack: () => _handleNavigation(0));
+      case 8:
+        return StudentSyllabusScreen(onBack: () => _handleNavigation(0));
+      case 9:
+        return StudentPyqScreen(onBack: () => _handleNavigation(0));
+      case 10:
+        return FeesScreen(onBack: () => _handleNavigation(0));
+      case 12:
+        return HackathonsScreen(onBack: () => _handleNavigation(0));
+      case 13:
+        return CertificationsScreen(onBack: () => _handleNavigation(0));
+      case 14:
+        return LeetCodeDetailScreen(onBack: () => _handleNavigation(0));
+      case 15:
+        return GitHubDetailScreen(onBack: () => _handleNavigation(0));
+      case 16:
+        return AchievementsScreen(onBack: () => _handleNavigation(0));
+      case 17:
+        return EventsScreen(onBack: () => _handleNavigation(0));
+      case 18:
+        return FeatureHubScreen(
+          onNavigateToTab: _handleNavigation,
+          onBack: () => _handleNavigation(0),
+        );
+      case 19:
+        return StudentResumeScreen(
+          onBack: () => _handleNavigation(0),
+          onNavigateToTab: _handleNavigation,
+        );
+      case 21:
+        return FullPhotoGalleryScreen(onBack: () => _handleNavigation(0));
+      case 22:
+        return StudentAnnouncementsScreen(onBack: () => _handleNavigation(0));
+      case 24:
+        return ProfileScreen(onBack: () => _handleNavigation(0));
+      default:
+        return StudentHomeScreen(
+          onNavigateToTab: _handleNavigation,
+          onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+        );
+    }
   }
 
 
@@ -186,7 +212,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
                     return MaterialPageRoute(
                       builder: (_) => SmoothPageTransition(
                         currentIndex: _currentIndex,
-                        children: _getScreens(),
+                        child: _buildScreen(_currentIndex),
                       ),
                     );
                   },
@@ -219,26 +245,24 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
 }
 
 // ─────────────────────────────────────────
-//  Smooth Page Switcher
+//  Smooth Page Switcher (Section 2)
 // ─────────────────────────────────────────
 class SmoothPageTransition extends StatelessWidget {
   final int currentIndex;
-  final List<Widget> children;
+  final Widget child;
 
   const SmoothPageTransition({
     super.key,
     required this.currentIndex,
-    required this.children,
+    required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    final validIndex = (currentIndex >= 0 && currentIndex < children.length) ? currentIndex : 0;
-    final activeScreen = children[validIndex];
-
-    return KeyedSubtree(
-      key: ValueKey('student_tab_$validIndex'),
-      child: activeScreen,
+    return FadeSlideTransition(
+      transitionKey: ValueKey('student_tab_$currentIndex'),
+      duration: const Duration(milliseconds: 160),
+      child: child,
     );
   }
 }
@@ -263,6 +287,7 @@ class StudentHomeScreen extends ConsumerStatefulWidget {
 class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   int _academicOverviewPageIndex = 0;
   bool _isReturningUser = false;
+  bool _dismissedVerifiedBanner = false;
 
   @override
   void initState() {
@@ -458,131 +483,263 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
   Widget _buildProfileCompletionBanner() {
     final user = ref.watch(authServiceProvider).currentUser;
-    final meta = user?.metadata ?? {};
-    final status = meta['verificationStatus'] ?? meta['profileCompletionStatus'] ?? 'incomplete';
+    if (user?.role != UserRole.student) return const SizedBox.shrink();
 
-    if (status == 'approved' || status == 'verified') {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF0FDF4),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFBBF7D0)),
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.verified_user_rounded, color: Color(0xFF16A34A), size: 26),
-            SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('🟢 360° Profile Verified', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Color(0xFF15803D))),
-                  SizedBox(height: 2),
-                  Text('Your profile details have been verified and approved by HOD.', style: TextStyle(fontSize: 11.5, color: Color(0xFF166534))),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final regNo = user?.metadata?['registerNumber']?.toString().trim() ?? '';
+    final studentId = regNo.isNotEmpty ? regNo : (user?.uid ?? '');
 
-    final isPending = status == 'pending_hod' || status == 'submitted' || status == 'pending';
-    final isRejected = status == 'rejected';
+    return StreamBuilder<Map<String, dynamic>?>(
+      stream: ref.watch(firebaseFirestoreServiceProvider).getFullStudentProfileStream(studentId),
+      builder: (context, snapshot) {
+        final profileDoc = snapshot.data ?? {};
+        final meta = user?.metadata ?? {};
 
-    final bgColor1 = isRejected
-        ? const Color(0xFFDC2626)
-        : (isPending ? const Color(0xFFD97706) : const Color(0xFF1E3A8A));
-    final bgColor2 = isRejected
-        ? const Color(0xFF991B1B)
-        : (isPending ? const Color(0xFFB45309) : const Color(0xFF3B82F6));
+        // Resolve latest status from live Firestore doc or user metadata
+        final status = (profileDoc['verificationStatus'] ??
+                profileDoc['completionStatus'] ??
+                meta['verificationStatus'] ??
+                meta['profileCompletionStatus'] ??
+                'incomplete')
+            .toString()
+            .toLowerCase();
 
-    final titleText = isRejected
-        ? '🔴 Profile Revision Required'
-        : (isPending ? '🟡 Profile Submitted to HOD' : '🎓 Complete Your Profile');
-    final descText = isRejected
-        ? 'HOD requested revision: ${meta['rejectionReason'] ?? "Please re-check your uploaded documents."}'
-        : (isPending
-            ? 'Your 360° profile has been submitted and is currently pending verification by your HOD.'
-            : 'Fill in your personal, academic, accommodation & transport details for HOD verification.');
+        // 1. If submitted / pending HOD verification, hide this banner completely (Requirement: "once submitted then no need to show this here")
+        final isPending = status == 'pending_hod' ||
+            status == 'submitted' ||
+            status == 'pending' ||
+            status == 'under_review';
+        if (isPending) {
+          return const SizedBox.shrink();
+        }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [bgColor1, bgColor2],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: bgColor1.withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
+        // 2. If approved / verified, show approved badge for 1 day (24 hours), then auto-remove (Requirement: "once apprives then show that approved status ....then after 1day remove that also")
+        final isApproved = status == 'approved' || status == 'verified';
+        if (isApproved) {
+          if (_dismissedVerifiedBanner) return const SizedBox.shrink();
+
+          DateTime? verifiedAt;
+          final rawVerified = profileDoc['verifiedAt'] ?? meta['verifiedAt'] ?? meta['approvedAt'];
+          if (rawVerified is String) {
+            verifiedAt = DateTime.tryParse(rawVerified);
+          } else if (rawVerified is Timestamp) {
+            verifiedAt = rawVerified.toDate();
+          }
+
+          // If more than 24 hours have elapsed since approval, auto-remove the banner
+          if (verifiedAt != null) {
+            final elapsed = DateTime.now().difference(verifiedAt);
+            if (elapsed.inHours >= 24) {
+              return const SizedBox.shrink();
+            }
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isRejected
-                  ? Icons.error_outline_rounded
-                  : (isPending ? Icons.hourglass_top_rounded : Icons.assignment_ind_rounded),
-              color: Colors.white,
-              size: 26,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  titleText,
-                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  descText,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFBBF7D0)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF16A34A).withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 10),
-          ElevatedButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => const StudentProfileCompletionSheet(),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: isRejected ? const Color(0xFFDC2626) : (isPending ? const Color(0xFFB45309) : AppColors.primary),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              minimumSize: const Size(0, 36),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFDCFCE7),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.verified_rounded, color: Color(0xFF16A34A), size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '🟢 360° Profile Verified & Approved',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5, color: Color(0xFF15803D)),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Your profile details have been verified and approved by HOD.',
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFF166534)),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF16A34A)),
+                  tooltip: 'Dismiss',
+                  onPressed: () {
+                    setState(() {
+                      _dismissedVerifiedBanner = true;
+                    });
+                  },
+                ),
+              ],
             ),
-            child: Text(
-              isRejected ? 'Edit & Resubmit' : (isPending ? 'View Profile' : 'Complete Now →'),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          );
+        }
+
+        // 3. If rejected, show revision required banner with HOD reason and Edit/Resubmit button
+        final isRejected = status == 'rejected' || status == 'needs_revision' || status == 'correction_required';
+        if (isRejected) {
+          final reason = profileDoc['rejectionReason']?.toString() ??
+              meta['rejectionReason']?.toString() ??
+              'HOD requested revision of your uploaded profile details.';
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFDC2626).withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.error_outline_rounded, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '🔴 Profile Revision Required',
+                        style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Reason: $reason',
+                        style: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const StudentProfileCompletionSheet(),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFFDC2626),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    minimumSize: const Size(0, 36),
+                  ),
+                  child: const Text('Edit & Resubmit', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // 4. Default: Incomplete / Draft (Not submitted yet) -> Show "Complete Your Profile"
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-        ],
-      ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.assignment_ind_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '🎓 Complete Your Profile',
+                      style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Fill in your personal, academic, accommodation & transport details for HOD verification.',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const StudentProfileCompletionSheet(),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  minimumSize: const Size(0, 36),
+                ),
+                child: const Text(
+                  'Complete Now →',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -594,43 +751,9 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     if (user?.role != UserRole.student) return const SizedBox.shrink();
 
     final hasMembership = meta['hasMembership'];
-    final org = meta['membershipOrg']?.toString();
-    final memId = meta['membershipId']?.toString();
 
-    // If membership status is recorded and valid, render compact badge card
-    if (hasMembership == true && org != null && memId != null && org != 'None') {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFF6FF),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFBFDBFE)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.verified_user_rounded, color: Color(0xFF2563EB), size: 22),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '🏅 Technical Society: $org • ID: $memId',
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            InkWell(
-              onTap: () => StudentMembershipModal.show(context),
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
-                child: Text('Edit', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (hasMembership == false) return const SizedBox.shrink();
+    // If membership status is already recorded/updated, hide the banner completely
+    if (hasMembership != null) return const SizedBox.shrink();
 
     // REMINDER BANNER for unrecorded membership status:
     return Container(
@@ -1095,16 +1218,19 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
       {'title': 'Examinations & Hall Ticket', 'subtitle': 'IA schedule, university dates & seating', 'icon': Icons.badge_outlined, 'color': const Color(0xFF4F46E5), 'tabIndex': 5},
       {'title': 'Important Days & Schedule', 'subtitle': 'Official academic calendar, CAT dates & holidays', 'icon': Icons.event_note_rounded, 'color': const Color(0xFF1E40AF), 'tabIndex': 6},
       {'title': 'CGPA & Target Planner', 'subtitle': 'Semester GPA forecasting & targets', 'icon': Icons.calculate_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 7},
-      {'title': 'Fees & Dues Payment', 'subtitle': 'Tuition & hostel fee receipts', 'icon': Icons.school_rounded, 'color': const Color(0xFFFFA726), 'tabIndex': 9},
-      {'title': 'Hackathons & Coding', 'subtitle': 'Inter-college hackathons & wins', 'icon': Icons.code_rounded, 'color': const Color(0xFF8B5CF6), 'tabIndex': 11},
-      {'title': 'Certifications & Badges', 'subtitle': 'NPTEL, Coursera & AWS certificates', 'icon': Icons.workspace_premium_rounded, 'color': const Color(0xFF10B981), 'tabIndex': 12},
-      {'title': 'LeetCode Coding Tracker', 'subtitle': 'DSA solved count & contest rank', 'icon': Icons.code_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 13},
-      {'title': 'GitHub Dev Portfolio', 'subtitle': 'Repositories & commit contributions', 'icon': Icons.terminal_rounded, 'color': const Color(0xFF0F172A), 'tabIndex': 14},
-      {'title': 'Achievements & Honors', 'subtitle': 'Academic & sports trophies', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 15},
-      {'title': 'Campus Events & Symposia', 'subtitle': 'Department fests & cultural events', 'icon': Icons.event_rounded, 'color': const Color(0xFFEC4899), 'tabIndex': 16},
-      {'title': 'Professional Resume', 'subtitle': 'Auto-generated dynamic A4 resume & completeness', 'icon': Icons.description_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 18},
-      {'title': 'Campus Photo Gallery', 'subtitle': 'Event photos & fest highlights', 'icon': Icons.collections_rounded, 'color': const Color(0xFF0284C7), 'tabIndex': 20},
-      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 21},
+      {'title': 'Academic Syllabus', 'subtitle': 'Subject curriculum & unit breakdowns', 'icon': Icons.menu_book_rounded, 'color': const Color(0xFFD97706), 'tabIndex': 8},
+      {'title': 'Question Papers & PYQ', 'subtitle': 'University papers, IATs & solved question banks', 'icon': Icons.quiz_rounded, 'color': const Color(0xFF4F46E5), 'tabIndex': 9},
+      {'title': 'Fees & Dues Payment', 'subtitle': 'Tuition & hostel fee receipts', 'icon': Icons.school_rounded, 'color': const Color(0xFFFFA726), 'tabIndex': 10},
+      {'title': 'Hackathons & Coding', 'subtitle': 'Inter-college hackathons & wins', 'icon': Icons.code_rounded, 'color': const Color(0xFF8B5CF6), 'tabIndex': 12},
+      {'title': 'Certifications & Badges', 'subtitle': 'NPTEL, Coursera & AWS certificates', 'icon': Icons.workspace_premium_rounded, 'color': const Color(0xFF10B981), 'tabIndex': 13},
+      {'title': 'LeetCode Coding Tracker', 'subtitle': 'DSA solved count & contest rank', 'icon': Icons.code_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 14},
+      {'title': 'GitHub Dev Portfolio', 'subtitle': 'Repositories & commit contributions', 'icon': Icons.terminal_rounded, 'color': const Color(0xFF0F172A), 'tabIndex': 15},
+      {'title': 'Achievements & Honors', 'subtitle': 'Academic & sports trophies', 'icon': Icons.emoji_events_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 16},
+      {'title': 'Campus Events & Symposia', 'subtitle': 'Department fests & cultural events', 'icon': Icons.event_rounded, 'color': const Color(0xFFEC4899), 'tabIndex': 17},
+      {'title': 'Feature Hub & Tools', 'subtitle': 'All campus portals & quick tools', 'icon': Icons.grid_view_rounded, 'color': const Color(0xFF64748B), 'tabIndex': 18},
+      {'title': 'Professional Resume', 'subtitle': 'Auto-generated dynamic A4 resume & completeness', 'icon': Icons.description_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 19},
+      {'title': 'Campus Photo Gallery', 'subtitle': 'Event photos & fest highlights', 'icon': Icons.collections_rounded, 'color': const Color(0xFF0284C7), 'tabIndex': 21},
+      {'title': 'Announcements & Circulars', 'subtitle': 'Official HOD & College notifications', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 22},
     ];
 
     showModalBottomSheet(
@@ -1494,7 +1620,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                     ],
                   ),
                   InkWell(
-                    onTap: () => widget.onNavigateToTab(18),
+                    onTap: () => widget.onNavigateToTab(19),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -2078,25 +2204,25 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   Widget _buildQuickActions() {
     final row1Actions = [
       {
-        'image': 'assets/timetable.png',
+        'image': 'assets/calendar-2.png',
         'label': 'Timetable',
         'color': const Color(0xFF5C6BC0),
         'type': 'timetable',
       },
       {
-        'image': 'assets/assignment.png',
+        'image': 'assets/to-do-list.png',
         'label': 'Upcoming Tasks',
         'color': const Color(0xFF0D9488),
         'type': 'tasks',
       },
       {
-        'image': 'assets/student.png',
+        'image': 'assets/exam.png',
         'label': 'Grades',
         'color': const Color(0xFFEF5350),
         'type': 'grades',
       },
       {
-        'image': 'assets/syllabus.png',
+        'image': 'assets/course.png',
         'label': 'Syllabus',
         'color': const Color(0xFFD97706),
         'iconBg': const Color(0xFFFEF3C7),
@@ -2106,7 +2232,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
     final row2Actions = [
       {
-        'image': 'assets/certifications.png',
+        'image': 'assets/certificate.png',
         'label': 'Certifications',
         'color': const Color(0xFF4F46E5),
         'iconBg': const Color(0xFFEEF2FF),
@@ -2175,16 +2301,18 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             widget.onNavigateToTab(4);
           } else if (type == 'syllabus') {
             widget.onNavigateToTab(8);
-          } else if (type == 'fees') {
+          } else if (type == 'pyq' || type == 'question_papers') {
             widget.onNavigateToTab(9);
+          } else if (type == 'fees') {
+            widget.onNavigateToTab(10);
           } else if (type == 'certifications') {
-            widget.onNavigateToTab(12);
+            widget.onNavigateToTab(13);
           } else if (type == 'announcement') {
-            widget.onNavigateToTab(21);
+            widget.onNavigateToTab(22);
           } else if (type == 'exams') {
             widget.onNavigateToTab(5);
           } else if (type == 'more') {
-            widget.onNavigateToTab(17);
+            widget.onNavigateToTab(18);
           }
         },
         borderRadius: BorderRadius.circular(16),
@@ -2212,6 +2340,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                             child: Image.asset(
                               action['image'] as String,
                               fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _renderSuggestedIcon(type, mainColor),
                             ),
                           )
                         : action.containsKey('icon')
@@ -2270,33 +2400,30 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   }
 
   Widget _renderSuggestedIcon(String type, Color mainColor) {
-    if (type == 'certifications') {
-      return Icon(Icons.workspace_premium_rounded, size: 30, color: mainColor);
-    } else if (type == 'announcement') {
-      return Icon(Icons.campaign_rounded, size: 30, color: mainColor);
-    } else {
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(Icons.assignment_rounded, size: 28, color: mainColor),
-          Positioned(
-            bottom: -1,
-            right: -1,
-            child: Container(
-              padding: const EdgeInsets.all(1.5),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.edit_rounded,
-                size: 12,
-                color: Color(0xFFF59E0B),
-              ),
-            ),
-          ),
-        ],
-      );
+    switch (type) {
+      case 'certifications':
+        return Icon(Icons.workspace_premium_rounded, size: 28, color: mainColor);
+      case 'announcement':
+        return Icon(Icons.campaign_rounded, size: 28, color: mainColor);
+      case 'syllabus':
+        return Icon(Icons.menu_book_rounded, size: 28, color: mainColor);
+      case 'grades':
+        return Icon(Icons.bar_chart_rounded, size: 28, color: mainColor);
+      case 'tasks':
+        return Icon(Icons.task_alt_rounded, size: 28, color: mainColor);
+      case 'timetable':
+        return Icon(Icons.calendar_month_outlined, size: 28, color: mainColor);
+      case 'pyq':
+      case 'question_papers':
+        return Icon(Icons.quiz_rounded, size: 28, color: mainColor);
+      case 'exams':
+        return Icon(Icons.badge_outlined, size: 28, color: mainColor);
+      case 'fees':
+        return Icon(Icons.payments_outlined, size: 28, color: mainColor);
+      case 'more':
+        return Icon(Icons.grid_view_rounded, size: 28, color: mainColor);
+      default:
+        return Icon(Icons.widgets_outlined, size: 28, color: mainColor);
     }
   }
 

@@ -13,6 +13,7 @@ import 'package:unisphere/widgets/common/recent_photos_section.dart';
 import 'package:unisphere/screens/gallery/full_photo_gallery_screen.dart';
 import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
 import 'package:unisphere/screens/features/events_screen.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 
 class StudentWard {
@@ -188,8 +189,12 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                 child: Navigator(
                   key: _innerNavigatorKey,
                   onGenerateRoute: (settings) {
+                    final activeScreen = _screens[_currentIndex < _screens.length ? _currentIndex : 0];
                     return MaterialPageRoute(
-                      builder: (_) => _screens[_currentIndex < _screens.length ? _currentIndex : 0],
+                      builder: (_) => FadeSlideTransition(
+                        transitionKey: ValueKey('parent_tab_$_currentIndex'),
+                        child: activeScreen,
+                      ),
                     );
                   },
                 ),

@@ -499,10 +499,10 @@ class HackathonDetailsScreen extends ConsumerWidget {
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
                       child: Column(
-                        children: registration!.activities.asMap().entries.map((entry) {
+                        children: registration.activities.asMap().entries.map((entry) {
                           final idx = entry.key;
                           final act = entry.value;
-                          final isLast = idx == registration!.activities.length - 1;
+                          final isLast = idx == (registration?.activities.length ?? 0) - 1;
                           final timeStr = DateFormat('hh:mm a').format(act.timestamp);
                           final dateStr = DateFormat('MMM dd').format(act.timestamp);
 

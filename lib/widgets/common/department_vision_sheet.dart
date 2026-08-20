@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 /// Interactive modal sheet displaying Department & Institute Vision, Mission, PEOs, POs, PSOs, and Outcome Mapping for AI & DS.
 void showDepartmentVisionSheet(BuildContext context) {
@@ -105,10 +106,12 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
               child: Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
+                    child: AppPressable(
                       onTap: () => setState(() => _selectedMainSection = 0),
+                      scaleFactor: 0.98,
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: AppAnimations.fast,
+                        curve: AppAnimations.fastCurve,
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: _selectedMainSection == 0 ? Colors.white : Colors.transparent,
@@ -146,10 +149,12 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
                     ),
                   ),
                   Expanded(
-                    child: GestureDetector(
+                    child: AppPressable(
                       onTap: () => setState(() => _selectedMainSection = 1),
+                      scaleFactor: 0.98,
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: AppAnimations.fast,
+                        curve: AppAnimations.fastCurve,
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: _selectedMainSection == 1 ? Colors.white : Colors.transparent,
@@ -195,9 +200,12 @@ class _DepartmentVisionSheetState extends State<DepartmentVisionSheet> with Sing
 
           // Main View Content
           Expanded(
-            child: _selectedMainSection == 0
-                ? _buildInstitutionSection()
-                : _buildDepartmentSection(),
+            child: FadeSlideTransition(
+              transitionKey: ValueKey('vision_section_$_selectedMainSection'),
+              child: _selectedMainSection == 0
+                  ? _buildInstitutionSection()
+                  : _buildDepartmentSection(),
+            ),
           ),
         ],
       ),

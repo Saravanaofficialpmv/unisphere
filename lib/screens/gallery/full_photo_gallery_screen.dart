@@ -7,6 +7,7 @@ import 'package:unisphere/providers/gallery_provider.dart';
 import 'package:unisphere/screens/gallery/album_details_screen.dart';
 import 'package:unisphere/widgets/common/stacked_deck_photo_gallery.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class FullPhotoGalleryScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -235,7 +236,7 @@ class _FullPhotoGalleryScreenState extends ConsumerState<FullPhotoGalleryScreen>
                   );
                 },
                 loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
+                  child: Loader(label: 'Loading photo gallery...'),
                 ),
                 error: (err, _) => Center(
                   child: Text('Error loading photo gallery: $err', style: const TextStyle(color: AppColors.textSecondary)),

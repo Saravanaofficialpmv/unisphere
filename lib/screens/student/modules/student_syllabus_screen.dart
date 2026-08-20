@@ -7,6 +7,7 @@ import 'package:unisphere/screens/student/modules/syllabus_document_viewer_scree
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/syllabus_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class StudentSyllabusScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -99,9 +100,9 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
 
   String _normalizeYear(String raw) {
     final s = raw.toLowerCase().trim();
-    if (s.contains('2nd') || s.contains('ii year') || s.contains('2') || s == 'ii') return 'II Year';
-    if (s.contains('3rd') || s.contains('iii year') || s.contains('3') || s == 'iii') return 'III Year';
-    if (s.contains('4th') || s.contains('iv year') || s.contains('4') || s == 'iv') return 'IV Year';
+    if (s.contains('4th') || s.contains('iv year') || s.contains('year 4') || s == '4' || s == 'iv') return 'IV Year';
+    if (s.contains('3rd') || s.contains('iii year') || s.contains('year 3') || s == '3' || s == 'iii') return 'III Year';
+    if (s.contains('2nd') || s.contains('ii year') || s.contains('year 2') || s == '2' || s == 'ii') return 'II Year';
     return 'I Year';
   }
 
@@ -347,28 +348,21 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
             child: Row(
               children: _availableYears.map((yr) {
                 final isSelected = yr == _currentSelectedYear;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(yr),
-                    selected: isSelected,
-                    selectedColor: AppColors.primary,
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF475569),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                    onSelected: (_) => setState(() {
+                return _buildPill(
+                  label: yr,
+                  isSelected: isSelected,
+                  activeColor: AppColors.primary,
+                  onTap: () {
+                    setState(() {
                       _currentSelectedYear = yr;
                       _currentSelectedSemester = _getAvailableSemesters(yr).first;
-                    }),
-                  ),
+                    });
+                  },
                 );
               }).toList(),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           const Text('Select Semester:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
           const SizedBox(height: 6),
@@ -377,20 +371,15 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
             child: Row(
               children: _getAvailableSemesters(_currentSelectedYear).map((sem) {
                 final isSelected = sem == _currentSelectedSemester;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(sem),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFF2563EB),
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF475569),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                    onSelected: (_) => setState(() => _currentSelectedSemester = sem),
-                  ),
+                return _buildPill(
+                  label: sem,
+                  isSelected: isSelected,
+                  activeColor: const Color(0xFF2563EB),
+                  onTap: () {
+                    setState(() {
+                      _currentSelectedSemester = sem;
+                    });
+                  },
                 );
               }).toList(),
             ),
@@ -405,7 +394,7 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
 
           // Current Syllabus Subject Cards List
           if (_isLoading)
-            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+            const Center(child: Padding(padding: EdgeInsets.all(24), child: Loader(label: 'Loading syllabus...')))
           else if (_currentSyllabusSubjects.isEmpty)
             _buildEmptyCurrentSyllabusCard()
           else
@@ -475,20 +464,15 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
             child: Row(
               children: prevYearsList.map((acYr) {
                 final isSelected = acYr == _previousSelectedAcademicYear;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(acYr),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFF0F172A),
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF475569),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                    onSelected: (_) => setState(() => _previousSelectedAcademicYear = acYr),
-                  ),
+                return _buildPill(
+                  label: acYr,
+                  isSelected: isSelected,
+                  activeColor: const Color(0xFF0F172A),
+                  onTap: () {
+                    setState(() {
+                      _previousSelectedAcademicYear = acYr;
+                    });
+                  },
                 );
               }).toList(),
             ),
@@ -496,40 +480,48 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
           const SizedBox(height: 12),
 
           // Previous Year & Semester Pills
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Year:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-                    const SizedBox(height: 4),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: _availableYears.map((yr) {
-                          final isSelected = yr == _previousSelectedYear;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 6.0),
-                            child: ChoiceChip(
-                              label: Text(yr, style: const TextStyle(fontSize: 11)),
-                              selected: isSelected,
-                              selectedColor: const Color(0xFF475569),
-                              backgroundColor: const Color(0xFFF8FAFC),
-                              labelStyle: TextStyle(color: isSelected ? Colors.white : const Color(0xFF475569)),
-                              onSelected: (_) => setState(() {
-                                _previousSelectedYear = yr;
-                                _previousSelectedSemester = _getAvailableSemesters(yr).first;
-                              }),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          const Text('Select Academic Year Level:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _availableYears.map((yr) {
+                final isSelected = yr == _previousSelectedYear;
+                return _buildPill(
+                  label: yr,
+                  isSelected: isSelected,
+                  activeColor: const Color(0xFF475569),
+                  onTap: () {
+                    setState(() {
+                      _previousSelectedYear = yr;
+                      _previousSelectedSemester = _getAvailableSemesters(yr).first;
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          const Text('Select Semester:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _getAvailableSemesters(_previousSelectedYear).map((sem) {
+                final isSelected = sem == _previousSelectedSemester;
+                return _buildPill(
+                  label: sem,
+                  isSelected: isSelected,
+                  activeColor: const Color(0xFF475569),
+                  onTap: () {
+                    setState(() {
+                      _previousSelectedSemester = sem;
+                    });
+                  },
+                );
+              }).toList(),
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -562,6 +554,59 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
     );
   }
 
+  Widget _buildPill({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    Color activeColor = AppColors.primary,
+    Color activeTextColor = Colors.white,
+    IconData? icon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? activeColor : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isSelected ? activeColor : const Color(0xFFCBD5E1),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSelected) ...[
+                  Icon(
+                    icon ?? Icons.check_rounded,
+                    size: 14,
+                    color: activeTextColor,
+                  ),
+                  const SizedBox(width: 5),
+                ],
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color: isSelected ? activeTextColor : const Color(0xFF475569),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchAndFilterRow() {
     final filters = ['All', 'Theory', 'Practical', 'Elective'];
     return Column(
@@ -587,16 +632,15 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
           child: Row(
             children: filters.map((f) {
               final isSelected = f == _selectedTypeFilter;
-              return Padding(
-                padding: const EdgeInsets.only(right: 6.0),
-                child: FilterChip(
-                  label: Text(f, style: const TextStyle(fontSize: 11)),
-                  selected: isSelected,
-                  selectedColor: AppColors.primary,
-                  backgroundColor: const Color(0xFFF1F5F9),
-                  labelStyle: TextStyle(color: isSelected ? Colors.white : const Color(0xFF64748B)),
-                  onSelected: (_) => setState(() => _selectedTypeFilter = f),
-                ),
+              return _buildPill(
+                label: f,
+                isSelected: isSelected,
+                activeColor: AppColors.primary,
+                onTap: () {
+                  setState(() {
+                    _selectedTypeFilter = f;
+                  });
+                },
               );
             }).toList(),
           ),
@@ -620,100 +664,112 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => SubjectDetailsScreen(subject: subject),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Material(
+            color: Colors.transparent,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: InkWell(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => SubjectDetailsScreen(subject: subject),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        subject.subjectCode,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        subject.subjectType,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${subject.credits} Credits',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  subject.subjectName,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${subject.subjectCode} · ${subject.subjectType} · ${subject.credits} Credits',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${subject.year} · ${subject.semester}  ·  Regulation ${subject.applicableBatch}',
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.info_outline_rounded, size: 16),
-                      label: const Text('Subject Info', style: TextStyle(fontSize: 12)),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => SubjectDetailsScreen(subject: subject),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                        );
-                      },
+                          child: Text(
+                            subject.subjectCode,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            subject.subjectType,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${subject.credits} Credits',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                        ),
+                      ],
                     ),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.picture_as_pdf_rounded, size: 16, color: Colors.white),
-                      label: const Text('View Syllabus →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isCurrent ? AppColors.primary : const Color(0xFF475569),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: () => _handleViewDocument(subject),
+                    const SizedBox(height: 10),
+                    Text(
+                      subject.subjectName,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${subject.subjectCode} · ${subject.subjectType} · ${subject.credits} Credits',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${subject.year} · ${subject.semester}  ·  Regulation ${subject.applicableBatch}',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                     ),
                   ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.info_outline_rounded, size: 16),
+                  label: const Text('Subject Info', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SubjectDetailsScreen(subject: subject),
+                      ),
+                    );
+                  },
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.picture_as_pdf_rounded, size: 16, color: Colors.white),
+                  label: const Text('View Syllabus →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isCurrent ? AppColors.primary : const Color(0xFF475569),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => _handleViewDocument(subject),
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }

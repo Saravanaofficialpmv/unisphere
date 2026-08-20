@@ -17,7 +17,9 @@ import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
 import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
 
-import 'package:unisphere/widgets/common/custom_loader.dart';
+import 'package:unisphere/screens/splash/splash_screen.dart';
+import 'package:unisphere/screens/common/loader_preview_screen.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 import 'dart:async';
 
@@ -64,14 +66,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isSignup = state.matchedLocation == '/signup';
       final isRequestSubmitted = state.matchedLocation == '/request-submitted';
       final isOnboarding = state.matchedLocation == '/onboarding';
+      final isPreview = state.matchedLocation == '/loader-preview';
+
+      if (isPreview || isSplash) return null;
 
       if (!isAuth) {
-        if (isSplash) return '/onboarding';
         if (isLogin || isOnboarding || isSignup || isRequestSubmitted) return null;
         return '/onboarding';
       }
 
-      if (isAuth && (isLogin || isSignup || isSplash || isOnboarding)) {
+      if (isAuth && (isLogin || isSignup || isOnboarding)) {
         switch (user.role) {
           case UserRole.admin:
             return '/admin';
@@ -93,76 +97,133 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (context, state) => const Scaffold(
-          backgroundColor: Colors.white,
-          body: Center(
-            child: Loader(
-              label: 'Loading UNISPHERE...',
-            ),
-          ),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const SplashScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/loader-preview',
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const LoaderPreviewScreen(),
         ),
       ),
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const OnboardingScreen(),
+        ),
       ),
       GoRoute(
         path: '/login',
-        builder: (context, state) => const AuthScreen(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const AuthScreen(),
+        ),
       ),
       GoRoute(
         path: '/signup',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final queryParams = state.uri.queryParameters;
-          return AuthScreen(
-            isInitialSignUp: true,
-            initialFirstName: queryParams['firstName'],
-            initialLastName: queryParams['lastName'],
-            initialRole: queryParams['role'],
-            initialId: queryParams['id'],
-            initialDepartment: queryParams['department'],
+          return AppRouteTransitions.slideFade(
+            context: context,
+            state: state,
+            child: AuthScreen(
+              isInitialSignUp: true,
+              initialFirstName: queryParams['firstName'],
+              initialLastName: queryParams['lastName'],
+              initialRole: queryParams['role'],
+              initialId: queryParams['id'],
+              initialDepartment: queryParams['department'],
+            ),
           );
         },
       ),
       GoRoute(
         path: '/request-submitted',
-        builder: (context, state) => const RequestSubmittedScreen(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const RequestSubmittedScreen(),
+        ),
       ),
       GoRoute(
         path: '/admin',
-        builder: (context, state) => const AdminShell(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const AdminShell(),
+        ),
       ),
       GoRoute(
         path: '/hod',
-        builder: (context, state) => const HodShell(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const HodShell(),
+        ),
       ),
       GoRoute(
         path: '/student',
-        builder: (context, state) => const StudentDashboard(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const StudentDashboard(),
+        ),
       ),
       GoRoute(
         path: '/staff',
-        builder: (context, state) => const StaffDashboard(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const StaffDashboard(),
+        ),
       ),
       GoRoute(
         path: '/parent',
-        builder: (context, state) => const ParentDashboard(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const ParentDashboard(),
+        ),
       ),
       GoRoute(
         path: '/cgpa-details',
-        builder: (context, state) => const CgpaDetailsScreen(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const CgpaDetailsScreen(),
+        ),
       ),
       GoRoute(
         path: '/leetcode-details',
-        builder: (context, state) => const LeetCodeDetailScreen(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const LeetCodeDetailScreen(),
+        ),
       ),
       GoRoute(
         path: '/github-details',
-        builder: (context, state) => const GitHubDetailScreen(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const GitHubDetailScreen(),
+        ),
       ),
       GoRoute(
         path: '/resume',
-        builder: (context, state) => const StudentResumeScreen(),
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const StudentResumeScreen(),
+        ),
       ),
     ],
   );

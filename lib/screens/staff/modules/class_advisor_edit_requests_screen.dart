@@ -5,6 +5,8 @@ import 'package:unisphere/models/student_profile_model.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
 
+import 'package:unisphere/widgets/common/custom_loader.dart';
+
 class ClassAdvisorEditRequestsScreen extends ConsumerStatefulWidget {
   const ClassAdvisorEditRequestsScreen({super.key});
 
@@ -34,7 +36,7 @@ class _ClassAdvisorEditRequestsScreenState
         stream: ref.watch(firebaseFirestoreServiceProvider).getProfileEditRequestsStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: Loader(label: 'Loading edit requests...'));
           }
 
           final rawRequests = snapshot.data ?? [];

@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/widgets/common/apple_glass_card.dart';
 import 'package:unisphere/widgets/common/app_progress_indicators.dart';

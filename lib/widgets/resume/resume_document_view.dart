@@ -207,15 +207,20 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
       children: [
         if (widget.showControls) _buildControlsBar(),
         Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 12 : 24,
-              vertical: 16,
-            ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 820),
-                child: _buildA4Paper(r, isMobile),
+          child: Container(
+            width: double.infinity,
+            color: const Color(0xFFF8FAFC),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 12 : 24,
+                vertical: 16,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 820),
+                  child: _buildA4Paper(r, isMobile),
+                ),
               ),
             ),
           ),
@@ -405,13 +410,26 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
   }
 
   Widget _buildHeaderSection(ResumeHeader h, Color headingNavy, Color subtitleSlate, Color bodyColor, bool isMobile) {
-    String cleanLinkedin = (h.linkedinUrl ?? 'linkedin.com/in/saravana-selvaraju')
+    final displayName = h.fullName.trim().isNotEmpty ? h.fullName.trim() : 'SARAVANA SELVARAJU';
+    final displayHeadline = h.headline.trim().isNotEmpty 
+        ? h.headline.trim() 
+        : 'Full-Stack Software Engineer | Flutter & Mobile Systems Specialist';
+    final displayEmail = h.collegeEmail.trim().isNotEmpty ? h.collegeEmail.trim() : 'saravanapmvofficial@gmail.com';
+    final displayPhone = (h.phone != null && h.phone!.trim().isNotEmpty) ? h.phone!.trim() : '+91 98765 43210';
+
+    String cleanLinkedin = (h.linkedinUrl != null && h.linkedinUrl!.trim().isNotEmpty)
+        ? h.linkedinUrl!
+        : 'linkedin.com/in/saravana-selvaraju';
+    cleanLinkedin = cleanLinkedin
         .replaceAll('https://', '')
         .replaceAll('http://', '')
         .replaceAll('www.', '');
     if (cleanLinkedin.endsWith('/')) cleanLinkedin = cleanLinkedin.substring(0, cleanLinkedin.length - 1);
 
-    String cleanGithub = (h.githubUrl ?? 'github.com/Saravanaofficialpmv')
+    String cleanGithub = (h.githubUrl != null && h.githubUrl!.trim().isNotEmpty)
+        ? h.githubUrl!
+        : 'github.com/Saravanaofficialpmv';
+    cleanGithub = cleanGithub
         .replaceAll('https://', '')
         .replaceAll('http://', '')
         .replaceAll('www.', '');
@@ -423,7 +441,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
         children: [
           // Name (All-Caps Bold)
           Text(
-            h.fullName.toUpperCase(),
+            displayName.toUpperCase(),
             style: TextStyle(
               fontSize: isMobile ? 18 : 22,
               fontWeight: FontWeight.w800,
@@ -436,9 +454,7 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
 
           // Roles / Headline
           Text(
-            h.headline.contains('|')
-                ? h.headline
-                : 'Software Developer  |  AI Engineer  |  Data Scientist',
+            displayHeadline,
             style: TextStyle(
               fontSize: isMobile ? 11.5 : 12.5,
               fontWeight: FontWeight.w600,
@@ -457,17 +473,17 @@ class _ResumeDocumentViewState extends State<ResumeDocumentView> {
             runSpacing: 4,
             children: [
               InkWell(
-                onTap: () => _openLink('mailto:${h.collegeEmail}'),
+                onTap: () => _openLink('mailto:$displayEmail'),
                 child: Text(
-                  '✉ ${h.collegeEmail}',
+                  '✉ $displayEmail',
                   style: TextStyle(fontSize: 10.8, color: bodyColor, fontWeight: FontWeight.w500),
                 ),
               ),
               const Text('|', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
               InkWell(
-                onTap: () => _openLink('tel:${h.phone ?? "+918220537987"}'),
+                onTap: () => _openLink('tel:$displayPhone'),
                 child: Text(
-                  '☎ ${h.phone ?? "+91-8220537987"}',
+                  '☎ $displayPhone',
                   style: TextStyle(fontSize: 10.8, color: bodyColor, fontWeight: FontWeight.w500),
                 ),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 final hodVerificationsStreamProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
   return ref.watch(firebaseFirestoreServiceProvider).getPendingHodVerificationsStream();
@@ -53,7 +54,7 @@ class _HodStudentVerificationsScreenState extends ConsumerState<HodStudentVerifi
           // Profiles List
           Expanded(
             child: verificationsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF2563EB))),
+              loading: () => const Center(child: Loader(label: 'Loading student verifications...')),
               error: (err, stack) => Center(child: Text('Error loading profiles: $err')),
               data: (profiles) {
                 final filtered = profiles.where((p) {

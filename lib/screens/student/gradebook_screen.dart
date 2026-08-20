@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/providers/gradebook_provider.dart';
-import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
@@ -34,6 +33,10 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    final initialIdx = ref.read(gradebookProvider).selectedSemesterIndex;
+    if (initialIdx >= 0) {
+      _selectedSemIndex = initialIdx;
+    }
     if (widget.initialShowPlanner) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -66,50 +69,6 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _CgpaCalculatorModalSheet(),
-    );
-  }
-
-  void _showStaffUploadModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.88,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.upload_file_rounded, color: Color(0xFF1D4ED8)),
-                      SizedBox(width: 10),
-                      Text('Faculty Internal Marks Upload Portal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const Expanded(child: StaffMarksUploadModule()),
-          ],
-        ),
-      ),
     );
   }
 
@@ -239,6 +198,418 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
     );
   }
 
+  List<Map<String, String>> _getInternalSubjectDataForSemester(int semIndex) {
+    switch (semIndex) {
+      case 0: // Semester 1
+        return [
+          {
+            'code': 'MA3151',
+            'name': 'Matrices and Calculus',
+            'faculty': 'Dr. G. Balachandran (Maths)',
+            'ia1': '46 / 50',
+            'ia1Conv': '13.8 / 15',
+            'ia1Initial': '46 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '48 / 50',
+            'ia2Conv': '14.4 / 15',
+            'ia2Initial': '48 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '90 / 100',
+            'modelConv': '18.0 / 20',
+            'modelInitial': '90 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '10.0 / 10',
+            'totalInternal': '56.2 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'PH3151',
+            'name': 'Engineering Physics',
+            'faculty': 'Dr. K. Senthil (Physics)',
+            'ia1': '42 / 50',
+            'ia1Conv': '12.6 / 15',
+            'ia1Initial': '42 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '45 / 50',
+            'ia2Conv': '13.5 / 15',
+            'ia2Initial': '45 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '84 / 100',
+            'modelConv': '16.8 / 20',
+            'modelInitial': '84 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '9.0 / 10',
+            'totalInternal': '51.9 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'CY3151',
+            'name': 'Engineering Chemistry',
+            'faculty': 'Dr. R. Kavitha (Chemistry)',
+            'ia1': '45 / 50',
+            'ia1Conv': '13.5 / 15',
+            'ia1Initial': '45 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '46 / 50',
+            'ia2Conv': '13.8 / 15',
+            'ia2Initial': '46 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '88 / 100',
+            'modelConv': '17.6 / 20',
+            'modelInitial': '88 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '9.5 / 10',
+            'totalInternal': '54.4 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'GE3151',
+            'name': 'Problem Solving and Python',
+            'faculty': 'Prof. K. Meenakshi (CSE)',
+            'ia1': '49 / 50',
+            'ia1Conv': '14.7 / 15',
+            'ia1Initial': '49 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '50 / 50',
+            'ia2Conv': '15.0 / 15',
+            'ia2Initial': '50 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '96 / 100',
+            'modelConv': '19.2 / 20',
+            'modelInitial': '96 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '10.0 / 10',
+            'totalInternal': '58.9 / 60',
+            'status': 'Finalized by Staff',
+          },
+        ];
+      case 1: // Semester 2
+        return [
+          {
+            'code': 'MA3251',
+            'name': 'Statistics and Numerical Methods',
+            'faculty': 'Dr. G. Balachandran (Maths)',
+            'ia1': '40 / 50',
+            'ia1Conv': '12.0 / 15',
+            'ia1Initial': '40 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '44 / 50',
+            'ia2Conv': '13.2 / 15',
+            'ia2Initial': '44 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '82 / 100',
+            'modelConv': '16.4 / 20',
+            'modelInitial': '82 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '9.0 / 10',
+            'totalInternal': '50.6 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'CS3251',
+            'name': 'Programming in C',
+            'faculty': 'Prof. V. Rajesh (CSE)',
+            'ia1': '48 / 50',
+            'ia1Conv': '14.4 / 15',
+            'ia1Initial': '48 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '47 / 50',
+            'ia2Conv': '14.1 / 15',
+            'ia2Initial': '47 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '94 / 100',
+            'modelConv': '18.8 / 20',
+            'modelInitial': '94 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '10.0 / 10',
+            'totalInternal': '57.3 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'GE3251',
+            'name': 'Engineering Graphics',
+            'faculty': 'Prof. M. Selvam (Mech)',
+            'ia1': '38 / 50',
+            'ia1Conv': '11.4 / 15',
+            'ia1Initial': '20 / 50',
+            'ia1Retest': '38 / 50',
+            'ia1RetestStatus': 'Retest Cleared (+18 Marks)',
+            'hasIa1Retest': 'true',
+            'ia2': '40 / 50',
+            'ia2Conv': '12.0 / 15',
+            'ia2Initial': '40 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '76 / 100',
+            'modelConv': '15.2 / 20',
+            'modelInitial': '76 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '8.5 / 10',
+            'totalInternal': '47.1 / 60',
+            'status': 'Finalized by Staff',
+          },
+        ];
+      case 2: // Semester 3
+        return [
+          {
+            'code': 'MA3354',
+            'name': 'Discrete Mathematics',
+            'faculty': 'Dr. G. Balachandran (Maths)',
+            'ia1': '45 / 50',
+            'ia1Conv': '13.5 / 15',
+            'ia1Initial': '45 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '46 / 50',
+            'ia2Conv': '13.8 / 15',
+            'ia2Initial': '46 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '88 / 100',
+            'modelConv': '17.6 / 20',
+            'modelInitial': '88 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '9.5 / 10',
+            'totalInternal': '54.4 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'CS3301',
+            'name': 'Data Structures',
+            'faculty': 'Dr. S. Ramanathan (CSE)',
+            'ia1': '48 / 50',
+            'ia1Conv': '14.4 / 15',
+            'ia1Initial': '48 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '49 / 50',
+            'ia2Conv': '14.7 / 15',
+            'ia2Initial': '49 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '95 / 100',
+            'modelConv': '19.0 / 20',
+            'modelInitial': '95 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '10.0 / 10',
+            'totalInternal': '58.1 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'CS3391',
+            'name': 'Object Oriented Programming',
+            'faculty': 'Dr. V. Rajesh (CSE)',
+            'ia1': '44 / 50',
+            'ia1Conv': '13.2 / 15',
+            'ia1Initial': '44 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '46 / 50',
+            'ia2Conv': '13.8 / 15',
+            'ia2Initial': '46 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '86 / 100',
+            'modelConv': '17.2 / 20',
+            'modelInitial': '86 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '9.5 / 10',
+            'totalInternal': '53.7 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'CS3351',
+            'name': 'Digital Principles & Comp Org',
+            'faculty': 'Prof. Anitha Subramanian (ECE)',
+            'ia1': '42 / 50',
+            'ia1Conv': '12.6 / 15',
+            'ia1Initial': '15 / 50',
+            'ia1Retest': '42 / 50',
+            'ia1RetestStatus': 'Retest Cleared (+27 Marks)',
+            'hasIa1Retest': 'true',
+            'ia2': '44 / 50',
+            'ia2Conv': '13.2 / 15',
+            'ia2Initial': '44 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '80 / 100',
+            'modelConv': '16.0 / 20',
+            'modelInitial': '80 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '9.0 / 10',
+            'totalInternal': '50.8 / 60',
+            'status': 'Finalized by Staff',
+          },
+        ];
+      case 3: // Semester 4 (Active Current Term)
+        return [
+          {
+            'code': 'CS3401',
+            'name': 'Design & Analysis of Algorithms',
+            'faculty': 'Dr. S. Ramanathan (CSE)',
+            'ia1': '44 / 50',
+            'ia1Conv': '13.2 / 15',
+            'ia1Initial': '20 / 50',
+            'ia1Retest': '44 / 50',
+            'ia1RetestStatus': 'Retest Cleared (+24 Marks Improved)',
+            'hasIa1Retest': 'true',
+            'ia2': '46 / 50',
+            'ia2Conv': '13.8 / 15',
+            'ia2Initial': '46 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '88 / 100',
+            'modelConv': '17.6 / 20',
+            'modelInitial': '88 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '9.5 / 10',
+            'totalInternal': '54.1 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'CS3492',
+            'name': 'Database Management Systems',
+            'faculty': 'Prof. Sarah Jenkins (CSE)',
+            'ia1': '48 / 50',
+            'ia1Conv': '14.4 / 15',
+            'ia1Initial': '48 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '47 / 50',
+            'ia2Conv': '14.1 / 15',
+            'ia2Initial': '15 / 50 (Absent)',
+            'ia2Retest': '47 / 50',
+            'ia2RetestStatus': 'Retest Cleared (Absentee Retest)',
+            'hasIa2Retest': 'true',
+            'modelExam': '92 / 100',
+            'modelConv': '18.4 / 20',
+            'modelInitial': '92 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '10.0 / 10',
+            'totalInternal': '56.9 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'CS3451',
+            'name': 'Operating Systems',
+            'faculty': 'Prof. N. Karthikeyan (CSE)',
+            'ia1': '42 / 50',
+            'ia1Conv': '12.6 / 15',
+            'ia1Initial': '42 / 50',
+            'hasIa1Retest': 'false',
+            'ia2': '43 / 50',
+            'ia2Conv': '12.9 / 15',
+            'ia2Initial': '43 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '84 / 100',
+            'modelConv': '16.8 / 20',
+            'modelInitial': '52 / 100 (Fail)',
+            'modelRetest': '84 / 100',
+            'modelRetestStatus': 'Model Retest Cleared (+32 Marks)',
+            'hasModelRetest': 'true',
+            'attAssign': '9.0 / 10',
+            'totalInternal': '51.3 / 60',
+            'status': 'Finalized by Staff',
+          },
+          {
+            'code': 'CS3491',
+            'name': 'Computer Networks',
+            'faculty': 'Prof. Michael Scott (CSE)',
+            'ia1': '38 / 50',
+            'ia1Conv': '11.4 / 15',
+            'ia1Initial': '14 / 50',
+            'ia1Retest': '38 / 50',
+            'ia1RetestStatus': 'Retest Cleared (+24 Marks Improved)',
+            'hasIa1Retest': 'true',
+            'ia2': '40 / 50',
+            'ia2Conv': '12.0 / 15',
+            'ia2Initial': '40 / 50',
+            'hasIa2Retest': 'false',
+            'modelExam': '78 / 100',
+            'modelConv': '15.6 / 20',
+            'modelInitial': '78 / 100',
+            'hasModelRetest': 'false',
+            'attAssign': '8.5 / 10',
+            'totalInternal': '47.5 / 60',
+            'status': 'Finalized by Staff',
+          },
+        ];
+      default: // Semester 5, 6, 7, 8
+        return [];
+    }
+  }
+
+  Widget _buildNoInternalMarksEmptyState(String semName) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: const Icon(
+              Icons.assignment_late_outlined,
+              size: 36,
+              color: Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Internal Marks Published for $semName',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Subject faculty members have not yet uploaded or finalized internal assessment marks (IA-1, IA-2, Model Exam) for this semester.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Color(0xFF64748B),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF3B82F6)),
+                const SizedBox(width: 8),
+                Text(
+                  'Switch to Semester 1 - 4 above to view published terms',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
   // TAB 1: INTERNAL MARKS (Uploaded by Subject Staff on Faculty Portal)
   // ───────────────────────────────────────────────────────────────────────────
@@ -249,278 +620,128 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
     final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
     final activeRegNo = currentUser?.metadata?['registerNumber']?.toString().trim() ?? '';
 
-    // Mock internal assessment data for subjects with Retest history
-    final internalSubjectData = [
-      {
-        'code': 'CS401',
-        'name': 'Advanced Data Structures',
-        'faculty': 'Dr. Robert Vance (Subject Staff)',
-        'ia1': '44 / 50',
-        'ia1Conv': '13.2 / 15',
-        'ia1Initial': '20 / 50',
-        'ia1Retest': '44 / 50',
-        'ia1RetestStatus': 'Retest Cleared (+24 Marks Improved)',
-        'hasIa1Retest': 'true',
-        'ia2': '46 / 50',
-        'ia2Conv': '13.8 / 15',
-        'ia2Initial': '46 / 50',
-        'hasIa2Retest': 'false',
-        'modelExam': '88 / 100',
-        'modelConv': '17.6 / 20',
-        'modelInitial': '88 / 100',
-        'hasModelRetest': 'false',
-        'attAssign': '9.5 / 10',
-        'totalInternal': '54.1 / 60',
-        'status': 'Finalized by Staff',
-      },
-      {
-        'code': 'CS402',
-        'name': 'Database Management Systems',
-        'faculty': 'Prof. Sarah Jenkins (Subject Staff)',
-        'ia1': '48 / 50',
-        'ia1Conv': '14.4 / 15',
-        'ia1Initial': '48 / 50',
-        'hasIa1Retest': 'false',
-        'ia2': '47 / 50',
-        'ia2Conv': '14.1 / 15',
-        'ia2Initial': '15 / 50 (Absent)',
-        'ia2Retest': '47 / 50',
-        'ia2RetestStatus': 'Retest Cleared (Absentee Retest)',
-        'hasIa2Retest': 'true',
-        'modelExam': '92 / 100',
-        'modelConv': '18.4 / 20',
-        'modelInitial': '92 / 100',
-        'hasModelRetest': 'false',
-        'attAssign': '10.0 / 10',
-        'totalInternal': '56.9 / 60',
-        'status': 'Finalized by Staff',
-      },
-      {
-        'code': 'CS403',
-        'name': 'Operating Systems',
-        'faculty': 'Dr. Alan Turing (Subject Staff)',
-        'ia1': '42 / 50',
-        'ia1Conv': '12.6 / 15',
-        'ia1Initial': '42 / 50',
-        'hasIa1Retest': 'false',
-        'ia2': '43 / 50',
-        'ia2Conv': '12.9 / 15',
-        'ia2Initial': '43 / 50',
-        'hasIa2Retest': 'false',
-        'modelExam': '84 / 100',
-        'modelConv': '16.8 / 20',
-        'modelInitial': '52 / 100 (Fail)',
-        'modelRetest': '84 / 100',
-        'modelRetestStatus': 'Model Retest Cleared (+32 Marks)',
-        'hasModelRetest': 'true',
-        'attAssign': '9.0 / 10',
-        'totalInternal': '51.3 / 60',
-        'status': 'Finalized by Staff',
-      },
-      {
-        'code': 'CS404',
-        'name': 'Computer Networks',
-        'faculty': 'Prof. Michael Scott (Subject Staff)',
-        'ia1': '38 / 50',
-        'ia1Conv': '11.4 / 15',
-        'ia1Initial': '14 / 50',
-        'ia1Retest': '38 / 50',
-        'ia1RetestStatus': 'Retest Cleared (+24 Marks Improved)',
-        'hasIa1Retest': 'true',
-        'ia2': '40 / 50',
-        'ia2Conv': '12.0 / 15',
-        'ia2Initial': '40 / 50',
-        'hasIa2Retest': 'false',
-        'modelExam': '78 / 100',
-        'modelConv': '15.6 / 20',
-        'modelInitial': '78 / 100',
-        'hasModelRetest': 'false',
-        'attAssign': '8.5 / 10',
-        'totalInternal': '47.5 / 60',
-        'status': 'Finalized by Staff',
-      },
-    ];
+    // Load internal assessment data for the currently selected semester
+    final internalSubjectData = List<Map<String, String>>.from(
+      _getInternalSubjectDataForSemester(_selectedSemIndex).map((e) => Map<String, String>.from(e)),
+    );
 
-    // Merge live published internal marks from Firestore stream
-    for (var asgDoc in dbAssignments) {
-      final subjectStr = asgDoc['subject']?.toString() ?? '';
-      final examTypeStr = asgDoc['examType']?.toString() ?? '';
-      final studentRecords = (asgDoc['studentRecords'] as List?) ?? [];
+    // Safely merge live published internal marks from Firestore stream if available
+    try {
+      for (var asgDoc in dbAssignments) {
+        final subjectStr = asgDoc['subject']?.toString() ?? '';
+        final examTypeStr = asgDoc['examType']?.toString() ?? '';
+        final studentRecords = (asgDoc['studentRecords'] as List?) ?? [];
 
-      for (var r in studentRecords) {
-        if (r is Map) {
-          final rRegNo = r['regNo']?.toString().trim();
-          if (rRegNo == activeRegNo || rRegNo == currentUser?.uid || activeRegNo.isEmpty) {
-            for (var sub in internalSubjectData) {
-              if (subjectStr.contains(sub['code']!) || subjectStr.contains(sub['name']!)) {
-                final initialMark = r['initial']?.toString() ?? '';
-                final retestMark = r['retest']?.toString() ?? '';
-                final convMark = r['conv']?.toString() ?? '';
-                final statusStr = r['status']?.toString() ?? '';
+        for (var r in studentRecords) {
+          if (r is Map) {
+            final rRegNo = r['regNo']?.toString().trim() ?? '';
+            if (rRegNo.isEmpty || rRegNo == activeRegNo || rRegNo == currentUser?.uid) {
+              for (var sub in internalSubjectData) {
+                final code = sub['code'] ?? '';
+                final name = sub['name'] ?? '';
+                if ((code.isNotEmpty && subjectStr.contains(code)) || (name.isNotEmpty && subjectStr.contains(name))) {
+                  final initialMark = r['initial']?.toString() ?? '';
+                  final retestMark = r['retest']?.toString() ?? '';
+                  final convMark = r['conv']?.toString() ?? '';
+                  final statusStr = r['status']?.toString() ?? '';
 
-                if (examTypeStr.contains('IA-1') || examTypeStr.contains('1')) {
-                  if (initialMark.isNotEmpty) sub['ia1Initial'] = initialMark;
-                  if (retestMark.isNotEmpty && retestMark != 'N/A') {
-                    sub['ia1Retest'] = retestMark;
-                    sub['ia1RetestStatus'] = statusStr;
-                    sub['hasIa1Retest'] = 'true';
-                    sub['ia1'] = retestMark;
-                  } else if (initialMark.isNotEmpty) {
-                    sub['ia1'] = initialMark;
+                  if (examTypeStr.contains('IA-1') || examTypeStr.contains('1')) {
+                    if (initialMark.isNotEmpty) sub['ia1Initial'] = initialMark;
+                    if (retestMark.isNotEmpty && retestMark != 'N/A') {
+                      sub['ia1Retest'] = retestMark;
+                      sub['ia1RetestStatus'] = statusStr;
+                      sub['hasIa1Retest'] = 'true';
+                      sub['ia1'] = retestMark;
+                    } else if (initialMark.isNotEmpty) {
+                      sub['ia1'] = initialMark;
+                    }
+                    if (convMark.isNotEmpty) sub['ia1Conv'] = convMark;
+                  } else if (examTypeStr.contains('IA-2') || examTypeStr.contains('2')) {
+                    if (initialMark.isNotEmpty) sub['ia2Initial'] = initialMark;
+                    if (retestMark.isNotEmpty && retestMark != 'N/A') {
+                      sub['ia2Retest'] = retestMark;
+                      sub['ia2RetestStatus'] = statusStr;
+                      sub['hasIa2Retest'] = 'true';
+                      sub['ia2'] = retestMark;
+                    } else if (initialMark.isNotEmpty) {
+                      sub['ia2'] = initialMark;
+                    }
+                    if (convMark.isNotEmpty) sub['ia2Conv'] = convMark;
+                  } else if (examTypeStr.contains('Model')) {
+                    if (initialMark.isNotEmpty) sub['modelInitial'] = initialMark;
+                    if (retestMark.isNotEmpty && retestMark != 'N/A') {
+                      sub['modelRetest'] = retestMark;
+                      sub['modelRetestStatus'] = statusStr;
+                      sub['hasModelRetest'] = 'true';
+                      sub['modelExam'] = retestMark;
+                    } else if (initialMark.isNotEmpty) {
+                      sub['modelExam'] = initialMark;
+                    }
+                    if (convMark.isNotEmpty) sub['modelConv'] = convMark;
                   }
-                  if (convMark.isNotEmpty) sub['ia1Conv'] = convMark;
-                } else if (examTypeStr.contains('IA-2') || examTypeStr.contains('2')) {
-                  if (initialMark.isNotEmpty) sub['ia2Initial'] = initialMark;
-                  if (retestMark.isNotEmpty && retestMark != 'N/A') {
-                    sub['ia2Retest'] = retestMark;
-                    sub['ia2RetestStatus'] = statusStr;
-                    sub['hasIa2Retest'] = 'true';
-                    sub['ia2'] = retestMark;
-                  } else if (initialMark.isNotEmpty) {
-                    sub['ia2'] = initialMark;
-                  }
-                  if (convMark.isNotEmpty) sub['ia2Conv'] = convMark;
-                } else if (examTypeStr.contains('Model')) {
-                  if (initialMark.isNotEmpty) sub['modelInitial'] = initialMark;
-                  if (retestMark.isNotEmpty && retestMark != 'N/A') {
-                    sub['modelRetest'] = retestMark;
-                    sub['modelRetestStatus'] = statusStr;
-                    sub['hasModelRetest'] = 'true';
-                    sub['modelExam'] = retestMark;
-                  } else if (initialMark.isNotEmpty) {
-                    sub['modelExam'] = initialMark;
-                  }
-                  if (convMark.isNotEmpty) sub['modelConv'] = convMark;
                 }
               }
             }
           }
         }
       }
+    } catch (e) {
+      debugPrint('Error merging live internal marks: $e');
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Faculty Portal Info Banner
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFBFDBFE)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(color: Color(0xFF2563EB), shape: BoxShape.circle),
-                  child: const Icon(Icons.badge_outlined, color: Colors.white, size: 20),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'FACULTY UPLOADED INTERNAL MARKS',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF), letterSpacing: 0.8),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Internal marks are evaluated & uploaded directly by dedicated subject staff on their faculty portal.',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF1E3A8A)),
-                      ),
-                    ],
+    final String selectedSemTitle = currentSem?.name ?? 'Semester ${_selectedSemIndex + 1}';
+
+    return SizedBox(
+      width: double.infinity,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Faculty Portal Info Banner
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Color(0xFF2563EB), shape: BoxShape.circle),
+                    child: Icon(Icons.verified_outlined, color: Colors.white, size: 20),
                   ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton.icon(
-                  onPressed: _showStaffUploadModal,
-                  icon: const Icon(Icons.upload_file_rounded, size: 14),
-                  label: const Text('Upload Sheet'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1D4ED8),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'FACULTY UPLOADED INTERNAL MARKS',
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF), letterSpacing: 0.5),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Internal marks are evaluated & uploaded directly by subject staff on the faculty portal.',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF1E3A8A)),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 16),
 
-          if (dbAssignments.isNotEmpty) ...[
-            const Row(
-              children: [
-                Icon(Icons.cloud_done_rounded, color: Color(0xFF2563EB), size: 16),
-                SizedBox(width: 6),
-                Text(
-                  'PUBLISHED STAFF MARKSHEETS (FIRESTORE DATABASE)',
-                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B), letterSpacing: 0.5),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ...dbAssignments.map((doc) {
-              final records = doc['studentRecords'] as List? ?? [];
-              final rec = records.firstWhere(
-                (r) => r['regNo']?.toString().trim().toLowerCase() == activeRegNo.toLowerCase(),
-                orElse: () => null,
-              );
-              final String title = doc['title']?.toString() ?? 'Faculty Marksheet';
-              final String fileName = doc['fileName']?.toString() ?? 'Marksheet.xlsx';
-              final String markStr = rec != null
-                  ? (rec['conv']?.toString() ?? rec['initial']?.toString() ?? 'Graded')
-                  : 'Published for Class';
-              final String statusStr = rec != null
-                  ? (rec['status']?.toString() ?? 'Marks Verified')
-                  : 'Class Record';
+          // Semester Selector Pills
+          _buildSemesterPills(gradebookState.semesters),
+          const SizedBox(height: 16),
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFBFDBFE)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B))),
-                          const SizedBox(height: 3),
-                          Text('File: $fileName • Status: $statusStr', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
-                      child: Text(markStr, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2563EB), fontSize: 13)),
-                    ),
-                  ],
-                ),
-              );
-            }),
-            const SizedBox(height: 16),
-          ],
-
-          // Current Active Term Indicator (Student Panel: Internal Marks for Current Term Only)
+          // Term Status Indicator
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
@@ -532,10 +753,10 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
               children: [
                 const Icon(Icons.bolt_rounded, color: Color(0xFF60A5FA), size: 18),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'CURRENT SEMESTER 4 INTERNAL MARKS',
-                    style: TextStyle(
+                    '$selectedSemTitle INTERNAL MARKS',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 11.5,
@@ -546,12 +767,12 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB),
+                    color: _selectedSemIndex == 3 ? const Color(0xFF2563EB) : const Color(0xFF334155),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
-                    'Active Term Only',
-                    style: TextStyle(
+                  child: Text(
+                    _selectedSemIndex == 3 ? 'Active Term' : (_selectedSemIndex < 3 ? 'Completed Term' : 'Upcoming Term'),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 10,
@@ -563,49 +784,53 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
           ),
           const SizedBox(height: 14),
 
-          // Assessment Filter Buttons (All, IA-1, IA-2, Model Exam)
-          _buildInternalFilterPills(),
-          const SizedBox(height: 16),
+          if (internalSubjectData.isEmpty) ...[
+            _buildNoInternalMarksEmptyState(selectedSemTitle),
+          ] else ...[
+            // Assessment Filter Buttons (All, IA-1, IA-2, Model Exam)
+            _buildInternalFilterPills(),
+            const SizedBox(height: 16),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  _selectedInternalFilter == 'All'
-                      ? 'Subject Internal Assessments (${currentSem?.name ?? 'Sem 4'})'
-                      : '$_selectedInternalFilter Subject Marks & Retest History',
-                  style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedInternalFilter == 'All'
+                        ? 'Subject Internal Assessments ($selectedSemTitle)'
+                        : '$_selectedInternalFilter Subject Marks & Retest History',
+                    style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(6)),
-                child: const Text('Staff Verified', style: TextStyle(color: Color(0xFF059669), fontSize: 10, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(6)),
+                  child: const Text('Staff Verified', style: TextStyle(color: Color(0xFF059669), fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
 
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: internalSubjectData.length,
-            itemBuilder: (context, index) {
-              final sub = internalSubjectData[index];
-              if (_selectedInternalFilter == 'All') {
-                return _buildInternalSubjectCard(sub);
-              } else {
-                return _buildEventSubjectCard(sub, _selectedInternalFilter);
-              }
-            },
-          ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: internalSubjectData.length,
+              itemBuilder: (context, index) {
+                final sub = internalSubjectData[index];
+                if (_selectedInternalFilter == 'All') {
+                  return _buildInternalSubjectCard(sub);
+                } else {
+                  return _buildEventSubjectCard(sub, _selectedInternalFilter);
+                }
+              },
+            ),
+          ],
         ],
       ),
-    );
+    ),);
   }
 
   Widget _buildInternalFilterPills() {
@@ -1224,36 +1449,123 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
     return maxVal;
   }
 
+  Widget _buildNoUniversityResultsEmptyState(String semName) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFBBF7D0)),
+            ),
+            child: const Icon(
+              Icons.school_outlined,
+              size: 36,
+              color: Color(0xFF16A34A),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No University Results Published for $semName',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Official COE end-semester grades and SGPA will be published here following central valuation and Controller of Examinations declaration.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Color(0xFF64748B),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.verified_outlined, size: 16, color: Color(0xFF16A34A)),
+                const SizedBox(width: 8),
+                Text(
+                  'Switch to Semester 1 - 4 above to view verified grades',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green.shade800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
   // TAB 2: UNIVERSITY RESULTS (Published by Controller of Examinations - COE Team)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildUniversityResultsTab() {
     final gradebookState = ref.watch(gradebookProvider);
     final currentSem = gradebookState.currentSemester;
+    final String selectedSemTitle = currentSem?.name ?? 'Semester ${_selectedSemIndex + 1}';
+    final bool hasSubjects = currentSem != null && currentSem.subjects.isNotEmpty;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Official COE Publication Banner
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
+    return SizedBox(
+      width: double.infinity,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Official COE Publication Banner
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ],
-            ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
             child: Row(
               children: [
                 Container(
@@ -1296,8 +1608,10 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
           _buildSemesterPills(gradebookState.semesters),
           const SizedBox(height: 16),
 
-          // Official SGPA Badge Banner
-          if (currentSem != null)
+          if (!hasSubjects) ...[
+            _buildNoUniversityResultsEmptyState(selectedSemTitle),
+          ] else ...[
+            // Official SGPA Badge Banner
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -1312,7 +1626,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${currentSem.name} Official Result',
+                        '$selectedSemTitle Official Result',
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                       ),
                       const SizedBox(height: 2),
@@ -1345,23 +1659,14 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                 ],
               ),
             ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          const Text(
-            'Official End-Semester University Exam Grades',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-          ),
-          const SizedBox(height: 10),
+            Text(
+              'Official End-Semester University Exam Grades ($selectedSemTitle)',
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            ),
+            const SizedBox(height: 10),
 
-          if (currentSem == null || currentSem.subjects.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(30),
-              width: double.infinity,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-              child: const Text('No published university results available for this semester yet.'),
-            )
-          else
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -1371,6 +1676,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
                 return _buildUniversitySubjectCard(sub);
               },
             ),
+          ],
 
           const SizedBox(height: 16),
 
@@ -1397,7 +1703,7 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
           ),
         ],
       ),
-    );
+    ),);
   }
 
   Widget _buildUniversitySubjectCard(SubjectModel sub) {

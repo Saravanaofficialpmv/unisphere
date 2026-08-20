@@ -38,8 +38,8 @@ class _CreateHackathonDialogState extends ConsumerState<CreateHackathonDialog> {
 
   String _category = 'AI & Robotics';
   String _mode = 'Offline';
-  String _status = 'Published'; // 'Draft', 'Published', 'Registration Closed'
-  int _minTeamSize = 1;
+  final String _status = 'Published'; // 'Draft', 'Published', 'Registration Closed'
+  final int _minTeamSize = 1;
   int _maxTeamSize = 6;
   DateTime _registrationDeadline = DateTime.now().add(const Duration(days: 7));
   final DateTime _startDate = DateTime.now().add(const Duration(days: 10));
@@ -225,7 +225,7 @@ class _CreateHackathonDialogState extends ConsumerState<CreateHackathonDialog> {
                           const Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                           const SizedBox(height: 6),
                           DropdownButtonFormField<String>(
-                            value: _category,
+                            initialValue: _category,
                             items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 13)))).toList(),
                             onChanged: (v) => setState(() => _category = v!),
                             decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
@@ -241,7 +241,7 @@ class _CreateHackathonDialogState extends ConsumerState<CreateHackathonDialog> {
                           const Text('Event Mode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                           const SizedBox(height: 6),
                           DropdownButtonFormField<String>(
-                            value: _mode,
+                            initialValue: _mode,
                             items: _modes.map((m) => DropdownMenuItem(value: m, child: Text(m, style: const TextStyle(fontSize: 13)))).toList(),
                             onChanged: (v) => setState(() => _mode = v!),
                             decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
@@ -263,7 +263,7 @@ class _CreateHackathonDialogState extends ConsumerState<CreateHackathonDialog> {
                           const Text('Max Team Size (Up to 6)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                           const SizedBox(height: 6),
                           DropdownButtonFormField<int>(
-                            value: _maxTeamSize,
+                            initialValue: _maxTeamSize,
                             items: [2, 3, 4, 5, 6].map((n) => DropdownMenuItem(value: n, child: Text('$n Members', style: const TextStyle(fontSize: 13)))).toList(),
                             onChanged: (v) => setState(() => _maxTeamSize = v!),
                             decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),

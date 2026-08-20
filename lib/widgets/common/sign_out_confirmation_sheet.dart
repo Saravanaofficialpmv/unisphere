@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 /// Displays a full-width custom modal bottom sheet covering the bottom edge for sign-out confirmation.
 void showSignOutConfirmationSheet(BuildContext context, WidgetRef ref) {
@@ -126,7 +127,16 @@ class SignOutConfirmationSheet extends StatelessWidget {
                           onPressed: () async {
                             final navigator = Navigator.of(context);
                             navigator.pop();
-                            await ref.read(authServiceProvider).signOut();
+                            AppLoadingOverlay.show(
+                              context,
+                              message: 'Signing out safely...',
+                              subtitle: 'Clearing session cache',
+                            );
+                            try {
+                              await ref.read(authServiceProvider).signOut();
+                            } finally {
+                              AppLoadingOverlay.hide();
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isDark 

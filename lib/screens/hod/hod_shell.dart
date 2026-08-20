@@ -29,6 +29,7 @@ import '../common/manual_notification_composer_screen.dart';
 import 'modules/hod_academic_schedule_screen.dart';
 import 'modules/hod_resume_bank_screen.dart';
 import 'modules/hod_syllabus_management_screen.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 class HodShell extends ConsumerStatefulWidget {
   const HodShell({super.key});
@@ -185,8 +186,12 @@ class _HodShellState extends ConsumerState<HodShell> {
               child: Navigator(
                 key: _innerNavigatorKey,
                 onGenerateRoute: (settings) {
+                  final activeScreen = _screens[_currentIndex < _screens.length ? _currentIndex : 0];
                   return MaterialPageRoute(
-                    builder: (_) => _screens[_currentIndex < _screens.length ? _currentIndex : 0],
+                    builder: (_) => FadeSlideTransition(
+                      transitionKey: ValueKey('hod_tab_$_currentIndex'),
+                      child: activeScreen,
+                    ),
                   );
                 },
               ),

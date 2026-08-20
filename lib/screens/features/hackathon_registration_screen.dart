@@ -327,7 +327,7 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedYear,
+                      initialValue: _selectedYear,
                       items: _years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
                       onChanged: (val) => setState(() => _selectedYear = val!),
                       decoration: InputDecoration(
@@ -340,7 +340,7 @@ class _HackathonRegistrationScreenState extends ConsumerState<HackathonRegistrat
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedSection,
+                      initialValue: _selectedSection,
                       items: _sections.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                       onChanged: (val) => setState(() => _selectedSection = val!),
                       decoration: InputDecoration(

@@ -166,8 +166,6 @@ class _StudentProfileCompletionSheetState
   final _hostelNameController = TextEditingController();
   final _hostelBlockController = TextEditingController();
   final _hostelRoomController = TextEditingController();
-  final _hostelBedController = TextEditingController();
-  final _hostelAdmissionController = TextEditingController();
   final _pgNameController = TextEditingController();
   final _pgAddressController = TextEditingController();
   final _rentedAddressController = TextEditingController();
@@ -175,7 +173,6 @@ class _StudentProfileCompletionSheetState
   final _accOwnerNameController = TextEditingController();
   final _accOwnerPhoneController = TextEditingController();
   final _accAddressController = TextEditingController();
-  final _accRentController = TextEditingController();
 
   bool get _isDayScholar => _selectedLivingType != LivingType.collegeHostel;
 
@@ -761,9 +758,22 @@ class _StudentProfileCompletionSheetState
 
     final profileMap = profile.toMap();
     profileMap['verificationStatus'] = 'pending_hod';
+    profileMap['profileCompletionStatus'] = 'submitted';
     profileMap['completionPercentage'] = _progressPercentage;
 
     await ref.read(firebaseFirestoreServiceProvider).submitFullStudentProfile(profileMap);
+
+    final currentUser = ref.read(authServiceProvider).currentUser;
+    if (currentUser != null) {
+      final updatedMeta = Map<String, dynamic>.from(currentUser.metadata ?? {});
+      updatedMeta['verificationStatus'] = 'pending_hod';
+      updatedMeta['profileCompletionStatus'] = 'submitted';
+      updatedMeta['submittedAt'] = DateTime.now().toIso8601String();
+      final updatedUser = currentUser.copyWith(
+        metadata: updatedMeta,
+      );
+      await ref.read(authServiceProvider).updateUserProfile(updatedUser);
+    }
 
     if (mounted) {
       setState(() => _isSubmitting = false);
@@ -1650,7 +1660,7 @@ class _StudentProfileCompletionSheetState
                                   const SizedBox(height: 4),
                                   DropdownButtonFormField<String>(
                                     isExpanded: true,
-                                    value: ['O', 'A+', 'A', 'B+', 'B', 'C'].contains(_diplomaObtainedController.text.trim())
+                                    initialValue: ['O', 'A+', 'A', 'B+', 'B', 'C'].contains(_diplomaObtainedController.text.trim())
                                         ? _diplomaObtainedController.text.trim()
                                         : 'A+',
                                     decoration: InputDecoration(

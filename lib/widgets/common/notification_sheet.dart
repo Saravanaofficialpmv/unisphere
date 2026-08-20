@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/providers/notification_provider.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 void showNotificationSheet(
   BuildContext context, {
@@ -268,33 +269,29 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
   }
 
   Widget _buildNotificationCard(BuildContext context, NotificationItem item, NotificationNotifier notifier) {
-    return InkWell(
+    return AppCardPressable(
       onTap: () {
         notifier.markAsRead(item.id);
         _handleNotificationNavigation(context, item);
       },
       borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: item.isUnread ? const Color(0xFFEFF6FF) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: item.isUnread ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border,
-            width: item.isUnread ? 1.5 : 1,
+      color: item.isUnread ? const Color(0xFFEFF6FF) : Colors.white,
+      border: Border.all(
+        color: item.isUnread ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border,
+        width: item.isUnread ? 1.5 : 1,
+      ),
+      boxShadow: [
+        if (item.isUnread)
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          boxShadow: [
-            if (item.isUnread)
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      ],
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             // Category Icon
             Container(
               padding: const EdgeInsets.all(12),
@@ -415,7 +412,6 @@ class _NotificationSheetState extends ConsumerState<NotificationSheet> {
             ),
           ],
         ),
-      ),
     );
   }
 

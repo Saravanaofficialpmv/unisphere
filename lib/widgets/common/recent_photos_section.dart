@@ -7,6 +7,7 @@ import 'package:unisphere/providers/gallery_provider.dart';
 import 'package:unisphere/screens/gallery/album_details_screen.dart';
 import 'package:unisphere/screens/gallery/full_photo_gallery_screen.dart';
 import 'package:unisphere/widgets/common/stacked_deck_photo_gallery.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class RecentPhotosSection extends ConsumerStatefulWidget {
   final VoidCallback? onViewAllPressed;
@@ -162,7 +163,7 @@ class _RecentPhotosSectionState extends ConsumerState<RecentPhotosSection> {
       },
       loading: () => const SizedBox(
         height: 180,
-        child: Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2)),
+        child: Center(child: Loader(size: 44, label: 'Loading recent photos...')),
       ),
       error: (_, __) => const SizedBox.shrink(),
     );

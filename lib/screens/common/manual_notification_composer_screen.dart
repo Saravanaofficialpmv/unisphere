@@ -126,7 +126,7 @@ class _ManualNotificationComposerScreenState
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: state.category,
+                          initialValue: state.category,
                           decoration: InputDecoration(
                             labelText: 'Category',
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -140,7 +140,7 @@ class _ManualNotificationComposerScreenState
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: state.priority,
+                          initialValue: state.priority,
                           decoration: InputDecoration(
                             labelText: 'Priority',
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -406,7 +406,7 @@ class _ManualNotificationComposerScreenState
 
           if (state.targetType == 'org') ...[
             DropdownButtonFormField<String>(
-              value: state.selectedDepartment ?? 'Entire College',
+              initialValue: state.selectedDepartment ?? 'Entire College',
               decoration: const InputDecoration(labelText: 'Target Department'),
               items: ['Entire College', 'Computer Science', 'Information Technology', 'Electronics & Comm', 'Mechanical']
                   .map((d) => DropdownMenuItem(value: d, child: Text(d)))
@@ -418,7 +418,7 @@ class _ManualNotificationComposerScreenState
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: state.selectedSection ?? 'All Sections',
+                    initialValue: state.selectedSection ?? 'All Sections',
                     decoration: const InputDecoration(labelText: 'Section'),
                     items: ['All Sections', 'Sec A', 'Sec B', 'Sec C']
                         .map((s) => DropdownMenuItem(value: s, child: Text(s)))
@@ -434,7 +434,7 @@ class _ManualNotificationComposerScreenState
             Text('Select Dynamic Rule Filter:', style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: state.selectedDynamicFilter,
+              initialValue: state.selectedDynamicFilter,
               decoration: const InputDecoration(labelText: 'Filter Rule'),
               items: const [
                 DropdownMenuItem(value: 'none', child: Text('All Qualified Users')),

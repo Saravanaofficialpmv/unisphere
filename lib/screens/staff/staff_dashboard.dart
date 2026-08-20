@@ -27,6 +27,8 @@ import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart'
 
 import 'package:unisphere/screens/staff/modules/adviser_resume_bank_screen.dart';
 import 'package:unisphere/screens/hod/modules/hod_syllabus_management_screen.dart';
+import 'package:unisphere/screens/staff/modules/staff_question_paper_upload_screen.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {
   const StaffDashboard({super.key});
@@ -64,6 +66,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     SidebarItem(label: 'Important Days & Schedule', icon: Icons.event_note_rounded, badge: 'Official'),
     SidebarItem.divider('FACULTY TOOLS'),
     SidebarItem(label: 'Take Attendance', icon: Icons.how_to_reg_outlined),
+    SidebarItem(label: 'Upload PYQ & Question Banks', icon: Icons.quiz_outlined, badge: 'PYQ'),
     SidebarItem(label: 'Campus Photo Gallery', icon: Icons.collections_outlined, badge: 'Gallery'),
     SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
     SidebarItem(label: 'Library Access', icon: Icons.local_library_outlined),
@@ -85,6 +88,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
     AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0)),
     const SizedBox.shrink(), // Divider
     const StaffAttendanceMarkingModule(),
+    StaffQuestionPaperUploadScreen(onBack: () => _handleNavigation(0)),
     FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)),
     StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)),
     StudentLibraryScreen(onBack: () => _handleNavigation(0)),
@@ -168,8 +172,12 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
               child: Navigator(
                 key: _innerNavigatorKey,
                 onGenerateRoute: (settings) {
+                  final activeScreen = _screens[_currentIndex < _screens.length ? _currentIndex : 0];
                   return MaterialPageRoute(
-                    builder: (_) => _screens[_currentIndex < _screens.length ? _currentIndex : 0],
+                    builder: (_) => FadeSlideTransition(
+                      transitionKey: ValueKey('staff_tab_$_currentIndex'),
+                      child: activeScreen,
+                    ),
                   );
                 },
               ),
@@ -297,12 +305,20 @@ class StaffHomeScreen extends StatelessWidget {
             onTap: () => onNavigate?.call(4),
           ),
           _buildActionCard(
+            'Upload Question Papers & Banks',
+            'Publish semester PYQs, IAT question papers & model answer keys.',
+            Icons.quiz_rounded,
+            const Color(0xFFEEF2FF),
+            const Color(0xFF4F46E5),
+            onTap: () => onNavigate?.call(14),
+          ),
+          _buildActionCard(
             'Create Announcement',
             'Broadcast to all students or specific departments.',
             Icons.campaign_rounded,
             const Color(0xFFE0E7FF),
             const Color(0xFF4338CA),
-            onTap: () => onNavigate?.call(14),
+            onTap: () => onNavigate?.call(16),
           ),
           _buildActionCard(
             'Upload Marks',
@@ -310,7 +326,7 @@ class StaffHomeScreen extends StatelessWidget {
             Icons.upload_file_rounded,
             const Color(0xFFFEF3C7),
             const Color(0xFF92400E),
-            onTap: () => onNavigate?.call(8),
+            onTap: () => onNavigate?.call(9),
           ),
           _buildActionCard(
             'HOD Profile Verifications',

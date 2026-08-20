@@ -409,6 +409,7 @@ class StudentLivingDetails {
 }
 
 // ── Day Scholar Transport Details (STRICTLY ONLY: BUS, BIKE, WALK) ──
+// ignore: constant_identifier_names
 enum PrimaryTransportMode { BUS, BIKE, WALK }
 
 class StudentTransportDetails {

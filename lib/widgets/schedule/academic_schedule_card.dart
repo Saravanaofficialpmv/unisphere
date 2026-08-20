@@ -5,6 +5,7 @@ import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/models/academic_schedule_model.dart';
 import 'package:unisphere/providers/academic_schedule_provider.dart';
 import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class AcademicScheduleCard extends ConsumerWidget {
   final VoidCallback? onViewSchedule;
@@ -239,7 +240,7 @@ class AcademicScheduleCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.border),
         ),
-        child: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        child: const Center(child: Loader(size: 40)),
       ),
       error: (_, __) => const SizedBox.shrink(),
     );

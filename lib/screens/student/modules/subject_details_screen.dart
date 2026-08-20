@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/models/syllabus_model.dart';
+import 'package:unisphere/screens/student/modules/student_pyq_screen.dart';
 import 'package:unisphere/screens/student/modules/syllabus_document_viewer_screen.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 
@@ -63,6 +64,10 @@ class SubjectDetailsScreen extends StatelessWidget {
 
                     // Prominent View Syllabus Document Banner Button
                     _buildViewDocumentBannerButton(context),
+                    const SizedBox(height: 12),
+
+                    // View Question Papers & Solved Question Banks for this Subject
+                    _buildViewPyqBannerButton(context),
                     const SizedBox(height: 24),
 
                     // Syllabus Document Metadata Box
@@ -294,6 +299,55 @@ class SubjectDetailsScreen extends StatelessWidget {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => SyllabusDocumentViewerScreen(subject: subject),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildViewPyqBannerButton(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 52,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.quiz_rounded, color: Color(0xFF38BDF8), size: 20),
+        label: Text(
+          'View ${subject.subjectCode} PYQ & Solved Banks',
+          style: const TextStyle(
+            fontSize: 14.5,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 0.2,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => StudentPyqScreen(
+                initialSubjectCode: subject.subjectCode,
+                initialSubjectName: subject.subjectName,
+              ),
             ),
           );
         },

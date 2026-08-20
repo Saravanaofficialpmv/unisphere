@@ -270,61 +270,82 @@ class GradebookNotifier extends StateNotifier<GradebookState> {
   GradebookNotifier({UserModel? user}) : super(_initialState(user));
 
   static GradebookState _initialState(UserModel? user) {
-    final email = user?.email.toLowerCase().trim() ?? '';
-    final isDemo = email == 'saravanapmvofficial@gmail.com' || (user != null && user.uid == 'DEMO-STU');
     final meta = user?.metadata ?? {};
-
     final double? dbCgpa = double.tryParse(meta['cgpa']?.toString() ?? '');
     final String sem4Grade = (dbCgpa ?? 0.0) >= 9.0 ? 'O' : ((dbCgpa ?? 0.0) >= 8.0 ? 'A+' : ((dbCgpa ?? 0.0) >= 7.0 ? 'A' : 'B+'));
 
     return GradebookState(
-      selectedSemesterIndex: 3, // Default Sem 4
+      selectedSemesterIndex: 3, // Default Sem 4 (Active Current Term)
       semesters: [
         SemesterModel(
           number: 1,
           name: 'Semester 1',
-          subjects: isDemo ? [
-            SubjectModel(name: 'Mathematics I', code: 'MA101', credits: 4, grade: 'A+'),
-            SubjectModel(name: 'Engineering Physics', code: 'PH101', credits: 4, grade: 'A'),
-            SubjectModel(name: 'Basic Electrical Engg', code: 'EE101', credits: 3, grade: 'B+'),
-            SubjectModel(name: 'C Programming Lab', code: 'CS101', credits: 3, grade: 'O'),
-            SubjectModel(name: 'Engineering Graphics', code: 'ME101', credits: 2, grade: 'RA'),
-          ] : [],
+          subjects: [
+            SubjectModel(name: 'Matrices and Calculus', code: 'MA3151', credits: 4, grade: 'A+'),
+            SubjectModel(name: 'Engineering Physics', code: 'PH3151', credits: 3, grade: 'A'),
+            SubjectModel(name: 'Engineering Chemistry', code: 'CY3151', credits: 3, grade: 'A+'),
+            SubjectModel(name: 'Problem Solving and Python', code: 'GE3151', credits: 3, grade: 'O'),
+            SubjectModel(name: 'Physics and Chemistry Lab', code: 'BS3171', credits: 2, grade: 'O'),
+            SubjectModel(name: 'Python Programming Lab', code: 'GE3171', credits: 2, grade: 'O'),
+          ],
         ),
         SemesterModel(
           number: 2,
           name: 'Semester 2',
-          subjects: isDemo ? [
-            SubjectModel(name: 'Mathematics II', code: 'MA201', credits: 4, grade: 'A'),
-            SubjectModel(name: 'Engineering Chemistry', code: 'CH201', credits: 4, grade: 'A+'),
-            SubjectModel(name: 'Data Structures in C++', code: 'CS201', credits: 4, grade: 'O'),
-            SubjectModel(name: 'Digital Logic Design', code: 'EC201', credits: 3, grade: 'B+'),
-            SubjectModel(name: 'Environmental Science', code: 'EV201', credits: 2, grade: 'SA'),
-          ] : [],
+          subjects: [
+            SubjectModel(name: 'Statistics and Numerical Methods', code: 'MA3251', credits: 4, grade: 'A'),
+            SubjectModel(name: 'Physics for Information Science', code: 'PH3256', credits: 3, grade: 'A+'),
+            SubjectModel(name: 'Engineering Graphics', code: 'GE3251', credits: 4, grade: 'B+'),
+            SubjectModel(name: 'Programming in C', code: 'CS3251', credits: 3, grade: 'O'),
+            SubjectModel(name: 'Basic Electrical & Electronics', code: 'BE3251', credits: 3, grade: 'A'),
+            SubjectModel(name: 'Programming in C Lab', code: 'CS3271', credits: 2, grade: 'O'),
+          ],
         ),
         SemesterModel(
           number: 3,
           name: 'Semester 3',
-          subjects: isDemo ? [
-            SubjectModel(name: 'Discrete Mathematics', code: 'MA301', credits: 4, grade: 'A+'),
-            SubjectModel(name: 'Object Oriented Java', code: 'CS301', credits: 4, grade: 'A'),
-            SubjectModel(name: 'Computer Architecture', code: 'CS302', credits: 4, grade: 'B+'),
-            SubjectModel(name: 'Theory of Computation', code: 'CS303', credits: 3, grade: 'A'),
-            SubjectModel(name: 'Database Foundations', code: 'CS304', credits: 3, grade: 'O'),
-          ] : [],
+          subjects: [
+            SubjectModel(name: 'Discrete Mathematics', code: 'MA3354', credits: 4, grade: 'A+'),
+            SubjectModel(name: 'Digital Principles and Computer Org', code: 'CS3351', credits: 4, grade: 'A'),
+            SubjectModel(name: 'Data Structures', code: 'CS3301', credits: 3, grade: 'O'),
+            SubjectModel(name: 'Object Oriented Programming', code: 'CS3391', credits: 3, grade: 'A+'),
+            SubjectModel(name: 'Data Structures Lab', code: 'CS3311', credits: 2, grade: 'O'),
+            SubjectModel(name: 'OOP Java Lab', code: 'CS3381', credits: 2, grade: 'O'),
+          ],
         ),
         SemesterModel(
           number: 4,
           name: 'Semester 4',
           isCurrent: true,
           subjects: [
-            SubjectModel(name: 'Advanced Data Structures', code: 'CS401', credits: 4, grade: isDemo ? 'O' : sem4Grade),
-            SubjectModel(name: 'Database Mgmt. Systems', code: 'CS402', credits: 4, grade: isDemo ? 'A+' : sem4Grade),
-            SubjectModel(name: 'Operating Systems', code: 'CS403', credits: 4, grade: isDemo ? 'A' : sem4Grade),
-            SubjectModel(name: 'Computer Networks', code: 'CS404', credits: 3, grade: isDemo ? 'B+' : sem4Grade),
-            SubjectModel(name: 'Design & Analysis of Algo', code: 'CS405', credits: 3, grade: isDemo ? 'A+' : sem4Grade),
-            SubjectModel(name: 'Full-Stack Web Dev Lab', code: 'CS406', credits: 2, grade: isDemo ? 'O' : sem4Grade),
+            SubjectModel(name: 'Design & Analysis of Algorithms', code: 'CS3401', credits: 4, grade: sem4Grade),
+            SubjectModel(name: 'Database Management Systems', code: 'CS3492', credits: 3, grade: sem4Grade),
+            SubjectModel(name: 'Operating Systems', code: 'CS3451', credits: 3, grade: sem4Grade),
+            SubjectModel(name: 'Computer Networks', code: 'CS3491', credits: 3, grade: sem4Grade),
+            SubjectModel(name: 'Environmental Sciences & Sustainability', code: 'GE3451', credits: 2, grade: 'A+'),
+            SubjectModel(name: 'DBMS Laboratory', code: 'CS3461', credits: 2, grade: 'O'),
+            SubjectModel(name: 'Operating Systems Laboratory', code: 'CS3481', credits: 2, grade: 'O'),
           ],
+        ),
+        SemesterModel(
+          number: 5,
+          name: 'Semester 5',
+          subjects: [], // Awaiting marks
+        ),
+        SemesterModel(
+          number: 6,
+          name: 'Semester 6',
+          subjects: [], // Awaiting marks
+        ),
+        SemesterModel(
+          number: 7,
+          name: 'Semester 7',
+          subjects: [], // Awaiting marks
+        ),
+        SemesterModel(
+          number: 8,
+          name: 'Semester 8',
+          subjects: [], // Awaiting marks
         ),
       ],
     );

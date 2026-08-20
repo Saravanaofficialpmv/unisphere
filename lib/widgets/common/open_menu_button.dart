@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 
+import 'package:unisphere/core/theme/app_animations.dart';
+
 /// Custom Open Menu Button widget with uniform primary blue color and crisp menu icon.
 class OpenMenuButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -14,8 +16,9 @@ class OpenMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return AppPressable(
       onTap: onTap,
+      scaleFactor: 0.94,
       child: Container(
         height: height,
         padding: const EdgeInsets.fromLTRB(10, 0, 16, 0),

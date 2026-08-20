@@ -6,6 +6,7 @@ import 'package:unisphere/models/gallery_photo_model.dart';
 import 'package:unisphere/models/photo_album_model.dart';
 import 'package:unisphere/providers/gallery_provider.dart';
 import 'package:unisphere/widgets/common/masonry_photo_grid.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class AlbumDetailsScreen extends ConsumerStatefulWidget {
   final PhotoAlbumModel album;
@@ -310,7 +311,7 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
               );
             },
             loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              child: Center(child: Loader(label: 'Loading photos...')),
             ),
             error: (err, _) => SliverFillRemaining(
               child: Center(

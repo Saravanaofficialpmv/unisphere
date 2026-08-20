@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 class MainSidebar extends ConsumerWidget {
   final int selectedIndex;
@@ -115,47 +116,50 @@ class MainSidebar extends ConsumerWidget {
     final isSelected = selectedIndex == index;
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => onDestinationSelected(index),
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
+      child: AppPressable(
+        onTap: () => onDestinationSelected(index),
+        scaleFactor: 0.98,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: AppAnimations.fast,
+          curve: AppAnimations.fastCurve,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              AnimatedSwitcher(
+                duration: AppAnimations.fast,
+                child: Icon(
                   item.icon,
+                  key: ValueKey('icon_${item.icon}_$isSelected'),
                   size: 22,
                   color: isSelected ? AppColors.primary : AppColors.textSecondary,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                    ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  item.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected ? AppColors.primary : AppColors.textPrimary,
                   ),
                 ),
-                if (item.badge != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: item.badgeColor ?? Colors.amber.shade400,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(item.badge!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+              if (item.badge != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: item.badgeColor ?? Colors.amber.shade400,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-              ],
-            ),
+                  child: Text(item.badge!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+            ],
           ),
         ),
       ),

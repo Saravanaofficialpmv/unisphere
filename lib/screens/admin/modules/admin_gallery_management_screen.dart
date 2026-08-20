@@ -9,6 +9,7 @@ import 'package:unisphere/screens/hod/modules/hod_album_management_screen.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/gallery_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class AdminGalleryManagementScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -141,7 +142,7 @@ class _AdminGalleryManagementScreenState extends ConsumerState<AdminGalleryManag
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => const Center(child: Loader(label: 'Loading campus albums...')),
                 error: (err, _) => Center(child: Text('Error loading albums: $err', style: const TextStyle(color: AppColors.textSecondary))),
               ),
             ),

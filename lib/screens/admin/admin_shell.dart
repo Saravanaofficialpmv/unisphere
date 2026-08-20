@@ -20,6 +20,7 @@ import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
 import 'package:unisphere/screens/hod/modules/hod_academic_management.dart';
 import 'package:unisphere/screens/hod/modules/hod_settings.dart';
 import 'package:unisphere/screens/hod/modules/hod_syllabus_management_screen.dart';
+import 'package:unisphere/core/theme/app_animations.dart';
 
 
 class AdminShell extends ConsumerStatefulWidget {
@@ -98,7 +99,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       child: Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
-      appBar: _buildAppBar(context, isDesktop),
+      appBar: isDesktop ? null : _buildAppBar(context, isDesktop),
       drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
       body: Row(
         children: [
@@ -109,17 +110,24 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                 key: _innerNavigatorKey,
                 onGenerateRoute: (settings) {
                   return MaterialPageRoute(
-                    builder: (_) => Column(
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: _screens[_selectedIndex < _screens.length ? _selectedIndex : 0],
+                    builder: (_) => Scaffold(
+                      backgroundColor: AppColors.background,
+                      appBar: isDesktop ? _buildAppBar(context, isDesktop) : null,
+                      body: Row(
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: FadeSlideTransition(
+                                  transitionKey: ValueKey('admin_tab_$_selectedIndex'),
+                                  child: _screens[_selectedIndex < _screens.length ? _selectedIndex : 0],
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },

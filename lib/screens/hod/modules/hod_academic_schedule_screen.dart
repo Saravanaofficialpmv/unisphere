@@ -11,6 +11,7 @@ import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart'
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/academic_schedule_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+import 'package:unisphere/widgets/common/custom_loader.dart';
 
 class HodAcademicScheduleScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -336,7 +337,7 @@ class _HodAcademicScheduleScreenState extends ConsumerState<HodAcademicScheduleS
                     ],
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => const Center(child: Loader(label: 'Loading academic schedules...')),
                 error: (err, _) => Center(child: Text('Error loading schedules: $err', style: const TextStyle(color: AppColors.textSecondary))),
               ),
             ),
@@ -987,7 +988,7 @@ class _UploadScheduleSheetState extends ConsumerState<UploadScheduleSheet> {
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(12.0),
-                    child: CircularProgressIndicator(color: AppColors.primary),
+                    child: Loader.inline(size: 32, label: 'Uploading & publishing schedule...'),
                   ),
                 )
               else
