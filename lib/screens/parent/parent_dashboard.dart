@@ -72,6 +72,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
   ];
 
   late final List<Widget> _screens;
+  final List<int> _navigationHistory = [0];
 
   @override
   void initState() {
@@ -80,23 +81,42 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
       ParentHomeScreen(onNavigateToTab: _handleNavigation),
       ParentAttendanceDetailTab(onNavigateToTab: _handleNavigation),
       ParentAcademicPerformanceTab(onNavigateToTab: _handleNavigation),
-      StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)),
-      ProfileScreen(onBack: () => _handleNavigation(0)),
+      StudentAnnouncementsScreen(onBack: _handleBackNavigation),
+      ProfileScreen(onBack: _handleBackNavigation),
       const SizedBox.shrink(), // Divider
-      FeesScreen(onBack: () => _handleNavigation(0)),
-      FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)),
-      EventsScreen(onBack: () => _handleNavigation(0)),
+      FeesScreen(onBack: _handleBackNavigation),
+      FullPhotoGalleryScreen(onBack: _handleBackNavigation),
+      EventsScreen(onBack: _handleBackNavigation),
       const Center(child: Text('School Transport Map')),
     ];
   }
 
-  void _handleNavigation(int index) {
+  void _handleNavigation(int index, {bool isBack = false}) {
     if (_innerNavigatorKey.currentState?.canPop() ?? false) {
       _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
+    if (index == _currentIndex) return;
+
+    if (!isBack) {
+      _navigationHistory.add(_currentIndex);
+    }
+
     setState(() => _currentIndex = index);
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleBackNavigation() {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.pop();
+      return;
+    }
+    if (_navigationHistory.isNotEmpty) {
+      final prev = _navigationHistory.removeLast();
+      _handleNavigation(prev, isBack: true);
+    } else if (_currentIndex != 0) {
+      _handleNavigation(0, isBack: true);
     }
   }
 
@@ -108,19 +128,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
-          _innerNavigatorKey.currentState?.pop();
-          return;
-        }
-        if (_currentIndex != 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-          });
-        }
+        _handleBackNavigation();
       },
       child: Scaffold(
         key: _scaffoldKey,
@@ -141,7 +149,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                 if (_currentIndex == 0) {
                   _scaffoldKey.currentState?.openDrawer();
                 } else {
-                  _handleNavigation(0);
+                  _handleBackNavigation();
                 }
               },
             ),

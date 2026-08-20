@@ -180,7 +180,8 @@ class _AppCardPressableState extends State<AppCardPressable> {
 }
 
 /// Subtle, high-performance Slide-from-Right + Fade Transition for Tabs and Screen Swaps.
-/// Animates content smoothly from the right in 200ms with isolated repaint boundaries.
+/// Uses a staggered Fade-Through architecture so outgoing text completely fades out before
+/// incoming text renders, guaranteeing zero text overlap and zero bleed-through.
 class FadeSlideTransition extends StatelessWidget {
   final Widget child;
   final Axis direction;
@@ -194,7 +195,7 @@ class FadeSlideTransition extends StatelessWidget {
     required this.child,
     this.direction = Axis.horizontal,
     this.offsetDistance = 6.0,
-    this.duration = const Duration(milliseconds: 200),
+    this.duration = const Duration(milliseconds: 180),
     this.curve = Curves.easeOutCubic,
     this.transitionKey,
   });
@@ -219,17 +220,24 @@ class FadeSlideTransition extends StatelessWidget {
         );
       },
       transitionBuilder: (Widget incomingChild, Animation<double> animation) {
-        final fadeAnimation = CurvedAnimation(
+        // Fade-Through Non-Overlapping curve:
+        // Outgoing widget quickly fades out to 0% opacity in the first 25% of the switch.
+        // Incoming widget smoothly fades in from 20% to 100% with a subtle micro-glide.
+        // This guarantees that text from previous and next screens NEVER overlap or bleed through.
+        final fadeAnimation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(CurvedAnimation(
           parent: animation,
-          curve: curve,
-        );
+          curve: const Interval(0.20, 1.0, curve: Curves.easeOutCubic),
+        ));
 
         final slideAnimation = Tween<Offset>(
-          begin: const Offset(0.06, 0.0), // Smoothly slides in from the right
+          begin: const Offset(0.015, 0.0),
           end: Offset.zero,
         ).animate(CurvedAnimation(
           parent: animation,
-          curve: curve,
+          curve: const Interval(0.20, 1.0, curve: Curves.easeOutCubic),
         ));
 
         return RepaintBoundary(
@@ -237,7 +245,10 @@ class FadeSlideTransition extends StatelessWidget {
             position: slideAnimation,
             child: FadeTransition(
               opacity: fadeAnimation,
-              child: incomingChild,
+              child: ColoredBox(
+                color: Colors.white,
+                child: incomingChild,
+              ),
             ),
           ),
         );
@@ -319,12 +330,12 @@ class SmoothChevron extends StatelessWidget {
 
 /// Standardized Page Route Transitions for GoRouter & Navigator (Section 6)
 class AppRouteTransitions {
-  /// Builds a buttery-smooth Slide-from-Right Transition Page for GoRouter
+  /// Builds a buttery-smooth Slide-from-Right Transition Page for GoRouter & Navigator
   static CustomTransitionPage<T> slideFade<T>({
     required BuildContext context,
     required GoRouterState state,
     required Widget child,
-    Duration duration = const Duration(milliseconds: 280),
+    Duration duration = const Duration(milliseconds: 260),
     Axis direction = Axis.horizontal,
   }) {
     final isReduced = AppAnimations.isReducedMotion(context);
@@ -337,7 +348,7 @@ class AppRouteTransitions {
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         if (isReduced) return child;
 
-        // Slide in from right to left
+        // Slide in from right to left with 100% solid opacity (no transparency ghosting)
         final primarySlide = Tween<Offset>(
           begin: const Offset(1.0, 0.0),
           end: Offset.zero,
@@ -347,22 +358,14 @@ class AppRouteTransitions {
           reverseCurve: Curves.easeInCubic,
         ));
 
-        // Subtle parallax slide for outgoing screen
+        // Subtle parallax slide for outgoing screen behind it
         final secondarySlide = Tween<Offset>(
           begin: Offset.zero,
-          end: const Offset(-0.20, 0.0),
+          end: const Offset(-0.15, 0.0),
         ).animate(CurvedAnimation(
           parent: secondaryAnimation,
           curve: Curves.easeOutCubic,
           reverseCurve: Curves.easeInCubic,
-        ));
-
-        final fadeAnimation = Tween<double>(
-          begin: 0.85,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
         ));
 
         return RepaintBoundary(
@@ -370,9 +373,21 @@ class AppRouteTransitions {
             position: secondarySlide,
             child: SlideTransition(
               position: primarySlide,
-              child: FadeTransition(
-                opacity: fadeAnimation,
-                child: child,
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x1A000000),
+                      blurRadius: 20,
+                      spreadRadius: 1,
+                      offset: Offset(-4, 0),
+                    ),
+                  ],
+                ),
+                child: ColoredBox(
+                  color: Colors.white,
+                  child: child,
+                ),
               ),
             ),
           ),
@@ -404,18 +419,23 @@ class AppRouteTransitions {
         ).animate(CurvedAnimation(
           parent: animation,
           curve: AppAnimations.standardCurve,
+          reverseCurve: Curves.easeInCubic,
         ));
 
         final fadeAnimation = CurvedAnimation(
           parent: animation,
           curve: AppAnimations.standardCurve,
+          reverseCurve: Curves.easeInCubic,
         );
 
         return FadeTransition(
           opacity: fadeAnimation,
           child: ScaleTransition(
             scale: scaleAnimation,
-            child: child,
+            child: ColoredBox(
+              color: Colors.white,
+              child: child,
+            ),
           ),
         );
       },

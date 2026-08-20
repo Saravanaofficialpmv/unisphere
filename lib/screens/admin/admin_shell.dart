@@ -34,6 +34,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
+  final List<int> _navigationHistory = [0];
 
   final List<SidebarItem> _sidebarItems = [
     SidebarItem(label: 'Dashboard', icon: Icons.grid_view_rounded),
@@ -82,19 +83,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
-          _innerNavigatorKey.currentState?.pop();
-          return;
-        }
-        if (_selectedIndex != 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _selectedIndex = 0;
-              });
-            }
-          });
-        }
+        _handleBackNavigation();
       },
       child: Scaffold(
       key: _scaffoldKey,
@@ -182,7 +171,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                 if (_selectedIndex == 0) {
                   _scaffoldKey.currentState?.openDrawer();
                 } else {
-                  _handleNavigation(0);
+                  _handleBackNavigation();
                 }
               },
             ),
@@ -205,13 +194,32 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     );
   }
 
-  void _handleNavigation(int index) {
+  void _handleNavigation(int index, {bool isBack = false}) {
     if (_innerNavigatorKey.currentState?.canPop() ?? false) {
       _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
+    if (index == _selectedIndex) return;
+
+    if (!isBack) {
+      _navigationHistory.add(_selectedIndex);
+    }
+
     setState(() => _selectedIndex = index);
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop(); 
+    }
+  }
+
+  void _handleBackNavigation() {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.pop();
+      return;
+    }
+    if (_navigationHistory.isNotEmpty) {
+      final prev = _navigationHistory.removeLast();
+      _handleNavigation(prev, isBack: true);
+    } else if (_selectedIndex != 0) {
+      _handleNavigation(0, isBack: true);
     }
   }
 }

@@ -31,16 +31,62 @@
 
   <title>UniSphere</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f8fafc;
+    }
+    .unisphere-preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      z-index: 999999;
+      transition: opacity 0.4s ease-out;
+    }
+    .unisphere-preloader-gif {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+    .unisphere-preloader-text {
+      margin-top: 18px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6366f1;
+      letter-spacing: 0.5px;
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <div id="unisphere-preloader" class="unisphere-preloader">
+    <img class="unisphere-preloader-gif" src="tibsy-dp.gif" alt="UniSphere Loading..." />
+    <div class="unisphere-preloader-text">Loading UniSphere...</div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <script>
+    window.addEventListener('load', function() {
+      // Remove preloader once Flutter web app initializes
+      var preloader = document.getElementById('unisphere-preloader');
+      if (preloader) {
+        setTimeout(function() {
+          preloader.style.opacity = '0';
+          setTimeout(function() {
+            preloader.remove();
+          }, 400);
+        }, 300);
+      }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

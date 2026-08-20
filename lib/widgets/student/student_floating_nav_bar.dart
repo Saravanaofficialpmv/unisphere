@@ -16,6 +16,7 @@ import 'package:unisphere/core/constants/app_colors.dart';
 class StudentFloatingNavBar extends StatelessWidget {
   final int currentIndex;
   final bool isMenuOpen;
+  final bool isVisible;
   final VoidCallback onSidebarTap;
   final VoidCallback onHomeTap;
   final VoidCallback onResumeTap;
@@ -26,6 +27,7 @@ class StudentFloatingNavBar extends StatelessWidget {
     super.key,
     required this.currentIndex,
     this.isMenuOpen = false,
+    this.isVisible = true,
     required this.onSidebarTap,
     required this.onHomeTap,
     required this.onResumeTap,
@@ -59,89 +61,111 @@ class StudentFloatingNavBar extends StatelessWidget {
     final activeSlot = _activeSlot;
     final bool hasActiveSlot = activeSlot >= 0;
 
-    return Semantics(
-      label: 'Student Navigation Dock',
-      child: Container(
-        width: barWidth,
-        height: barHeight,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(36),
-          boxShadow: [
-            // Clean neutral soft ambient shadow
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(36),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Container(
-              decoration: BoxDecoration(
-                // Frosted White Glass Surface
-                color: Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(36),
-                border: Border.all(
-                  color: AppColors.border.withValues(alpha: 0.85),
-                  width: 1.2,
+    return AnimatedSlide(
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOutCubic,
+      offset: isVisible ? Offset.zero : const Offset(0, 1.35),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 220),
+        opacity: isVisible ? 1.0 : 0.0,
+        child: Semantics(
+          label: 'Student Navigation Dock',
+          child: Container(
+            width: barWidth,
+            height: barHeight,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(36),
+              boxShadow: [
+                // Deep ambient glass shadow
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.14),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                  spreadRadius: 0,
                 ),
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: verticalPadding,
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final double availableWidth = constraints.maxWidth;
-                  final double slotWidth = availableWidth / 5;
-                  final double availableHeight = constraints.maxHeight;
-                  final double itemWidth = math.min(slotWidth - 8.0, 54.0);
-                  const double itemHeight = 44.0;
-                  final double topOffset = (availableHeight - itemHeight) / 2;
+                // Soft indigo tinted glow
+                BoxShadow(
+                  color: const Color(0xFF4338CA).withValues(alpha: 0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(36),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    // Authentic Translucent Glassmorphism Gradient Surface
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.72),
+                        Colors.white.withValues(alpha: 0.48),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(36),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      width: 1.5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: verticalPadding,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final double availableWidth = constraints.maxWidth;
+                      final double slotWidth = availableWidth / 5;
+                      final double availableHeight = constraints.maxHeight;
+                      final double itemWidth = math.min(slotWidth - 8.0, 54.0);
+                      const double itemHeight = 44.0;
+                      final double topOffset = (availableHeight - itemHeight) / 2;
 
-                  return Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      // Animated sliding active Royal Blue capsule indicator
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 260),
-                        curve: Curves.easeInOutCubic,
-                        left: hasActiveSlot
-                            ? (activeSlot * slotWidth) + ((slotWidth - itemWidth) / 2)
-                            : (2 * slotWidth) + ((slotWidth - itemWidth) / 2),
-                        top: topOffset,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 200),
-                          opacity: hasActiveSlot ? 1.0 : 0.0,
-                          child: Container(
-                            width: itemWidth,
-                            height: itemHeight,
-                            decoration: BoxDecoration(
-                              // Crisp Royal Blue Gradient Capsule Indicator
-                              gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFF3B82F6), // Electric Light Blue
-                                  Color(0xFF2563EB), // Brand Royal Blue
-                                  Color(0xFF1D4ED8), // Deep Navy Blue
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                      return Stack(
+                        alignment: Alignment.centerLeft,
+                        children: [
+                          // Animated sliding active Royal Blue capsule indicator with soft glow
+                          AnimatedPositioned(
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeInOutCubic,
+                            left: hasActiveSlot
+                                ? (activeSlot * slotWidth) + ((slotWidth - itemWidth) / 2)
+                                : (2 * slotWidth) + ((slotWidth - itemWidth) / 2),
+                            top: topOffset,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: hasActiveSlot ? 1.0 : 0.0,
+                              child: Container(
+                                width: itemWidth,
+                                height: itemHeight,
+                                decoration: BoxDecoration(
+                                  // Crisp Royal Blue Gradient Capsule Indicator
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF3B82F6), // Electric Light Blue
+                                      Color(0xFF2563EB), // Brand Royal Blue
+                                      Color(0xFF1D4ED8), // Deep Navy Blue
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(itemHeight / 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF2563EB).withValues(alpha: 0.38),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              borderRadius: BorderRadius.circular(itemHeight / 2),
                             ),
                           ),
-                        ),
-                      ),
 
                       // Navigation Item Icons (Order: More, Resume, Home, Profile, Logout)
                       Row(
@@ -236,8 +260,10 @@ class StudentFloatingNavBar extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }
 
 class _NavBarItem extends StatefulWidget {

@@ -41,6 +41,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
+  final List<int> _navigationHistory = [0];
 
   @override
   void initState() {
@@ -75,32 +76,51 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
   late final List<Widget> _screens = [
     StaffHomeScreen(onNavigate: _handleNavigation),
     const HodSyllabusManagementScreen(),
-    StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 3)),
+    StaffAssignmentCreation(onCreated: () => _handleNavigation(3)),
     const StaffSubmissionReview(),
     const StaffStudentDirectory(),
-    AdviserResumeBankScreen(onBack: () => _handleNavigation(0)),
+    AdviserResumeBankScreen(onBack: _handleBackNavigation),
     const ClassAdvisorEditRequestsScreen(),
     const HodStudentVerificationsScreen(),
     const StaffNptelVerificationScreen(),
     const AdvisorHackathonVerificationScreen(),
     const StaffMarksUploadModule(),
-    ProfileScreen(onBack: () => _handleNavigation(0)),
-    AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0)),
+    ProfileScreen(onBack: _handleBackNavigation),
+    AcademicScheduleDetailScreen(onBack: _handleBackNavigation),
     const SizedBox.shrink(), // Divider
     const StaffAttendanceMarkingModule(),
-    StaffQuestionPaperUploadScreen(onBack: () => _handleNavigation(0)),
-    FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)),
-    StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)),
-    StudentLibraryScreen(onBack: () => _handleNavigation(0)),
+    StaffQuestionPaperUploadScreen(onBack: _handleBackNavigation),
+    FullPhotoGalleryScreen(onBack: _handleBackNavigation),
+    StudentAnnouncementsScreen(onBack: _handleBackNavigation),
+    StudentLibraryScreen(onBack: _handleBackNavigation),
   ];
 
-  void _handleNavigation(int index) {
+  void _handleNavigation(int index, {bool isBack = false}) {
     if (_innerNavigatorKey.currentState?.canPop() ?? false) {
       _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
+    if (index == _currentIndex) return;
+
+    if (!isBack) {
+      _navigationHistory.add(_currentIndex);
+    }
+
     setState(() => _currentIndex = index);
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleBackNavigation() {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.pop();
+      return;
+    }
+    if (_navigationHistory.isNotEmpty) {
+      final prev = _navigationHistory.removeLast();
+      _handleNavigation(prev, isBack: true);
+    } else if (_currentIndex != 0) {
+      _handleNavigation(0, isBack: true);
     }
   }
 
@@ -112,19 +132,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
-          _innerNavigatorKey.currentState?.pop();
-          return;
-        }
-        if (_currentIndex != 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-          });
-        }
+        _handleBackNavigation();
       },
       child: Scaffold(
       key: _scaffoldKey,
@@ -147,7 +155,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
               if (_currentIndex == 0) {
                 _scaffoldKey.currentState?.openDrawer();
               } else {
-                _handleNavigation(0);
+                _handleBackNavigation();
               }
             },
           ),

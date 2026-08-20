@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +19,7 @@ Future<void> showStudentNavigationSheet({
   HapticFeedback.mediumImpact();
   return showModalBottomSheet(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     isDismissible: true,
     enableDrag: true,
@@ -376,9 +378,10 @@ class _StudentNavigationSheetState extends ConsumerState<StudentNavigationSheet>
 
   /// Builds a responsive 2-column squircle grid layout.
   Widget _buildGridView(ScrollController scrollController, List<_IndexedSidebarItem> items) {
+    final bottomPad = math.max(36.0, MediaQuery.of(context).padding.bottom + 24.0);
     return GridView.builder(
       controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+      padding: EdgeInsets.fromLTRB(16, 14, 16, bottomPad),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 10,
@@ -528,9 +531,10 @@ class _StudentNavigationSheetState extends ConsumerState<StudentNavigationSheet>
 
   /// Builds a classic streamlined list view layout.
   Widget _buildListView(ScrollController scrollController, List<_IndexedSidebarItem> items) {
+    final bottomPad = math.max(36.0, MediaQuery.of(context).padding.bottom + 24.0);
     return ListView.builder(
       controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, bottomPad),
       itemCount: items.length,
       itemBuilder: (context, idx) {
         final itemData = items[idx];

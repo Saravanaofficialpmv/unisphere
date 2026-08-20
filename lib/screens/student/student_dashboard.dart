@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
+import 'package:unisphere/core/theme/app_animations_kit.dart';
 import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 import 'package:unisphere/screens/student/modules/student_upcoming_tasks_screen.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
@@ -42,6 +44,10 @@ import 'package:unisphere/widgets/common/recent_photos_section.dart';
 import 'package:unisphere/screens/gallery/full_photo_gallery_screen.dart';
 import 'package:unisphere/screens/student/cgpa_details_screen.dart';
 import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart';
+import 'package:unisphere/providers/academic_schedule_provider.dart';
+import 'package:unisphere/providers/gallery_provider.dart';
+import 'package:unisphere/providers/post_od_provider.dart';
+import 'package:unisphere/providers/gradebook_provider.dart';
 import 'package:unisphere/core/theme/app_animations.dart';
 
 
@@ -64,9 +70,11 @@ class StudentDashboard extends ConsumerStatefulWidget {
 class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   int _currentIndex = 0;
   bool _isNavigationSheetOpen = false;
+  bool _isDockVisible = true;
   bool _openGpaPlannerInGradebook = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
+  final List<int> _navigationHistory = [0];
 
   @override
   void initState() {
@@ -109,57 +117,57 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
           onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
         );
       case 1:
-        return InteractiveTimetableScreen(onBack: () => _handleNavigation(0));
+        return InteractiveTimetableScreen(onBack: _handleBackNavigation);
       case 2:
-        return StudentUpcomingTasksScreen(onBack: () => _handleNavigation(0));
+        return StudentUpcomingTasksScreen(onBack: _handleBackNavigation);
       case 3:
-        return StudentAttendanceScreen(onBack: () => _handleNavigation(0));
+        return StudentAttendanceScreen(onBack: _handleBackNavigation);
       case 4:
         return GradebookScreen(
           key: ValueKey('gradebook_$_openGpaPlannerInGradebook'),
           initialShowPlanner: _openGpaPlannerInGradebook,
-          onBack: () => _handleNavigation(0),
+          onBack: _handleBackNavigation,
         );
       case 5:
-        return ExamsDetailScreen(onBack: () => _handleNavigation(0));
+        return ExamsDetailScreen(onBack: _handleBackNavigation);
       case 6:
-        return AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0));
+        return AcademicScheduleDetailScreen(onBack: _handleBackNavigation);
       case 7:
-        return CgpaDetailsScreen(onBack: () => _handleNavigation(0));
+        return CgpaDetailsScreen(onBack: _handleBackNavigation);
       case 8:
-        return StudentSyllabusScreen(onBack: () => _handleNavigation(0));
+        return StudentSyllabusScreen(onBack: _handleBackNavigation);
       case 9:
-        return StudentPyqScreen(onBack: () => _handleNavigation(0));
+        return StudentPyqScreen(onBack: _handleBackNavigation);
       case 10:
-        return FeesScreen(onBack: () => _handleNavigation(0));
+        return FeesScreen(onBack: _handleBackNavigation);
       case 12:
-        return HackathonsScreen(onBack: () => _handleNavigation(0));
+        return HackathonsScreen(onBack: _handleBackNavigation);
       case 13:
-        return CertificationsScreen(onBack: () => _handleNavigation(0));
+        return CertificationsScreen(onBack: _handleBackNavigation);
       case 14:
-        return LeetCodeDetailScreen(onBack: () => _handleNavigation(0));
+        return LeetCodeDetailScreen(onBack: _handleBackNavigation);
       case 15:
-        return GitHubDetailScreen(onBack: () => _handleNavigation(0));
+        return GitHubDetailScreen(onBack: _handleBackNavigation);
       case 16:
-        return AchievementsScreen(onBack: () => _handleNavigation(0));
+        return AchievementsScreen(onBack: _handleBackNavigation);
       case 17:
-        return EventsScreen(onBack: () => _handleNavigation(0));
+        return EventsScreen(onBack: _handleBackNavigation);
       case 18:
         return FeatureHubScreen(
           onNavigateToTab: _handleNavigation,
-          onBack: () => _handleNavigation(0),
+          onBack: _handleBackNavigation,
         );
       case 19:
         return StudentResumeScreen(
-          onBack: () => _handleNavigation(0),
+          onBack: _handleBackNavigation,
           onNavigateToTab: _handleNavigation,
         );
       case 21:
-        return FullPhotoGalleryScreen(onBack: () => _handleNavigation(0));
+        return FullPhotoGalleryScreen(onBack: _handleBackNavigation);
       case 22:
-        return StudentAnnouncementsScreen(onBack: () => _handleNavigation(0));
+        return StudentAnnouncementsScreen(onBack: _handleBackNavigation);
       case 24:
-        return ProfileScreen(onBack: () => _handleNavigation(0));
+        return ProfileScreen(onBack: _handleBackNavigation);
       default:
         return StudentHomeScreen(
           onNavigateToTab: _handleNavigation,
@@ -169,17 +177,35 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   }
 
 
-  void _handleNavigation(int index, {bool openCalculator = false}) {
+  void _handleNavigation(int index, {bool openCalculator = false, bool isBack = false}) {
     if (_innerNavigatorKey.currentState?.canPop() ?? false) {
       _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
     if (index == _currentIndex && !_openGpaPlannerInGradebook) return;
+
+    if (!isBack && index != _currentIndex) {
+      _navigationHistory.add(_currentIndex);
+    }
+
     setState(() {
       _currentIndex = index;
       _openGpaPlannerInGradebook = openCalculator;
     });
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleBackNavigation() {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.pop();
+      return;
+    }
+    if (_navigationHistory.isNotEmpty) {
+      final prev = _navigationHistory.removeLast();
+      _handleNavigation(prev, isBack: true);
+    } else if (_currentIndex != 0) {
+      _handleNavigation(0, isBack: true);
     }
   }
 
@@ -191,13 +217,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
-          _innerNavigatorKey.currentState?.pop();
-          return;
-        }
-        if (_currentIndex != 0) {
-          _handleNavigation(0);
-        }
+        _handleBackNavigation();
       },
       child: Scaffold(
         key: _scaffoldKey,
@@ -206,25 +226,37 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
         appBar: null,
         body: Stack(
           children: [
-            Row(
-              children: [
-                if (isDesktop) _buildSidebar(),
-                Expanded(
-                  child: ClipRect(
-                    child: Navigator(
-                      key: _innerNavigatorKey,
-                      onGenerateRoute: (settings) {
-                        return MaterialPageRoute(
-                          builder: (_) => SmoothPageTransition(
-                            currentIndex: _currentIndex,
-                            child: _buildScreen(_currentIndex),
-                          ),
-                        );
-                      },
+            NotificationListener<UserScrollNotification>(
+              onNotification: (notification) {
+                if (notification.direction == ScrollDirection.reverse && _isDockVisible) {
+                  if (notification.metrics.pixels > 35) {
+                    setState(() => _isDockVisible = false);
+                  }
+                } else if (notification.direction == ScrollDirection.forward && !_isDockVisible) {
+                  setState(() => _isDockVisible = true);
+                }
+                return false;
+              },
+              child: Row(
+                children: [
+                  if (isDesktop) _buildSidebar(),
+                  Expanded(
+                    child: ClipRect(
+                      child: Navigator(
+                        key: _innerNavigatorKey,
+                        onGenerateRoute: (settings) {
+                          return MaterialPageRoute(
+                            builder: (_) => SmoothPageTransition(
+                              currentIndex: _currentIndex,
+                              child: _buildScreen(_currentIndex),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             // Floating Capsule Bottom Navigation Bar (Mobile / Tablet)
             if (!isDesktop)
@@ -236,6 +268,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
                   child: StudentFloatingNavBar(
                     currentIndex: _currentIndex,
                     isMenuOpen: _isNavigationSheetOpen,
+                    isVisible: _isDockVisible && !_isNavigationSheetOpen,
                     onSidebarTap: () async {
                       setState(() => _isNavigationSheetOpen = true);
                       await showStudentNavigationSheet(
@@ -322,6 +355,7 @@ class StudentHomeScreen extends ConsumerStatefulWidget {
 
 class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   int _academicOverviewPageIndex = 0;
+  int _refreshEpoch = 0;
   bool _isReturningUser = false;
   bool _dismissedVerifiedBanner = false;
 
@@ -408,10 +442,40 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 960),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    child: AppLiquidPullToRefresh(
+                      onRefresh: () async {
+                        // Trigger visual re-animation across all dashboard cards & metrics
+                        if (mounted) {
+                          setState(() {
+                            _refreshEpoch++;
+                          });
+                        }
+
+                        // Concurrently refresh real-time stats (LeetCode, GitHub, LinkedIn)
+                        // and invalidate all core app providers for notifications, announcements, marks, and timetable
+                        final statsFuture = ref.read(academicOverviewProvider.notifier).refreshAllStats();
+
+                        ref.invalidate(academicOverviewProvider);
+                        ref.invalidate(semesterAttendanceProvider);
+                        ref.invalidate(allTimetablesStreamProvider);
+                        ref.invalidate(notificationProvider);
+                        ref.invalidate(hackathonControllerProvider);
+                        ref.invalidate(recentPublishedAlbumsProvider);
+                        ref.invalidate(allPublishedAlbumsProvider);
+                        ref.invalidate(postOdProvider);
+                        ref.invalidate(userAcademicScheduleProvider);
+                        ref.invalidate(gradebookProvider);
+
+                        await Future.wait([
+                          statsFuture,
+                          Future.delayed(const Duration(milliseconds: 1000)),
+                        ]);
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Profile Verification Banner (Prompt to complete profile & submit to HOD)
                       _buildProfileCompletionBanner(),
@@ -493,12 +557,12 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                   ),
                 ),
               ),
-
             ),
           ),
-        ],
-      ),
-    );
+        ),
+      ],
+    ),
+  );
   }
 
   Widget _buildProfileCompletionBanner() {
@@ -967,6 +1031,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
               accentColor: i % 2 == 0 ? const Color(0xFF2563EB) : const Color(0xFF10B981),
               icon: i % 2 == 0 ? Icons.menu_book_rounded : Icons.computer_rounded,
               iconBg: i % 2 == 0 ? const Color(0xFFEFF6FF) : const Color(0xFFECFDF5),
+              isLive: i == 0,
             ),
           );
         }
@@ -1064,6 +1129,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     required Color accentColor,
     required IconData icon,
     required Color iconBg,
+    bool isLive = false,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1111,13 +1177,25 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: Color(0xFF2D3142),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color: Color(0xFF2D3142),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isLive) ...[
+                      const SizedBox(width: 6),
+                      const AppLivePulseDot(label: 'LIVE', size: 6),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -1717,22 +1795,32 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
                                 return Row(
                                   children: [
-                                    AppCircularGauge(
-                                      radius: 22.0,
-                                      lineWidth: 4.5,
-                                      percent: (semPercentage / 100.0).clamp(0.0, 1.0),
-                                      center: Text(
-                                        '${semPercentage.round()}%',
-                                        style: const TextStyle(
-                                          color: Color(0xFF2D3142),
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 10.5,
-                                        ),
-                                      ),
-                                      progressColor: const Color(0xFF3F51B5),
-                                      backgroundColor: const Color(
-                                        0xFF3F51B5,
-                                      ).withValues(alpha: 0.12),
+                                    TweenAnimationBuilder<double>(
+                                      key: ValueKey('attendance_gauge_${semPercentage}_$_refreshEpoch'),
+                                      tween: Tween<double>(begin: 0.0, end: (semPercentage / 100.0).clamp(0.0, 1.0)),
+                                      duration: const Duration(milliseconds: 900),
+                                      curve: Curves.easeOutCubic,
+                                      builder: (context, animPercent, _) {
+                                        return AppCircularGauge(
+                                          radius: 22.0,
+                                          lineWidth: 4.5,
+                                          percent: animPercent,
+                                          center: AppCountUpText(
+                                            key: ValueKey('attendance_text_${semPercentage}_$_refreshEpoch'),
+                                            end: semPercentage,
+                                            suffix: '%',
+                                            style: const TextStyle(
+                                              color: Color(0xFF2D3142),
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 10.5,
+                                            ),
+                                          ),
+                                          progressColor: const Color(0xFF3F51B5),
+                                          backgroundColor: const Color(
+                                            0xFF3F51B5,
+                                          ).withValues(alpha: 0.12),
+                                        );
+                                      },
                                     ),
                                     const SizedBox(width: 6),
                                     Expanded(
@@ -1833,8 +1921,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                 const SizedBox(height: 2),
                                 Row(
                                   children: [
-                                    Text(
-                                      overviewData.cgpa.toStringAsFixed(2),
+                                    AppCountUpText(
+                                      key: ValueKey('cgpa_text_${overviewData.cgpa}_$_refreshEpoch'),
+                                      end: overviewData.cgpa,
+                                      precision: 2,
                                       style: const TextStyle(
                                         color: Color(0xFF2D3142),
                                         fontSize: 20,
@@ -1954,15 +2044,15 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                         ],
                                       ),
                                       const SizedBox(height: 1),
-                                      Text(
-                                        '${overviewData.odDays} Days',
+                                      AppCountUpText(
+                                        key: ValueKey('od_text_${overviewData.odDays}_$_refreshEpoch'),
+                                        end: overviewData.odDays.toDouble(),
+                                        suffix: ' Days',
                                         style: const TextStyle(
                                           color: Color(0xFF2D3142),
                                           fontSize: 14.5,
                                           fontWeight: FontWeight.w800,
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                   ),
@@ -2010,8 +2100,10 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                                   spacing: 4,
                                   runSpacing: 2,
                                   children: [
-                                    Text(
-                                      '${overviewData.leetcodeSolved} Solved',
+                                    AppCountUpText(
+                                      key: ValueKey('leetcode_text_${overviewData.leetcodeSolved}_$_refreshEpoch'),
+                                      end: overviewData.leetcodeSolved.toDouble(),
+                                      suffix: ' Solved',
                                       style: const TextStyle(
                                         color: Color(0xFF2D3142),
                                         fontSize: 14.5,
@@ -2830,34 +2922,35 @@ class _StudentIDCardFlipModalState extends ConsumerState<StudentIDCardFlipModal>
     required String validity,
     required String photoUrl,
   }) {
-    return Container(
-      width: 310,
-      height: 492,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 16,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Stack(
-          children: [
-            // White Base Background
-            Positioned.fill(child: Container(color: Colors.white)),
+    return AppParallaxTiltCard(
+      child: Container(
+        width: 310,
+        height: 492,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 16,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(
+            children: [
+              // White Base Background
+              Positioned.fill(child: Container(color: Colors.white)),
 
-            // Card Layout
-            Column(
-              children: [
-                // Top Header Section: Lanyard Hole + VSB Header Logo Asset
-                Container(
-                  color: Colors.white,
+              // Card Layout
+              Column(
+                children: [
+                  // Top Header Section: Lanyard Hole + VSB Header Logo Asset
+                  Container(
+                    color: Colors.white,
                   child: Column(
                     children: [
                       const SizedBox(height: 8),
@@ -3093,8 +3186,9 @@ class _StudentIDCardFlipModalState extends ConsumerState<StudentIDCardFlipModal>
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildFallbackHeaderLogo() {
     return Row(
@@ -3194,21 +3288,22 @@ class _StudentIDCardFlipModalState extends ConsumerState<StudentIDCardFlipModal>
 
   // ── BACK SIDE CARD (CR80 Aspect Ratio 1:1.587) ──
   Widget _buildBackCard() {
-    return Container(
-      width: 310,
-      height: 492,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 16,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
+    return AppParallaxTiltCard(
+      child: Container(
+        width: 310,
+        height: 492,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 16,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
         child: Column(
@@ -3406,8 +3501,9 @@ class _StudentIDCardFlipModalState extends ConsumerState<StudentIDCardFlipModal>
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildBackBadgeRow(IconData icon, String text) {
     return Row(

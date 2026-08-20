@@ -238,6 +238,23 @@ class AcademicOverviewNotifier extends StateNotifier<AcademicOverviewData> {
     );
   }
 
+  /// Performs full concurrent sync with LeetCode, GitHub, and LinkedIn API stats
+  Future<void> refreshAllStats() async {
+    final futures = <Future>[];
+    if (state.leetcodeUsername.isNotEmpty) {
+      futures.add(fetchLeetCodeStats(state.leetcodeUsername));
+    }
+    if (state.githubUsername.isNotEmpty) {
+      futures.add(fetchGitHubStats(state.githubUsername));
+    }
+    if (state.linkedinUrl.isNotEmpty) {
+      futures.add(fetchLinkedInStats(state.linkedinUrl));
+    }
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
+    }
+  }
+
   void addCustomLink({required String title, required String url, String category = 'General'}) {
     final newLink = CustomUserLink(
       id: 'cl_${DateTime.now().millisecondsSinceEpoch}',

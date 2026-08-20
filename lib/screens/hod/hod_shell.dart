@@ -69,6 +69,7 @@ class _HodShellState extends ConsumerState<HodShell> {
   ];
 
   late final List<Widget> _screens;
+  final List<int> _navigationHistory = [0];
 
   @override
   void initState() {
@@ -99,15 +100,32 @@ class _HodShellState extends ConsumerState<HodShell> {
     ];
   }
 
-
-
-  void _handleNavigation(int index) {
+  void _handleNavigation(int index, {bool isBack = false}) {
     if (_innerNavigatorKey.currentState?.canPop() ?? false) {
       _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
+    if (index == _currentIndex) return;
+
+    if (!isBack) {
+      _navigationHistory.add(_currentIndex);
+    }
+
     setState(() => _currentIndex = index);
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleBackNavigation() {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.pop();
+      return;
+    }
+    if (_navigationHistory.isNotEmpty) {
+      final prev = _navigationHistory.removeLast();
+      _handleNavigation(prev, isBack: true);
+    } else if (_currentIndex != 0) {
+      _handleNavigation(0, isBack: true);
     }
   }
 
@@ -119,19 +137,7 @@ class _HodShellState extends ConsumerState<HodShell> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
-          _innerNavigatorKey.currentState?.pop();
-          return;
-        }
-        if (_currentIndex != 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-          });
-        }
+        _handleBackNavigation();
       },
       child: Scaffold(
       key: _scaffoldKey,
@@ -161,7 +167,7 @@ class _HodShellState extends ConsumerState<HodShell> {
               if (_currentIndex == 0) {
                 _scaffoldKey.currentState?.openDrawer();
               } else {
-                _handleNavigation(0);
+                _handleBackNavigation();
               }
             },
           ),

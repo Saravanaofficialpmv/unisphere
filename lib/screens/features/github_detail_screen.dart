@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/services/github_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
+import 'package:unisphere/widgets/common/app_liquid_pull_to_refresh.dart';
 
 class GitHubDetailScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -211,7 +212,7 @@ class _GitHubDetailScreenState extends ConsumerState<GitHubDetailScreen> {
                 ),
 
           Expanded(
-            child: RefreshIndicator(
+            child: AppLiquidPullToRefresh(
               onRefresh: () => _loadFullStats(_fullStats.username),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),

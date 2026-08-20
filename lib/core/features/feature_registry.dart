@@ -98,9 +98,9 @@ class FeatureRegistry {
     FeatureItem(
       id: 'loader_preview',
       title: 'Loader Preview',
-      subtitle: 'Preview & test the animated bloub GIF loader',
+      subtitle: 'Preview & test the animated Tibsy GIF loader',
       icon: Icons.hourglass_top_rounded,
-      imageAsset: 'assets/bloub-default-cycle-4.gif',
+      imageAsset: 'assets/tibsy-dp.gif',
       color: const Color(0xFF6366F1),
       pastelBg: const Color(0xFFEEF2FF),
       category: 'Campus Life',
