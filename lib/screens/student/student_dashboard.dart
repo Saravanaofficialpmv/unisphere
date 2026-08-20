@@ -30,7 +30,6 @@ import 'package:unisphere/providers/semester_attendance_provider.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
-import 'package:unisphere/widgets/common/open_menu_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
@@ -51,6 +50,9 @@ import 'package:unisphere/core/theme/app_animations.dart';
 
 import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
 import 'package:unisphere/screens/student/modules/student_pyq_screen.dart';
+import 'package:unisphere/widgets/student/student_floating_nav_bar.dart';
+import 'package:unisphere/widgets/student/student_navigation_sheet.dart';
+import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -61,6 +63,7 @@ class StudentDashboard extends ConsumerStatefulWidget {
 
 class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   int _currentIndex = 0;
+  bool _isNavigationSheetOpen = false;
   bool _openGpaPlannerInGradebook = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
@@ -201,24 +204,57 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
         backgroundColor: Colors.white,
         drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
         appBar: null,
-        body: Row(
+        body: Stack(
           children: [
-            if (isDesktop) _buildSidebar(),
-            Expanded(
-              child: ClipRect(
-                child: Navigator(
-                  key: _innerNavigatorKey,
-                  onGenerateRoute: (settings) {
-                    return MaterialPageRoute(
-                      builder: (_) => SmoothPageTransition(
-                        currentIndex: _currentIndex,
-                        child: _buildScreen(_currentIndex),
-                      ),
-                    );
-                  },
+            Row(
+              children: [
+                if (isDesktop) _buildSidebar(),
+                Expanded(
+                  child: ClipRect(
+                    child: Navigator(
+                      key: _innerNavigatorKey,
+                      onGenerateRoute: (settings) {
+                        return MaterialPageRoute(
+                          builder: (_) => SmoothPageTransition(
+                            currentIndex: _currentIndex,
+                            child: _buildScreen(_currentIndex),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // Floating Capsule Bottom Navigation Bar (Mobile / Tablet)
+            if (!isDesktop)
+              Positioned(
+                bottom: math.max(16.0, MediaQuery.of(context).padding.bottom + 10.0),
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: StudentFloatingNavBar(
+                    currentIndex: _currentIndex,
+                    isMenuOpen: _isNavigationSheetOpen,
+                    onSidebarTap: () async {
+                      setState(() => _isNavigationSheetOpen = true);
+                      await showStudentNavigationSheet(
+                        context: context,
+                        selectedIndex: _currentIndex,
+                        onDestinationSelected: _handleNavigation,
+                        items: _sidebarItems,
+                      );
+                      if (mounted) {
+                        setState(() => _isNavigationSheetOpen = false);
+                      }
+                    },
+                    onHomeTap: () => _handleNavigation(0),
+                    onResumeTap: () => _handleNavigation(19),
+                    onProfileTap: () => _handleNavigation(24),
+                    onLogoutTap: () => showSignOutConfirmationSheet(context, ref),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -318,10 +354,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     final unreadCount = notificationState.unreadCount;
 
     return SafeArea(
-      child: Stack(
+      child: Column(
         children: [
-          Column(
-            children: [
               // Home Top Header Bar & Search Bar (Pinned & Stable on scroll - Seamless background)
               Container(
                 color: Colors.white,
@@ -454,6 +488,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       _buildTodaysClasses(),
                       const SizedBox(height: 24),
                       const RecentPhotosSection(),
+                      const SizedBox(height: 80),
                     ],
                   ),
                 ),
@@ -461,21 +496,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
 
             ),
           ),
-        ],
-      ),
-      // Floating Detached Menubar Opener Handle (Left Edge - Mobile Only)
-          if (MediaQuery.of(context).size.width < 800)
-            Positioned(
-              left: 0,
-              bottom: 24,
-              child: OpenMenuButton(
-                onTap: () {
-                  if (widget.onOpenDrawer != null) {
-                    widget.onOpenDrawer!();
-                  }
-                },
-              ),
-            ),
         ],
       ),
     );
