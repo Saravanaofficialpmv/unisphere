@@ -237,6 +237,7 @@ class AmbientGlassBackground extends StatelessWidget {
           child: Container(
             color: Colors.white,
             child: Stack(
+              fit: StackFit.expand,
               clipBehavior: Clip.hardEdge,
               children: [
                 Positioned(

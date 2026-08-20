@@ -95,7 +95,9 @@ class _HodResumeBankScreenState extends ConsumerState<HodResumeBankScreen> {
     },
   ];
 
-  void _openResumeModal(String studentId, String studentName) async {
+  void _openResumeModal(String studentId, String studentName) {
+    final resumeFuture = ref.read(resumeServiceProvider).generateResumeForStudent(studentId);
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -107,7 +109,7 @@ class _HodResumeBankScreenState extends ConsumerState<HodResumeBankScreen> {
           height: MediaQuery.of(context).size.height * 0.9,
           padding: const EdgeInsets.all(16),
           child: FutureBuilder<StudentResumeModel?>(
-            future: ref.read(resumeServiceProvider).generateResumeForStudent(studentId),
+            future: resumeFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: Loader(label: 'Generating high-fidelity resume...'));

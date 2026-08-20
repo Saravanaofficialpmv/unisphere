@@ -246,16 +246,13 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
 
                   // 2-Column Grid of Category Cards
                   Expanded(
-                    child: SingleChildScrollView(
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 1.15,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 1.15,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
                         itemCount: _categoryOptions.length,
                         itemBuilder: (context, index) {
                           final option = _categoryOptions[index];
@@ -349,7 +346,6 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
                           );
                         },
                       ),
-                    ),
                   ),
 
                   const SizedBox(height: 14),

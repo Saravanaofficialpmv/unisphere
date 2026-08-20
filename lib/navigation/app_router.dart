@@ -6,7 +6,6 @@ import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/screens/auth/auth_screen.dart';
 import 'package:unisphere/screens/auth/request_submitted_screen.dart';
 import 'package:unisphere/screens/student/student_dashboard.dart';
-import 'package:unisphere/screens/staff/staff_dashboard.dart';
 import 'package:unisphere/screens/parent/parent_dashboard.dart';
 import 'package:unisphere/screens/onboarding/onboarding_screen.dart';
 
@@ -19,6 +18,8 @@ import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
 
 import 'package:unisphere/screens/splash/splash_screen.dart';
 import 'package:unisphere/screens/common/loader_preview_screen.dart';
+import 'package:unisphere/screens/staff/staff_details_screen.dart';
+import 'package:unisphere/screens/staff/staff_dashboard.dart';
 import 'package:unisphere/core/theme/app_animations.dart';
 
 import 'dart:async';
@@ -183,6 +184,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           context: context,
           state: state,
           child: const StaffDashboard(),
+        ),
+      ),
+      GoRoute(
+        path: '/staff-details',
+        pageBuilder: (context, state) => AppRouteTransitions.slideFade(
+          context: context,
+          state: state,
+          child: const StaffDetailsScreen(),
         ),
       ),
       GoRoute(

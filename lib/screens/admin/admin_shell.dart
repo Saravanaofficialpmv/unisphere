@@ -19,7 +19,6 @@ import 'package:unisphere/screens/common/manual_notification_composer_screen.dar
 import 'package:unisphere/screens/staff/modules/staff_marks_upload.dart';
 import 'package:unisphere/screens/hod/modules/hod_academic_management.dart';
 import 'package:unisphere/screens/hod/modules/hod_settings.dart';
-import 'package:unisphere/screens/hod/modules/hod_syllabus_management_screen.dart';
 import 'package:unisphere/core/theme/app_animations.dart';
 
 
@@ -44,7 +43,6 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     SidebarItem(label: 'Notification Rules', icon: Icons.notifications_active_rounded, badge: 'Auto'),
     SidebarItem(label: 'Announcements', icon: Icons.campaign_outlined),
     SidebarItem(label: 'Institutional Academics', icon: Icons.school_outlined),
-    SidebarItem(label: 'Syllabus Management', icon: Icons.menu_book_rounded, badge: 'Syllabus'),
     SidebarItem(label: 'Marks Center', icon: Icons.star_outline_rounded),
     SidebarItem(label: 'Attendance Monitoring', icon: Icons.calendar_today_rounded),
     SidebarItem(label: 'Performance Intelligence', icon: Icons.assessment_outlined),
@@ -63,7 +61,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     const AdminNotificationSettingsScreen(), // 5: Automation Rules
     const AnnouncementManagementModule(), // 6: Announcements
     const HodAcademicManagement(), // 7: Institutional Academics
-    const HodSyllabusManagementScreen(), // 8: Syllabus Management
+    const SizedBox.shrink(), // 8: Syllabus Management (Removed)
     const StaffMarksUploadModule(), // 9: Marks Center
     const AttendanceManagementModule(), // 10: Attendance Monitoring
     const ReportManagementModule(), // 11: Performance Intelligence

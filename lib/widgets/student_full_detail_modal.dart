@@ -664,12 +664,15 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
     );
   }
 
+  final Map<String, Future<StudentResumeModel?>> _resumeFutures = {};
+
   // ── Tab 3: Dedicated Dynamic Resume & Links ────────────────────
   Widget _buildResumeTab(Map<String, dynamic> s) {
     final regNo = s['regNo']?.toString() ?? s['registerNumber']?.toString() ?? s['id']?.toString() ?? '';
+    _resumeFutures[regNo] ??= ResumeService().generateResumeForStudent(regNo);
 
     return FutureBuilder<StudentResumeModel?>(
-      future: ResumeService().generateResumeForStudent(regNo),
+      future: _resumeFutures[regNo],
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(

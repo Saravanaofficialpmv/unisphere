@@ -14,6 +14,8 @@ class SyllabusService {
     return 2026;
   }
 
+  static bool _hasClearedAllSyllabi = true;
+
   /// Fetch published syllabus records for students.
   /// Strictly filters out future syllabus records (effectiveStartYear > studentCurrentStartYear)
   /// and draft records (status != 'published').
@@ -33,6 +35,10 @@ class SyllabusService {
           .collection('syllabi')
           .where('status', isEqualTo: 'published')
           .get();
+
+      if (_hasClearedAllSyllabi && snapshot.docs.isEmpty) {
+        return [];
+      }
 
       if (snapshot.docs.isNotEmpty) {
         final allPublished = snapshot.docs.map((doc) {
@@ -76,6 +82,8 @@ class SyllabusService {
       debugPrint('SyllabusService error loading from Firestore: $e');
     }
 
+    if (_hasClearedAllSyllabi) return [];
+
     // Fallback to built-in syllabus repository
     final builtIn = _getBuiltInSyllabusDatabase(department);
     return builtIn.where((s) {
@@ -112,6 +120,9 @@ class SyllabusService {
     final normalizedDept = _normalizeDepartment(department);
     try {
       final snapshot = await _firestore.collection('syllabi').get();
+      if (_hasClearedAllSyllabi && snapshot.docs.isEmpty) {
+        return [];
+      }
       if (snapshot.docs.isNotEmpty) {
         final allDocs = snapshot.docs
             .map((doc) => SyllabusSubjectModel.fromMap(doc.data(), doc.id))
@@ -122,12 +133,14 @@ class SyllabusService {
     } catch (e) {
       debugPrint('SyllabusService error loading HOD records: $e');
     }
+    if (_hasClearedAllSyllabi) return [];
     return _getBuiltInSyllabusDatabase(department);
   }
 
   /// Add a new subject record to Firestore syllabi collection
   Future<bool> createSubject(SyllabusSubjectModel subject) async {
     try {
+      _hasClearedAllSyllabi = false;
       final docRef = _firestore.collection('syllabi').doc(subject.id.isNotEmpty ? subject.id : null);
       final finalSubject = SyllabusSubjectModel(
         id: docRef.id,
@@ -209,6 +222,37 @@ class SyllabusService {
       return true;
     } catch (e) {
       debugPrint('SyllabusService deleteSubject error: $e');
+      return false;
+    }
+  }
+
+  /// Delete ALL syllabus records from Firestore syllabi collection (optionally for a specific department or all)
+  Future<bool> deleteAllSyllabi({String? department}) async {
+    try {
+      _hasClearedAllSyllabi = true;
+      final snapshot = await _firestore.collection('syllabi').get();
+      final batch = _firestore.batch();
+      int count = 0;
+
+      for (var doc in snapshot.docs) {
+        if (department != null && department.isNotEmpty && department.toLowerCase() != 'all') {
+          final docDept = (doc.data()['department'] ?? doc.data()['dept'] ?? '').toString();
+          if (docDept.isEmpty || docDept.toLowerCase() == 'all' || _normalizeDepartment(docDept) == _normalizeDepartment(department)) {
+            batch.delete(doc.reference);
+            count++;
+          }
+        } else {
+          batch.delete(doc.reference);
+          count++;
+        }
+      }
+
+      if (count > 0) {
+        await batch.commit();
+      }
+      return true;
+    } catch (e) {
+      debugPrint('SyllabusService deleteAllSyllabi error: $e');
       return false;
     }
   }
@@ -301,242 +345,8 @@ class SyllabusService {
     return 'Semester 1';
   }
 
-  /// Built-in dataset containing Current (2026–2027), Previous (2025–2026, 2024–2025), and Future (2027–2028) records
+  /// Built-in dataset repository (cleared)
   List<SyllabusSubjectModel> _getBuiltInSyllabusDatabase(String department) {
-    final deptName = department.isNotEmpty ? department : 'Computer Science & Engineering';
-
-    return [
-      // ─────────────────────────────────────────
-      // CURRENT SYLLABUS (2026–2027)
-      // ─────────────────────────────────────────
-      SyllabusSubjectModel(
-        id: 'SYLL-2026-CS101',
-        subjectCode: 'CS101',
-        subjectName: 'Programming in C',
-        department: deptName,
-        applicableBatch: '2026–2030',
-        year: 'I Year',
-        semester: 'Semester 1',
-        academicYear: '2026–2027',
-        effectiveStartYear: 2026,
-        credits: 4,
-        subjectType: 'Theory',
-        description: 'Fundamental programming constructs, data types, control flow, functions, arrays, pointers, structures, file operations, and algorithmic logic in C language.',
-        units: [
-          SyllabusUnitModel(
-            unitNumber: 'Unit I',
-            title: 'C Language Fundamentals & Data Types',
-            topics: ['Algorithm & Flowcharts', 'Structure of C Program', 'Variables & Data Types', 'Operators & Expressions', 'Input/Output Statements'],
-          ),
-          SyllabusUnitModel(
-            unitNumber: 'Unit II',
-            title: 'Control Flow & Decision Statements',
-            topics: ['if-else Statements', 'switch-case Statements', 'while & do-while Loops', 'for Loops & Nested Loops', 'break, continue & goto'],
-          ),
-          SyllabusUnitModel(
-            unitNumber: 'Unit III',
-            title: 'Arrays, Strings & User-defined Functions',
-            topics: ['Single & Multi-dimensional Arrays', 'String Manipulation', 'Function Prototypes', 'Pass by Value & Reference', 'Recursion'],
-          ),
-          SyllabusUnitModel(
-            unitNumber: 'Unit IV',
-            title: 'Pointers & Dynamic Memory Management',
-            topics: ['Pointer Arithmetic', 'Pointers to Arrays & Functions', 'Dynamic Memory Allocation (malloc, calloc, realloc, free)'],
-          ),
-          SyllabusUnitModel(
-            unitNumber: 'Unit V',
-            title: 'Structures, Unions & File Handling',
-            topics: ['Defining Structures & Unions', 'Array of Structures', 'File Pointers & Modes', 'Sequential & Random File Access'],
-          ),
-        ],
-        textbooks: ['Programming in ANSI C (8th Edition) by E. Balagurusamy, McGraw Hill'],
-        referenceBooks: ['The C Programming Language (2nd Edition) by Kernighan and Ritchie, Prentice Hall'],
-        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        documentFileName: 'CS101_Programming_in_C_2026-27.pdf',
-        documentSize: '2.4 MB',
-        lastUpdated: DateTime(2026, 8, 1),
-        status: 'published',
-      ),
-      SyllabusSubjectModel(
-        id: 'SYLL-2026-MA101',
-        subjectCode: 'MA101',
-        subjectName: 'Mathematics I: Calculus & Linear Algebra',
-        department: deptName,
-        applicableBatch: '2026–2030',
-        year: 'I Year',
-        semester: 'Semester 1',
-        academicYear: '2026–2027',
-        effectiveStartYear: 2026,
-        credits: 4,
-        subjectType: 'Theory',
-        description: 'Matrix algebra, eigenvalues, multivariable calculus, partial derivatives, double and triple integrals, and vector calculus.',
-        units: [
-          SyllabusUnitModel(
-            unitNumber: 'Unit I',
-            title: 'Matrices & Linear Systems',
-            topics: ['Rank of a Matrix', 'System of Linear Equations', 'Eigenvalues & Eigenvectors', 'Cayley-Hamilton Theorem'],
-          ),
-        ],
-        textbooks: ['Higher Engineering Mathematics (44th Edition) by B.S. Grewal'],
-        referenceBooks: ['Advanced Engineering Mathematics (10th Edition) by Erwin Kreyszig'],
-        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        documentFileName: 'MA101_Mathematics_I_2026-27.pdf',
-        documentSize: '3.1 MB',
-        lastUpdated: DateTime(2026, 8, 2),
-        status: 'published',
-      ),
-      SyllabusSubjectModel(
-        id: 'SYLL-2026-CS103',
-        subjectCode: 'CS103',
-        subjectName: 'Data Structures & Algorithms',
-        department: deptName,
-        applicableBatch: '2026–2030',
-        year: 'I Year',
-        semester: 'Semester 2',
-        academicYear: '2026–2027',
-        effectiveStartYear: 2026,
-        credits: 4,
-        subjectType: 'Theory',
-        description: 'Arrays, linked lists, stacks, queues, trees, binary search trees, heaps, graphs, hashing, and time/space complexity analysis.',
-        units: [
-          SyllabusUnitModel(
-            unitNumber: 'Unit I',
-            title: 'Linear Data Structures',
-            topics: ['Stacks & Queues', 'Linked Lists', 'Polynomial Addition'],
-          ),
-        ],
-        textbooks: ['Data Structures and Algorithm Analysis in C by Mark Allen Weiss'],
-        referenceBooks: ['Fundamentals of Data Structures in C by Horowitz and Sahni'],
-        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        documentFileName: 'CS103_Data_Structures_2026-27.pdf',
-        documentSize: '2.8 MB',
-        lastUpdated: DateTime(2026, 8, 10),
-        status: 'published',
-      ),
-
-      // ─────────────────────────────────────────
-      // PREVIOUS SYLLABUS (2025–2026)
-      // ─────────────────────────────────────────
-      SyllabusSubjectModel(
-        id: 'SYLL-2025-CS101',
-        subjectCode: 'CS101-R25',
-        subjectName: 'Fundamentals of Computing & C',
-        department: deptName,
-        applicableBatch: '2025–2029',
-        year: 'I Year',
-        semester: 'Semester 1',
-        academicYear: '2025–2026',
-        effectiveStartYear: 2025,
-        credits: 4,
-        subjectType: 'Theory',
-        description: 'Previous regulation (R25) syllabus covering computer logic, problem solving, flowcharts, and C programming fundamentals.',
-        units: [
-          SyllabusUnitModel(
-            unitNumber: 'Unit I',
-            title: 'Introduction to Computers & C',
-            topics: ['Computer Hardware & Software', 'Algorithms & Flowcharts', 'C Program Architecture'],
-          ),
-        ],
-        textbooks: ['Computer Fundamentals & C Programming by E. Balagurusamy'],
-        referenceBooks: ['C How to Program by Paul Deitel & Harvey Deitel'],
-        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        documentFileName: 'CS101_C_Programming_2025-26_Archive.pdf',
-        documentSize: '2.1 MB',
-        lastUpdated: DateTime(2025, 7, 15),
-        status: 'published',
-      ),
-      SyllabusSubjectModel(
-        id: 'SYLL-2025-CS103',
-        subjectCode: 'CS103-R25',
-        subjectName: 'Basic Data Structures',
-        department: deptName,
-        applicableBatch: '2025–2029',
-        year: 'I Year',
-        semester: 'Semester 2',
-        academicYear: '2025–2026',
-        effectiveStartYear: 2025,
-        credits: 4,
-        subjectType: 'Theory',
-        description: 'Previous regulation (R25) syllabus covering stacks, queues, linked lists, and basic sorting algorithms.',
-        units: [
-          SyllabusUnitModel(
-            unitNumber: 'Unit I',
-            title: 'Arrays & Stacks',
-            topics: ['Array Operations', 'Stack Implementation using Arrays'],
-          ),
-        ],
-        textbooks: ['Data Structures using C by Reema Thareja'],
-        referenceBooks: ['Data Structures by Seymour Lipschutz'],
-        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        documentFileName: 'CS103_Data_Structures_2025-26_Archive.pdf',
-        documentSize: '2.5 MB',
-        lastUpdated: DateTime(2025, 7, 20),
-        status: 'published',
-      ),
-
-      // ─────────────────────────────────────────
-      // PREVIOUS SYLLABUS (2024–2025)
-      // ─────────────────────────────────────────
-      SyllabusSubjectModel(
-        id: 'SYLL-2024-CS101',
-        subjectCode: 'CS101-R24',
-        subjectName: 'Problem Solving & Programming',
-        department: deptName,
-        applicableBatch: '2024–2028',
-        year: 'I Year',
-        semester: 'Semester 1',
-        academicYear: '2024–2025',
-        effectiveStartYear: 2024,
-        credits: 4,
-        subjectType: 'Theory',
-        description: 'Legacy regulation (R24) syllabus for first year computer science students.',
-        units: [
-          SyllabusUnitModel(
-            unitNumber: 'Unit I',
-            title: 'Problem Solving Logic',
-            topics: ['Pseudocode Development', 'Control Structures'],
-          ),
-        ],
-        textbooks: ['Problem Solving and Program Design in C by Hanly & Koffman'],
-        referenceBooks: ['Programming in C by Byron Gottfried'],
-        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        documentFileName: 'CS101_Problem_Solving_2024-25_Archive.pdf',
-        documentSize: '1.9 MB',
-        lastUpdated: DateTime(2024, 7, 10),
-        status: 'published',
-      ),
-
-      // ─────────────────────────────────────────
-      // FUTURE SYLLABUS (2027–2028) -> MUST NOT SHOW TO STUDENTS
-      // ─────────────────────────────────────────
-      SyllabusSubjectModel(
-        id: 'SYLL-2027-CS101',
-        subjectCode: 'CS101-R27',
-        subjectName: 'AI-Assisted Systems & Modern C++',
-        department: deptName,
-        applicableBatch: '2027–2031',
-        year: 'I Year',
-        semester: 'Semester 1',
-        academicYear: '2027–2028',
-        effectiveStartYear: 2027,
-        credits: 4,
-        subjectType: 'Theory',
-        description: 'Future regulation syllabus incorporating AI tools and modern C++23 standards for upcoming 2027 batch.',
-        units: [
-          SyllabusUnitModel(
-            unitNumber: 'Unit I',
-            title: 'Modern C++ Foundations',
-            topics: ['C++23 Syntax', 'Smart Pointers', 'RAII Pattern'],
-          ),
-        ],
-        textbooks: ['C++ Primer (6th Edition) by Stanley B. Lippman'],
-        referenceBooks: ['The C++ Programming Language (4th Edition) by Bjarne Stroustrup'],
-        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        documentFileName: 'CS101_Modern_CPP_2027-28_Future.pdf',
-        documentSize: '3.4 MB',
-        lastUpdated: DateTime(2026, 8, 15),
-        status: 'published', // Published in DB for HOD preparation, but FUTURE for students!
-      ),
-    ];
+    return [];
   }
 }

@@ -160,6 +160,11 @@ class _HodSyllabusManagementScreenState extends ConsumerState<HodSyllabusManagem
             tooltip: 'Refresh Syllabi',
             onPressed: _fetchData,
           ),
+          IconButton(
+            icon: const Icon(Icons.delete_forever_rounded, color: Color(0xFFEF4444)),
+            tooltip: 'Delete All Syllabus Data',
+            onPressed: _handleDeleteAllSyllabi,
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -237,14 +242,17 @@ class _HodSyllabusManagementScreenState extends ConsumerState<HodSyllabusManagem
             style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              _buildHeaderStatChip('Total Subjects', '$totalCount', Icons.library_books_rounded, Colors.white70),
-              const SizedBox(width: 12),
-              _buildHeaderStatChip('Published', '$publishedCount', Icons.check_circle_rounded, const Color(0xFF10B981)),
-              const SizedBox(width: 12),
-              _buildHeaderStatChip('Drafts', '$draftCount', Icons.pending_actions_rounded, const Color(0xFFF59E0B)),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildHeaderStatChip('Total Subjects', '$totalCount', Icons.library_books_rounded, Colors.white70),
+                const SizedBox(width: 12),
+                _buildHeaderStatChip('Published', '$publishedCount', Icons.check_circle_rounded, const Color(0xFF10B981)),
+                const SizedBox(width: 12),
+                _buildHeaderStatChip('Drafts', '$draftCount', Icons.pending_actions_rounded, const Color(0xFFF59E0B)),
+              ],
+            ),
           ),
         ],
       ),
@@ -420,16 +428,27 @@ class _HodSyllabusManagementScreenState extends ConsumerState<HodSyllabusManagem
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             ElevatedButton.icon(
               icon: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
               label: const Text('Add Subject', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               onPressed: () => _showAddEditSubjectModal(),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.delete_forever_rounded, size: 18, color: Color(0xFFEF4444)),
+              label: const Text('Delete All', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFFEF4444))),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                side: const BorderSide(color: Color(0xFFFCA5A5)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: _handleDeleteAllSyllabi,
             ),
           ],
         ),
@@ -726,6 +745,102 @@ class _HodSyllabusManagementScreenState extends ConsumerState<HodSyllabusManagem
           );
         }
         _fetchData();
+      }
+    }
+  }
+
+  Future<void> _handleDeleteAllSyllabi() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever_rounded, color: Color(0xFFEF4444), size: 26),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Delete ALL Syllabus Data?',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete ALL syllabus records for "$_department"?',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF334155), fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 20, color: Color(0xFFDC2626)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Warning: This action will permanently erase all published and draft subjects from Firestore.',
+                      style: TextStyle(fontSize: 11.5, color: Color(0xFF991B1B), fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.delete_forever_rounded, size: 18, color: Colors.white),
+            label: const Text('Delete All Data', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isLoading = true);
+      final ok = await _syllabusService.deleteAllSyllabi(department: _department);
+      if (mounted) {
+        setState(() {
+          _allDepartmentSyllabi = [];
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    ok ? 'All syllabus data for $_department has been deleted.' : 'Failed to delete syllabus data. Please try again.',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: ok ? const Color(0xFFDC2626) : const Color(0xFFB45309),
+            duration: const Duration(seconds: 4),
+          ),
+        );
       }
     }
   }

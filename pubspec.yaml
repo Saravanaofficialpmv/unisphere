@@ -101,6 +101,9 @@ flutter:
 
   assets:
     - assets/
+    - assets/images/
+    - assets/images/quick_actions/
+    - assets/images/profile_meta/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -21,7 +21,6 @@ import 'package:unisphere/screens/profile/profile_screen.dart';
 import 'package:unisphere/widgets/student/student_profile_completion_sheet.dart';
 import 'package:unisphere/screens/student/modules/student_attendance_screen.dart';
 import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
-import 'package:unisphere/screens/student/modules/student_syllabus_screen.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
 import 'package:unisphere/providers/notification_provider.dart';
 import 'package:unisphere/screens/features/exams_detail_screen.dart';
@@ -51,6 +50,7 @@ import 'package:unisphere/core/theme/app_animations.dart';
 
 import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
 import 'package:unisphere/screens/student/modules/student_pyq_screen.dart';
+import 'package:unisphere/screens/student/modules/student_syllabus_screen.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
@@ -388,53 +388,38 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          Positioned.fill(
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Positioned(
-                                  top: -20,
-                                  left: 20,
-                                  child: Container(
-                                    width: 160,
-                                    height: 160,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: RadialGradient(
-                                        colors: [
-                                          const Color(
-                                            0xFF3F51B5,
-                                          ).withValues(alpha: 0.45),
-                                          const Color(
-                                            0xFF3F51B5,
-                                          ).withValues(alpha: 0.0),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                          Positioned(
+                            top: -20,
+                            left: 20,
+                            child: Container(
+                              width: 160,
+                              height: 160,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    const Color(0xFF3F51B5).withValues(alpha: 0.45),
+                                    const Color(0xFF3F51B5).withValues(alpha: 0.0),
+                                  ],
                                 ),
-                                Positioned(
-                                  bottom: -20,
-                                  right: 40,
-                                  child: Container(
-                                    width: 150,
-                                    height: 150,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: RadialGradient(
-                                        colors: [
-                                          const Color(
-                                            0xFF69F0AE,
-                                          ).withValues(alpha: 0.35),
-                                          const Color(
-                                            0xFF69F0AE,
-                                          ).withValues(alpha: 0.0),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: -20,
+                            right: 40,
+                            child: Container(
+                              width: 150,
+                              height: 150,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    const Color(0xFF69F0AE).withValues(alpha: 0.35),
+                                    const Color(0xFF69F0AE).withValues(alpha: 0.0),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                           _buildAcademicOverviewCard(context),
@@ -2303,6 +2288,8 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             widget.onNavigateToTab(8);
           } else if (type == 'pyq' || type == 'question_papers') {
             widget.onNavigateToTab(9);
+          } else if (type == 'attendance') {
+            widget.onNavigateToTab(3);
           } else if (type == 'fees') {
             widget.onNavigateToTab(10);
           } else if (type == 'certifications') {

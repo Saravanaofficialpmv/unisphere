@@ -40,7 +40,6 @@ class HodAcademicManagement extends StatelessWidget {
 
   Widget _buildAcademicGrid(BuildContext context) {
     final items = [
-      {'title': 'Syllabus Management', 'sub': 'Academic Year, Sem & Subject Docs', 'icon': Icons.menu_book_rounded, 'color': const Color(0xFFD97706), 'type': 'syllabus'},
       {'title': 'Course Allocation', 'sub': 'Subject & Faculty Mapping', 'icon': Icons.book_outlined, 'color': const Color(0xFF2563EB)},
       {'title': 'Faculty Workload', 'sub': '16-20 Hours/Week Limits', 'icon': Icons.assessment_outlined, 'color': const Color(0xFF7C3AED)},
       {'title': 'Subject Allocation', 'sub': 'Core & Elective Subject Lists', 'icon': Icons.menu_book_outlined, 'color': const Color(0xFF059669), 'type': 'syllabus'},
