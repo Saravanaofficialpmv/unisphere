@@ -509,86 +509,282 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 2. SEARCH & QUICK ACTION PILL
+  // 2. GRADIENT BORDER SEARCH & QUICK ACTION PILL
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildSearchBarAndQuickAction(BuildContext context) {
-    return Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+    return InkWell(
+      onTap: () => _showParentSearchModal(context),
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        height: 54,
+        padding: const EdgeInsets.all(2), // Gradient border width
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF10B981), // Mint Emerald Green
+              Color(0xFF94A3B8), // Slate transition
+              Color(0xFFEC4899), // Vibrant Pink / Rose
+              Color(0xFF6366F1), // Indigo
+              Color(0xFF2563EB), // Royal Blue
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search updates, exams, fees, timetable...',
-                hintStyle: GoogleFonts.manrope(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF94A3B8),
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: GoogleFonts.manrope(fontSize: 13, color: const Color(0xFF0F172A)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
+          ],
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
           ),
-          const SizedBox(width: 8),
-
-          // Lightning bolt quick action button
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                showParentNavigationSheet(
-                  context: context,
-                  selectedIndex: 0,
-                  onDestinationSelected: (idx) => widget.onNavigateToTab?.call(idx),
-                  items: _ParentDashboardState.parentSidebarItems,
-                  userName: 'Mrs. Rajesh',
-                  userEmail: 'parent.rajesh@gmail.com',
-                );
-              },
-              borderRadius: BorderRadius.circular(18),
-              child: Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+          child: Row(
+            children: [
+              // Left Magnifying Search Icon
+              const Icon(
+                Icons.search_rounded,
+                color: Color(0xFF1E3A8A),
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              // Placeholder Text
+              const Expanded(
+                child: Text(
+                  'Search updates, exams, fees, timetable...',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
                   ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.35),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
+              const SizedBox(width: 8),
+              // Right Filled Royal Blue Circle with White Lightning Bolt
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    showParentNavigationSheet(
+                      context: context,
+                      selectedIndex: 0,
+                      onDestinationSelected: (idx) => widget.onNavigateToTab?.call(idx),
+                      items: _ParentDashboardState.parentSidebarItems,
+                      userName: 'Mrs. Rajesh',
+                      userEmail: 'parent.rajesh@gmail.com',
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(19),
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1D4ED8),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x331D4ED8),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.bolt_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  void _showParentSearchModal(BuildContext context) {
+    String query = '';
+    final List<Map<String, dynamic>> parentSearchItems = [
+      {'title': 'Attendance History & Logs', 'subtitle': 'Subject attendance percentage & shortage alerts', 'icon': Icons.calendar_month_rounded, 'color': const Color(0xFF10B981), 'tabIndex': 1},
+      {'title': 'Performance Marks & CGPA', 'subtitle': 'Internal test scores, grades & academic analysis', 'icon': Icons.bar_chart_rounded, 'color': const Color(0xFF7C3AED), 'tabIndex': 2},
+      {'title': 'Important Announcements & Circulars', 'subtitle': 'Official college notices, exam policies & holiday lists', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFEA580C), 'tabIndex': 3},
+      {'title': 'Parent Profile & Contact Info', 'subtitle': 'Guardian details, phone number & ward mappings', 'icon': Icons.person_rounded, 'color': const Color(0xFF2563EB), 'tabIndex': 4},
+      {'title': 'Student Fee Status & Online Pay', 'subtitle': 'Tuition fees, transport charges & e-receipts', 'icon': Icons.payments_rounded, 'color': const Color(0xFFF59E0B), 'tabIndex': 6},
+      {'title': 'Campus Photo Gallery', 'subtitle': 'Annual events, technical symposia & student fests', 'icon': Icons.collections_rounded, 'color': const Color(0xFF0284C7), 'tabIndex': 7},
+      {'title': 'Upcoming Exams & Events Calendar', 'subtitle': 'Examination timetable, PTM schedule & sports meet', 'icon': Icons.event_rounded, 'color': const Color(0xFF6366F1), 'tabIndex': 8},
+      {'title': 'College Transport Details', 'subtitle': 'Bus routes, pickup timing & driver contacts', 'icon': Icons.directions_bus_rounded, 'color': const Color(0xFF0D9488), 'tabIndex': 9},
+      {'title': 'Department Vision & Outcomes', 'subtitle': 'Academic PEOs, POs and curriculum mission', 'icon': Icons.school_rounded, 'color': const Color(0xFF4F46E5), 'isVision': true},
+      {'title': 'Notifications & Alerts Feed', 'subtitle': 'All urgent push notifications and reminders', 'icon': Icons.notifications_active_rounded, 'color': const Color(0xFFEF4444), 'isNotification': true},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final filteredItems = parentSearchItems.where((item) {
+            final title = item['title'].toString().toLowerCase();
+            final subtitle = item['subtitle'].toString().toLowerCase();
+            final q = query.toLowerCase();
+            return q.isEmpty || title.contains(q) || subtitle.contains(q);
+          }).toList();
+
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Search Field inside Modal
+                  TextField(
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Type to search updates, exams, marks, fees...',
+                      hintStyle: GoogleFonts.manrope(fontSize: 13, color: const Color(0xFF94A3B8)),
+                      prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
+                      suffixIcon: query.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded, size: 18),
+                              onPressed: () {
+                                setModalState(() => query = '');
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                      ),
+                    ),
+                    onChanged: (val) {
+                      setModalState(() => query = val);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  Text(
+                    'Quick Search Results (${filteredItems.length})',
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Expanded(
+                    child: filteredItems.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.search_off_rounded, size: 40, color: Color(0xFFCBD5E1)),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'No matching portal features found',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            itemCount: filteredItems.length,
+                            separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                            itemBuilder: (context, index) {
+                              final item = filteredItems[index];
+                              final Color itemColor = item['color'] as Color;
+
+                              return ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                leading: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: itemColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(item['icon'] as IconData, color: itemColor, size: 20),
+                                ),
+                                title: Text(
+                                  item['title'] as String,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  item['subtitle'] as String,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 11.5,
+                                    color: const Color(0xFF64748B),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Color(0xFFCBD5E1)),
+                                onTap: () {
+                                  Navigator.pop(ctx);
+                                  if (item['isVision'] == true) {
+                                    showDepartmentVisionSheet(context);
+                                  } else if (item['isNotification'] == true) {
+                                    showNotificationSheet(context);
+                                  } else if (item['tabIndex'] != null) {
+                                    widget.onNavigateToTab?.call(item['tabIndex'] as int);
+                                  }
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
