@@ -55,6 +55,7 @@ import 'package:unisphere/core/theme/app_animations.dart';
 
 import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
 import 'package:unisphere/screens/student/modules/student_syllabus_screen.dart';
+import 'package:unisphere/screens/student/modules/student_pyq_screen.dart';
 import 'package:unisphere/widgets/student/student_floating_nav_bar.dart';
 import 'package:unisphere/widgets/student/student_navigation_sheet.dart';
 import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';

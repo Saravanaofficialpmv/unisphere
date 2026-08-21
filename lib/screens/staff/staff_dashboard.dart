@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
@@ -19,7 +18,6 @@ import 'package:unisphere/screens/staff/modules/advisor_hackathon_verification_s
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/notification_bell_button.dart';
-import 'package:unisphere/widgets/common/complete_profile_dialog.dart';
 import 'package:unisphere/screens/gallery/full_photo_gallery_screen.dart';
 import 'package:unisphere/screens/student/modules/student_announcements_screen.dart';
 import 'package:unisphere/screens/student/modules/student_library_screen.dart';
@@ -28,6 +26,8 @@ import 'package:unisphere/screens/features/academic_schedule_detail_screen.dart'
 import 'package:unisphere/screens/staff/modules/adviser_resume_bank_screen.dart';
 import 'package:unisphere/screens/staff/modules/staff_question_paper_upload_screen.dart';
 import 'package:unisphere/screens/staff/staff_details_screen.dart';
+import 'package:unisphere/screens/hod/modules/hod_syllabus_management_screen.dart';
+import 'package:unisphere/screens/profile/profile_screen.dart';
 import 'package:unisphere/core/theme/app_animations.dart';
 
 class StaffDashboard extends ConsumerStatefulWidget {

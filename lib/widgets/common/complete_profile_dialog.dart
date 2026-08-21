@@ -120,208 +120,516 @@ class _CompleteProfileDialogState extends ConsumerState<CompleteProfileDialog> {
     }
   }
 
+  InputDecoration _buildInputDecoration({
+    required String hintText,
+    required IconData prefixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      prefixIcon: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEEF2FF),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(prefixIcon, color: const Color(0xFF4F46E5), size: 18),
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 2.0),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2.0),
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String labelText, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 15, color: const Color(0xFF475569)),
+          const SizedBox(width: 6),
+          Text(
+            labelText,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Color(0xFF1E293B),
+              letterSpacing: 0.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final firstName = widget.user.name.split(' ').first;
+
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       elevation: 0,
       backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 520),
+        constraints: const BoxConstraints(maxWidth: 500),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
           boxShadow: const [
             BoxShadow(
-              color: Colors.black26,
-              blurRadius: 30,
-              offset: Offset(0, 10),
+              color: Color(0x2B0F172A),
+              blurRadius: 40,
+              spreadRadius: -4,
+              offset: Offset(0, 20),
+            ),
+            BoxShadow(
+              color: Color(0x103B82F6),
+              blurRadius: 20,
+              spreadRadius: 0,
+              offset: Offset(0, 4),
             ),
           ],
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(28.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header Banner
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(22, 16, 22, 22),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // iOS Style Sheet Handle
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
+                          color: const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        child: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 28),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Complete Your Profile 🎓',
-                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Hi ${widget.user.name.split(' ').first}! Please confirm your academic details to activate your portal.',
-                              style: const TextStyle(color: Colors.white70, fontSize: 12),
-                            ),
+                    ),
+
+                    // Ultra-Modern Header Card Banner
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF0F172A),
+                            Color(0xFF1E1B4B),
+                            Color(0xFF1E293B),
                           ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x200F172A),
+                            blurRadius: 16,
+                            offset: Offset(0, 6),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Register / ID Number
-                const Text('Register / Employee ID', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _regNoController,
-                  decoration: InputDecoration(
-                    hintText: 'e.g. RA2111003010001',
-                    prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.primary, size: 20),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  validator: (val) => val == null || val.trim().isEmpty ? 'Register ID is required' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Department
-                const Text('Academic Department', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedDept,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.account_balance_outlined, color: AppColors.primary, size: 20),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  items: AppDepartments.list.map((dept) {
-                    return DropdownMenuItem<String>(
-                      value: dept,
-                      child: Text(dept, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedDept = val);
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Section & Semester Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack(
                         children: [
-                          const Text('Section / Group', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _sectionController,
-                            decoration: InputDecoration(
-                              hintText: 'Sec A',
-                              prefixIcon: const Icon(Icons.groups_outlined, color: AppColors.primary, size: 20),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          // Glowing Ambient Decorative Orbs
+                          Positioned(
+                            top: -20,
+                            right: -20,
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: -30,
+                            left: 40,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF38BDF8).withValues(alpha: 0.1),
+                              ),
+                            ),
+                          ),
+
+                          // Banner Content
+                          Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    // Gradient Ring Icon Avatar
+                                    Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [Color(0xFF6366F1), Color(0xFFA855F7)],
+                                        ),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(9),
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF0F172A),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.person_add_alt_1_rounded,
+                                          color: Colors.white,
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Expanded(
+                                                child: Text(
+                                                  'Complete Your Profile 🎓',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 16.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 0.2,
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                                                ),
+                                                child: const Text(
+                                                  'Quick Setup',
+                                                  style: TextStyle(
+                                                    color: Color(0xFF38BDF8),
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            'Hi $firstName! Confirm your academic details to activate your portal.',
+                                            style: TextStyle(
+                                              color: Colors.white.withValues(alpha: 0.75),
+                                              fontSize: 11.5,
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+
+                                // Profile Completion Progress Bar
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Profile Activation',
+                                          style: TextStyle(
+                                            color: Colors.white.withValues(alpha: 0.6),
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const Text(
+                                          '80% Complete',
+                                          style: TextStyle(
+                                            color: Color(0xFF38BDF8),
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 5),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: LinearProgressIndicator(
+                                        value: 0.8,
+                                        minHeight: 5,
+                                        backgroundColor: Colors.white.withValues(alpha: 0.12),
+                                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF38BDF8)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Current Semester', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
-                          const SizedBox(height: 6),
-                          DropdownButtonFormField<String>(
-                            initialValue: _selectedSemester,
-                            isExpanded: true,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-                            ),
-                            items: _semesters.map((sem) {
-                              return DropdownMenuItem<String>(
-                                value: sem,
-                                child: Text(sem, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
-                              );
-                            }).toList(),
-                            onChanged: (val) {
-                              if (val != null) setState(() => _selectedSemester = val);
-                            },
+                    const SizedBox(height: 20),
+
+                    // Register / ID Number Field
+                    _buildFieldLabel('Register / Employee ID', Icons.badge_outlined),
+                    TextFormField(
+                      controller: _regNoController,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                      decoration: _buildInputDecoration(
+                        hintText: 'e.g. RA2111003010001',
+                        prefixIcon: Icons.badge_outlined,
+                      ),
+                      validator: (val) => val == null || val.trim().isEmpty ? 'Register ID is required' : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Department Field
+                    _buildFieldLabel('Academic Department', Icons.account_balance_outlined),
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedDept,
+                      isExpanded: true,
+                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
+                      decoration: _buildInputDecoration(
+                        hintText: 'Select Department',
+                        prefixIcon: Icons.account_balance_outlined,
+                      ),
+                      dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      items: AppDepartments.list.map((dept) {
+                        return DropdownMenuItem<String>(
+                          value: dept,
+                          child: Text(
+                            dept,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)),
                           ),
-                        ],
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedDept = val);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Section & Semester Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Section / Group Column
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildFieldLabel('Section / Group', Icons.groups_outlined),
+                              TextFormField(
+                                controller: _sectionController,
+                                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                                decoration: _buildInputDecoration(
+                                  hintText: 'Sec A',
+                                  prefixIcon: Icons.groups_outlined,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Current Semester Column
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildFieldLabel('Current Semester', Icons.school_outlined),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedSemester,
+                                isExpanded: true,
+                                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B), size: 20),
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: const Color(0xFFF8FAFC),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 2.0),
+                                  ),
+                                ),
+                                dropdownColor: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                items: _semesters.map((sem) {
+                                  return DropdownMenuItem<String>(
+                                    value: sem,
+                                    child: Text(
+                                      sem,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  if (val != null) setState(() => _selectedSemester = val);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Contact Phone Number Field
+                    _buildFieldLabel('Contact Phone Number', Icons.phone_outlined),
+                    TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                      decoration: _buildInputDecoration(
+                        hintText: '+91 98765 43210',
+                        prefixIcon: Icons.phone_outlined,
                       ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Action Buttons Row (Fitted single line text, no vertical word wrapping!)
+                    Row(
+                      children: [
+                        // Skip for Now Button (Secondary Pill)
+                        Expanded(
+                          flex: 2,
+                          child: OutlinedButton(
+                            onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              foregroundColor: const Color(0xFF64748B),
+                              backgroundColor: const Color(0xFFF8FAFC),
+                            ),
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Skip for Now',
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Save & Continue Button (Vibrant Gradient Primary Pill)
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x3B2563EB),
+                                  blurRadius: 14,
+                                  offset: Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _isSaving ? null : _handleSaveProfile,
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(0, 50),
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                              ),
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                                    )
+                                  : const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.check_circle_rounded, size: 18),
+                                        SizedBox(width: 6),
+                                        Flexible(
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              'Save & Continue',
+                                              maxLines: 1,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-
-                // Contact Phone Number
-                const Text('Contact Phone Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    hintText: '+91 98765 43210',
-                    prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 20),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                        child: const Text('Skip for Now'),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton.icon(
-                        onPressed: _isSaving ? null : _handleSaveProfile,
-                        icon: _isSaving
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : const Icon(Icons.check_circle_rounded, size: 18),
-                        label: Text(_isSaving ? 'Saving...' : 'Save & Continue'),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ),

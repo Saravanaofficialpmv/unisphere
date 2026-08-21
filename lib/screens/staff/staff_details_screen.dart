@@ -6,8 +6,14 @@ import 'package:unisphere/models/staff_task_model.dart';
 class StaffDetailsScreen extends ConsumerStatefulWidget {
   final StaffDetailsModel? staffMember;
   final VoidCallback? onBack;
+  final Function(int)? onNavigateToTab;
 
-  const StaffDetailsScreen({super.key, this.staffMember, this.onBack});
+  const StaffDetailsScreen({
+    super.key,
+    this.staffMember,
+    this.onBack,
+    this.onNavigateToTab,
+  });
 
   @override
   ConsumerState<StaffDetailsScreen> createState() => _StaffDetailsScreenState();
@@ -124,7 +130,11 @@ class _StaffDetailsScreenState extends ConsumerState<StaffDetailsScreen> {
                 _buildStaffProfileCard(isMobile),
                 const SizedBox(height: 16),
 
-                // 3. Quick Actions
+                // 3. Metric Counter Cards
+                _buildMetricCounterCards(isMobile),
+                const SizedBox(height: 16),
+
+                // 4. Quick Actions
                 _buildQuickActions(isMobile),
                 const SizedBox(height: 16),
 
@@ -535,52 +545,226 @@ class _StaffDetailsScreenState extends ConsumerState<StaffDetailsScreen> {
     );
   }
 
+  // ── 2.5. METRIC COUNTER CARDS ───────────────────────────────────────────
+  Widget _buildMetricCounterCards(bool isMobile) {
+    final metrics = [
+      {
+        'title': 'Assigned Classes',
+        'value': '4 Classes',
+        'subtitle': '180 Students Enrolled',
+        'icon': Icons.school_rounded,
+        'iconBg': const Color(0xFFEFF6FF),
+        'iconColor': const Color(0xFF2563EB),
+      },
+      {
+        'title': 'Pending Grading',
+        'value': '12 Papers',
+        'subtitle': 'Coursework evaluation',
+        'icon': Icons.pending_actions_rounded,
+        'iconBg': const Color(0xFFFFFBEB),
+        'iconColor': const Color(0xFFD97706),
+      },
+      {
+        'title': 'Low Attendance',
+        'value': '3 Students',
+        'subtitle': '< 75% threshold alert',
+        'icon': Icons.warning_amber_rounded,
+        'iconBg': const Color(0xFFFEF2F2),
+        'iconColor': const Color(0xFFDC2626),
+      },
+      {
+        'title': 'Active Notices',
+        'value': '5 Published',
+        'subtitle': 'Department circulars',
+        'icon': Icons.campaign_rounded,
+        'iconBg': const Color(0xFFF5F3FF),
+        'iconColor': const Color(0xFF7C3AED),
+      },
+    ];
+
+    if (isMobile) {
+      return Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: _buildMetricCardItem(metrics[0])),
+              const SizedBox(width: 10),
+              Expanded(child: _buildMetricCardItem(metrics[1])),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: _buildMetricCardItem(metrics[2])),
+              const SizedBox(width: 10),
+              Expanded(child: _buildMetricCardItem(metrics[3])),
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: metrics
+          .map((m) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10.0),
+                  child: _buildMetricCardItem(m),
+                ),
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildMetricCardItem(Map<String, dynamic> metric) {
+    final iconColor = metric['iconColor'] as Color;
+    final iconBg = metric['iconBg'] as Color;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(metric['icon'] as IconData, size: 18, color: iconColor),
+              ),
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: iconColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            metric['value'] as String,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF0F172A),
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            metric['title'] as String,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF475569),
+            ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            metric['subtitle'] as String,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 10,
+              color: Color(0xFF94A3B8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── 3. QUICK ACTIONS GRID ──────────────────────────────────────────────
   Widget _buildQuickActions(bool isMobile) {
     final actions = [
       {
-        'label': 'My Classes',
-        'icon': Icons.school_rounded,
-        'image': 'assets/images/quick_actions/my_classes.jpg',
+        'label': 'Take Attendance',
+        'icon': Icons.how_to_reg_rounded,
         'color': const Color(0xFF2563EB),
         'bg': const Color(0xFFEFF6FF),
         'borderColor': const Color(0xFFBFDBFE),
-        'tab': 2,
-      },
-      {
-        'label': 'Assigned Tasks',
-        'icon': Icons.assignment_turned_in_rounded,
-        'image': 'assets/images/quick_actions/assigned_tasks.jpg',
-        'color': const Color(0xFF16A34A),
-        'bg': const Color(0xFFF0FDF4),
-        'borderColor': const Color(0xFFBBF7D0),
-        'tab': 3,
-      },
-      {
-        'label': 'Attendance',
-        'icon': Icons.calendar_month_rounded,
-        'image': 'assets/images/quick_actions/attendance.jpg',
-        'color': const Color(0xFF7C3AED),
-        'bg': const Color(0xFFF5F3FF),
-        'borderColor': const Color(0xFFDDD6FE),
+        'sidebarIndex': 12,
         'tab': 4,
       },
       {
-        'label': 'Submit Marks',
-        'icon': Icons.article_rounded,
-        'image': 'assets/images/quick_actions/submit_marks.jpg',
-        'color': const Color(0xFFEA580C),
-        'bg': const Color(0xFFFFF7ED),
-        'borderColor': const Color(0xFFFED7AA),
+        'label': 'Give Assignment',
+        'icon': Icons.add_task_rounded,
+        'color': const Color(0xFF7C3AED),
+        'bg': const Color(0xFFF5F3FF),
+        'borderColor': const Color(0xFFDDD6FE),
+        'sidebarIndex': 1,
         'tab': 3,
       },
       {
-        'label': 'Notices',
-        'icon': Icons.notifications_active_rounded,
-        'image': 'assets/images/quick_actions/notices.jpg',
+        'label': 'Review Work',
+        'icon': Icons.checklist_rounded,
+        'color': const Color(0xFF16A34A),
+        'bg': const Color(0xFFF0FDF4),
+        'borderColor': const Color(0xFFBBF7D0),
+        'sidebarIndex': 2,
+        'tab': 3,
+      },
+      {
+        'label': 'Upload Marks',
+        'icon': Icons.upload_file_rounded,
+        'color': const Color(0xFFEA580C),
+        'bg': const Color(0xFFFFF7ED),
+        'borderColor': const Color(0xFFFED7AA),
+        'sidebarIndex': 9,
+        'tab': 3,
+      },
+      {
+        'label': 'Student Directory',
+        'icon': Icons.people_alt_rounded,
+        'color': const Color(0xFF0284C7),
+        'bg': const Color(0xFFF0F9FF),
+        'borderColor': const Color(0xFFBAE6FD),
+        'sidebarIndex': 3,
+        'tab': 2,
+      },
+      {
+        'label': 'Resume Bank',
+        'icon': Icons.description_rounded,
+        'color': const Color(0xFFD97706),
+        'bg': const Color(0xFFFFFBEB),
+        'borderColor': const Color(0xFFFDE68A),
+        'sidebarIndex': 4,
+        'tab': 3,
+      },
+      {
+        'label': 'Announcements',
+        'icon': Icons.campaign_rounded,
         'color': const Color(0xFFE11D48),
         'bg': const Color(0xFFFEF2F2),
         'borderColor': const Color(0xFFFECDD3),
+        'sidebarIndex': 15,
+        'tab': 5,
+      },
+      {
+        'label': 'Library Access',
+        'icon': Icons.local_library_rounded,
+        'color': const Color(0xFF4F46E5),
+        'bg': const Color(0xFFEEF2FF),
+        'borderColor': const Color(0xFFC7D2FE),
+        'sidebarIndex': 16,
         'tab': 5,
       },
     ];
@@ -592,9 +776,9 @@ class _StaffDetailsScreenState extends ConsumerState<StaffDetailsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Quick Access',
+              'Quick Actions Hub',
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFF0F172A),
                 letterSpacing: -0.2,
@@ -602,10 +786,14 @@ class _StaffDetailsScreenState extends ConsumerState<StaffDetailsScreen> {
             ),
             InkWell(
               onTap: () {
-                setState(() => _activeNavTab = 2);
+                if (widget.onNavigateToTab != null) {
+                  widget.onNavigateToTab!(1);
+                } else {
+                  setState(() => _activeNavTab = 2);
+                }
               },
               child: const Text(
-                'View All',
+                'View All Features',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -617,7 +805,7 @@ class _StaffDetailsScreenState extends ConsumerState<StaffDetailsScreen> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 110,
+          height: 104,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -631,11 +819,16 @@ class _StaffDetailsScreenState extends ConsumerState<StaffDetailsScreen> {
 
               return InkWell(
                 onTap: () {
-                  setState(() => _activeNavTab = item['tab'] as int);
+                  final sidebarIdx = item['sidebarIndex'] as int?;
+                  if (sidebarIdx != null && widget.onNavigateToTab != null) {
+                    widget.onNavigateToTab!(sidebarIdx);
+                  } else {
+                    setState(() => _activeNavTab = item['tab'] as int);
+                  }
                 },
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                  width: 96,
+                  width: 98,
                   padding: const EdgeInsets.symmetric(
                     vertical: 12,
                     horizontal: 6,
@@ -659,31 +852,16 @@ class _StaffDetailsScreenState extends ConsumerState<StaffDetailsScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: color.withValues(alpha: 0.15),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          color: color.withValues(alpha: 0.12),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(22),
-                          child: Image.asset(
-                            item['image'] as String,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                item['icon'] as IconData,
-                                size: 28,
-                                color: color,
-                              );
-                            },
-                          ),
+                        child: Icon(
+                          item['icon'] as IconData,
+                          size: 20,
+                          color: color,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -693,7 +871,7 @@ class _StaffDetailsScreenState extends ConsumerState<StaffDetailsScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: color,
                           height: 1.15,
