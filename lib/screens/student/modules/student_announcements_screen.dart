@@ -145,6 +145,7 @@ class _StudentAnnouncementsScreenState extends State<StudentAnnouncementsScreen>
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(

@@ -11,6 +11,7 @@ class StudentMembershipModal extends ConsumerStatefulWidget {
     try {
       await showModalBottomSheet(
         context: context,
+        useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (ctx) => const StudentMembershipModal(),
@@ -20,6 +21,7 @@ class StudentMembershipModal extends ConsumerStatefulWidget {
       if (context.mounted) {
         await showDialog(
           context: context,
+          useRootNavigator: true,
           builder: (ctx) => const Dialog(
             backgroundColor: Colors.transparent,
             insetPadding: EdgeInsets.all(16),

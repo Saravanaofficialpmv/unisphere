@@ -6,6 +6,7 @@ import 'package:unisphere/core/theme/app_animations.dart';
 void showDepartmentVisionSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) => const DepartmentVisionSheet(),

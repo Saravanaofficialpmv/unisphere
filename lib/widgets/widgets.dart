@@ -26,6 +26,10 @@ export 'student/student_profile_edit_request_modal.dart';
 export 'student/student_membership_modal.dart';
 export 'student/student_full_detail_modal.dart';
 
+// Parent Domain Widgets
+export 'parent/parent_floating_nav_bar.dart';
+export 'parent/parent_navigation_sheet.dart';
+
 // Examination Widgets
 export 'exams/exam_card.dart';
 export 'exams/exam_requirements_card.dart';

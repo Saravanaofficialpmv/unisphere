@@ -1,15 +1,17 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/parent_service.dart';
 import 'package:unisphere/models/parent_portal_types.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
-import 'package:unisphere/widgets/common/department_vision_sheet.dart';
-import 'package:unisphere/widgets/common/notification_bell_button.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
+import 'package:unisphere/widgets/parent/parent_floating_nav_bar.dart';
+import 'package:unisphere/widgets/parent/parent_navigation_sheet.dart';
+import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';
 import 'package:unisphere/screens/features/fees_screen.dart';
 import 'package:unisphere/screens/profile/profile_screen.dart';
 import 'package:unisphere/widgets/common/recent_photos_section.dart';
@@ -58,6 +60,8 @@ class ParentDashboard extends ConsumerStatefulWidget {
 
 class _ParentDashboardState extends ConsumerState<ParentDashboard> {
   int _currentIndex = 0;
+  bool _isNavigationSheetOpen = false;
+  bool _isDockVisible = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -74,24 +78,37 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
     SidebarItem(label: 'Transport Details', icon: Icons.bus_alert_outlined),
   ];
 
-  late final List<Widget> _screens;
   final List<int> _navigationHistory = [0];
 
-  @override
-  void initState() {
-    super.initState();
-    _screens = [
-      ParentHomeScreen(onNavigateToTab: _handleNavigation),
-      ParentAttendanceDetailTab(onNavigateToTab: _handleNavigation),
-      ParentAcademicPerformanceTab(onNavigateToTab: _handleNavigation),
-      StudentAnnouncementsScreen(onBack: _handleBackNavigation),
-      ProfileScreen(onBack: _handleBackNavigation),
-      const SizedBox.shrink(), // Divider
-      FeesScreen(onBack: _handleBackNavigation),
-      FullPhotoGalleryScreen(onBack: _handleBackNavigation),
-      EventsScreen(onBack: _handleBackNavigation),
-      const Center(child: Text('School Transport Map')),
-    ];
+  Widget _buildScreen(int index) {
+    switch (index) {
+      case 0:
+        return ParentHomeScreen(
+          onNavigateToTab: _handleNavigation,
+          onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+        );
+      case 1:
+        return ParentAttendanceDetailTab(onNavigateToTab: _handleNavigation);
+      case 2:
+        return ParentAcademicPerformanceTab(onNavigateToTab: _handleNavigation);
+      case 3:
+        return StudentAnnouncementsScreen(onBack: _handleBackNavigation);
+      case 4:
+        return ProfileScreen(onBack: _handleBackNavigation);
+      case 6:
+        return FeesScreen(onBack: _handleBackNavigation);
+      case 7:
+        return FullPhotoGalleryScreen(onBack: _handleBackNavigation);
+      case 8:
+        return EventsScreen(onBack: _handleBackNavigation);
+      case 9:
+        return const Center(child: Text('School Transport Map'));
+      default:
+        return ParentHomeScreen(
+          onNavigateToTab: _handleNavigation,
+          onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+        );
+    }
   }
 
   void _handleNavigation(int index, {bool isBack = false}) {
@@ -137,181 +154,75 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
         key: _scaffoldKey,
         backgroundColor: const Color(0xFFF8FAFC),
         drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(
-                _currentIndex == 0 ? Icons.menu_rounded : Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textPrimary,
-                size: _currentIndex == 0 ? 24 : 20,
-              ),
-              onPressed: () {
-                if (_currentIndex == 0) {
-                  _scaffoldKey.currentState?.openDrawer();
-                } else {
-                  _handleBackNavigation();
-                }
-              },
-            ),
-          ),
-          title: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.family_restroom_rounded, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'PARENT PORTAL',
-                style: GoogleFonts.manrope(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                  letterSpacing: 1.1,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.school_rounded, color: AppColors.primary),
-              tooltip: 'Dept Vision & POs',
-              onPressed: () => showDepartmentVisionSheet(context),
-            ),
-            NotificationBellButton(
-              onTap: () => showNotificationSheet(context),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        body: Row(
+        appBar: null,
+        body: Stack(
           children: [
-            if (isDesktop) _buildSidebar(),
-            Expanded(
-              child: ClipRect(
-                child: Navigator(
-                  key: _innerNavigatorKey,
-                  onGenerateRoute: (settings) {
-                    final activeScreen = _screens[_currentIndex < _screens.length ? _currentIndex : 0];
-                    return MaterialPageRoute(
-                      builder: (_) => FadeSlideTransition(
-                        transitionKey: ValueKey('parent_tab_$_currentIndex'),
-                        child: activeScreen,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: isDesktop
-            ? null
-            : BottomNavigationBar(
-                currentIndex: _currentIndex == 0
-                    ? 0
-                    : _currentIndex == 1
-                        ? 1
-                        : _currentIndex == 2
-                            ? 2
-                            : 3,
-                onTap: (index) {
-                  if (index == 3) {
-                    _showMoreMenuSheet(context);
-                  } else {
-                    final targetMap = [0, 1, 2];
-                    _handleNavigation(targetMap[index]);
+            NotificationListener<UserScrollNotification>(
+              onNotification: (notification) {
+                if (notification.direction == ScrollDirection.reverse && _isDockVisible) {
+                  if (notification.metrics.pixels > 35) {
+                    setState(() => _isDockVisible = false);
                   }
-                },
-                type: BottomNavigationBarType.fixed,
-                backgroundColor: Colors.white,
-                selectedItemColor: AppColors.primary,
-                unselectedItemColor: AppColors.textTertiary,
-                selectedLabelStyle: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 11),
-                unselectedLabelStyle: GoogleFonts.manrope(fontSize: 11),
-                items: const [
-                  BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-                  BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Attendance'),
-                  BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Academics'),
-                  BottomNavigationBarItem(icon: Icon(Icons.more_horiz_rounded), label: 'More'),
-                ],
-              ),
-      ),
-    );
-  }
-
-  void _showMoreMenuSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Parent Portal Navigation',
-              style: GoogleFonts.manrope(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                } else if (notification.direction == ScrollDirection.forward && !_isDockVisible) {
+                  setState(() => _isDockVisible = true);
+                }
+                return false;
+              },
+              child: SafeArea(
+                bottom: false,
+                child: Row(
+                  children: [
+                    if (isDesktop) _buildSidebar(),
+                    Expanded(
+                      child: ClipRect(
+                        child: Navigator(
+                          key: _innerNavigatorKey,
+                          onGenerateRoute: (settings) {
+                            return MaterialPageRoute(
+                              builder: (_) => FadeSlideTransition(
+                                transitionKey: ValueKey('parent_tab_$_currentIndex'),
+                                duration: const Duration(milliseconds: 180),
+                                child: _buildScreen(_currentIndex),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            ListTile(
-              leading: const Icon(Icons.event_outlined, color: AppColors.primary),
-              title: Text('Upcoming Exams & Events', style: GoogleFonts.manrope(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _handleNavigation(8);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.campaign_outlined, color: AppColors.primary),
-              title: Text('Important Announcements', style: GoogleFonts.manrope(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _handleNavigation(3);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications_none_rounded, color: AppColors.primary),
-              title: Text('Recent Notifications', style: GoogleFonts.manrope(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(ctx);
-                showNotificationSheet(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_outline, color: AppColors.primary),
-              title: Text('Parent Profile', style: GoogleFonts.manrope(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _handleNavigation(4);
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded, color: Colors.red),
-              title: Text('Sign Out', style: GoogleFonts.manrope(fontWeight: FontWeight.w600, color: Colors.red)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ref.read(authServiceProvider).signOut();
-                context.go('/login');
-              },
-            ),
+            // Floating Capsule Bottom Navigation Bar (Mobile / Tablet)
+            if (!isDesktop)
+              Positioned(
+                bottom: math.max(16.0, MediaQuery.of(context).padding.bottom + 10.0),
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: ParentFloatingNavBar(
+                    currentIndex: _currentIndex,
+                    isMenuOpen: _isNavigationSheetOpen,
+                    isVisible: _isDockVisible && !_isNavigationSheetOpen,
+                    onSidebarTap: () async {
+                      setState(() => _isNavigationSheetOpen = true);
+                      await showParentNavigationSheet(
+                        context: context,
+                        selectedIndex: _currentIndex,
+                        onDestinationSelected: _handleNavigation,
+                        items: _sidebarItems,
+                      );
+                      if (mounted) {
+                        setState(() => _isNavigationSheetOpen = false);
+                      }
+                    },
+                    onAttendanceTap: () => _handleNavigation(1),
+                    onHomeTap: () => _handleNavigation(0),
+                    onProfileTap: () => _handleNavigation(4),
+                    onLogoutTap: () => showSignOutConfirmationSheet(context, ref),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -339,8 +250,13 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
 
 class ParentHomeScreen extends ConsumerStatefulWidget {
   final Function(int index)? onNavigateToTab;
+  final VoidCallback? onOpenDrawer;
 
-  const ParentHomeScreen({super.key, this.onNavigateToTab});
+  const ParentHomeScreen({
+    super.key,
+    this.onNavigateToTab,
+    this.onOpenDrawer,
+  });
 
   @override
   ConsumerState<ParentHomeScreen> createState() => _ParentHomeScreenState();
@@ -549,12 +465,12 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
                 _buildRecentNotificationsSection(),
               ],
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
               // 9. CAMPUS RECENT GALLERY
               const RecentPhotosSection(),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 90),
             ],
           ),
         ),
@@ -701,6 +617,7 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
   void _showStudentSelectorSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -1924,6 +1841,7 @@ class ParentAttendanceDetailTab extends StatelessWidget {
               );
             }).toList(),
           ),
+          const SizedBox(height: 90),
         ],
       ),
     );
@@ -2014,6 +1932,7 @@ class ParentAcademicPerformanceTab extends StatelessWidget {
             {'subject': 'Digital Logic Design', 'marks': '86/100', 'grade': 'A+'},
             {'subject': 'Linear Algebra', 'marks': '89/100', 'grade': 'A+'},
           ]),
+          const SizedBox(height: 90),
         ],
       ),
     );

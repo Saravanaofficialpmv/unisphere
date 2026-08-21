@@ -10,6 +10,7 @@ class HallTicketModal extends StatelessWidget {
   static void show(BuildContext context, ExamModel exam) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => HallTicketModal(exam: exam),

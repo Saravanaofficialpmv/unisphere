@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 void showStudentFullDetailModal(BuildContext context, Map<String, dynamic> student) {
   showModalBottomSheet(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) => StudentFullDetailSheet(student: student),

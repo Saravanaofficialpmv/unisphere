@@ -66,9 +66,10 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
   void _showCgpaCalculatorModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _CgpaCalculatorModalSheet(),
+      builder: (ctx) => const _CgpaCalculatorModalSheet(),
     );
   }
 
@@ -1913,174 +1914,835 @@ class _GradebookScreenState extends ConsumerState<GradebookScreen> with SingleTi
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// CGPA CALCULATOR MODAL SHEET (Opened via Mini Button)
+// CGPA & SGPA DUAL CALCULATOR MODAL SHEET (With Interactive Switching)
 // ───────────────────────────────────────────────────────────────────────────
 class _CgpaCalculatorModalSheet extends ConsumerStatefulWidget {
+  const _CgpaCalculatorModalSheet();
+
   @override
   ConsumerState<_CgpaCalculatorModalSheet> createState() => _CgpaCalculatorModalSheetState();
 }
 
+class _SemesterCalcItem {
+  final String label;
+  final TextEditingController sgpaCtrl;
+  final TextEditingController credCtrl;
+
+  _SemesterCalcItem({
+    required this.label,
+    required String sgpa,
+    required String credits,
+  })  : sgpaCtrl = TextEditingController(text: sgpa),
+        credCtrl = TextEditingController(text: credits);
+
+  void dispose() {
+    sgpaCtrl.dispose();
+    credCtrl.dispose();
+  }
+}
+
+class _SubjectCalcItem {
+  final TextEditingController nameCtrl;
+  String grade;
+  final TextEditingController credCtrl;
+
+  _SubjectCalcItem({
+    required String name,
+    required this.grade,
+    required String credits,
+  })  : nameCtrl = TextEditingController(text: name),
+        credCtrl = TextEditingController(text: credits);
+
+  void dispose() {
+    nameCtrl.dispose();
+    credCtrl.dispose();
+  }
+}
+
 class _CgpaCalculatorModalSheetState extends ConsumerState<_CgpaCalculatorModalSheet> {
-  final _sem1SgpaCtrl = TextEditingController(text: '8.50');
-  final _sem1CredCtrl = TextEditingController(text: '14');
-  final _sem2SgpaCtrl = TextEditingController(text: '8.60');
-  final _sem2CredCtrl = TextEditingController(text: '15');
-  final _sem3SgpaCtrl = TextEditingController(text: '8.33');
-  final _sem3CredCtrl = TextEditingController(text: '18');
-  final _sem4SgpaCtrl = TextEditingController(text: '8.80');
-  final _sem4CredCtrl = TextEditingController(text: '20');
+  // 0: CGPA Mode (Semester-wise), 1: SGPA Mode (Subject-wise)
+  int _activeMode = 0;
 
+  // ──────────── CGPA MODE STATE ────────────
+  late List<_SemesterCalcItem> _semesters;
   double _calculatedCgpa = 8.56;
+  int _totalCgpaCredits = 67;
 
-  void _calculateCgpa() {
-    double s1 = double.tryParse(_sem1SgpaCtrl.text) ?? 0;
-    int c1 = int.tryParse(_sem1CredCtrl.text) ?? 0;
-    double s2 = double.tryParse(_sem2SgpaCtrl.text) ?? 0;
-    int c2 = int.tryParse(_sem2CredCtrl.text) ?? 0;
-    double s3 = double.tryParse(_sem3SgpaCtrl.text) ?? 0;
-    int c3 = int.tryParse(_sem3CredCtrl.text) ?? 0;
-    double s4 = double.tryParse(_sem4SgpaCtrl.text) ?? 0;
-    int c4 = int.tryParse(_sem4CredCtrl.text) ?? 0;
+  // ──────────── SGPA MODE STATE ────────────
+  late List<_SubjectCalcItem> _subjects;
+  double _calculatedSgpa = 8.85;
+  int _totalSgpaCredits = 17;
 
-    int totalCreds = c1 + c2 + c3 + c4;
-    double totalPoints = (s1 * c1) + (s2 * c2) + (s3 * c3) + (s4 * c4);
+  final List<Map<String, dynamic>> _gradeOptions = [
+    {'grade': 'O', 'point': 10.0, 'label': 'O (10) — Outstanding'},
+    {'grade': 'A+', 'point': 9.0, 'label': 'A+ (9) — Excellent'},
+    {'grade': 'A', 'point': 8.0, 'label': 'A (8) — Very Good'},
+    {'grade': 'B+', 'point': 7.0, 'label': 'B+ (7) — Good'},
+    {'grade': 'B', 'point': 6.0, 'label': 'B (6) — Above Average'},
+    {'grade': 'C', 'point': 5.0, 'label': 'C (5) — Average / Pass'},
+    {'grade': 'RA', 'point': 0.0, 'label': 'RA (0) — Re-appearance'},
+  ];
 
-    if (totalCreds > 0) {
-      setState(() {
-        _calculatedCgpa = (totalPoints / totalCreds).clamp(0.0, 10.0);
-      });
+  @override
+  void initState() {
+    super.initState();
+    _initCgpaItems();
+    _initSgpaItems();
+    _recalculateCgpa();
+    _recalculateSgpa();
+  }
+
+  void _initCgpaItems() {
+    _semesters = [
+      _SemesterCalcItem(label: 'Sem 1', sgpa: '8.50', credits: '14'),
+      _SemesterCalcItem(label: 'Sem 2', sgpa: '8.60', credits: '15'),
+      _SemesterCalcItem(label: 'Sem 3', sgpa: '8.33', credits: '18'),
+      _SemesterCalcItem(label: 'Sem 4', sgpa: '8.80', credits: '20'),
+    ];
+  }
+
+  void _initSgpaItems() {
+    _subjects = [
+      _SubjectCalcItem(name: 'Data Structures & Algorithms', grade: 'A+', credits: '4'),
+      _SubjectCalcItem(name: 'Database Management Systems', grade: 'O', credits: '4'),
+      _SubjectCalcItem(name: 'Operating Systems Concepts', grade: 'A', credits: '3'),
+      _SubjectCalcItem(name: 'Discrete Mathematics & Logic', grade: 'A+', credits: '4'),
+      _SubjectCalcItem(name: 'Web Technology Practical Lab', grade: 'O', credits: '2'),
+    ];
+  }
+
+  @override
+  void dispose() {
+    for (final s in _semesters) {
+      s.dispose();
     }
+    for (final sub in _subjects) {
+      sub.dispose();
+    }
+    super.dispose();
+  }
+
+  void _recalculateCgpa() {
+    double totalPoints = 0;
+    int totalCredits = 0;
+
+    for (final sem in _semesters) {
+      final sgpa = double.tryParse(sem.sgpaCtrl.text.trim()) ?? 0.0;
+      final cred = int.tryParse(sem.credCtrl.text.trim()) ?? 0;
+      if (cred > 0) {
+        totalPoints += (sgpa.clamp(0.0, 10.0) * cred);
+        totalCredits += cred;
+      }
+    }
+
+    setState(() {
+      _totalCgpaCredits = totalCredits;
+      _calculatedCgpa = totalCredits > 0 ? (totalPoints / totalCredits).clamp(0.0, 10.0) : 0.0;
+    });
+  }
+
+  void _recalculateSgpa() {
+    double totalPoints = 0;
+    int totalCredits = 0;
+
+    for (final sub in _subjects) {
+      final gradeOption = _gradeOptions.firstWhere(
+        (g) => g['grade'] == sub.grade,
+        orElse: () => {'grade': 'A', 'point': 8.0},
+      );
+      final point = (gradeOption['point'] as num).toDouble();
+      final cred = int.tryParse(sub.credCtrl.text.trim()) ?? 0;
+      if (cred > 0) {
+        totalPoints += (point * cred);
+        totalCredits += cred;
+      }
+    }
+
+    setState(() {
+      _totalSgpaCredits = totalCredits;
+      _calculatedSgpa = totalCredits > 0 ? (totalPoints / totalCredits).clamp(0.0, 10.0) : 0.0;
+    });
+  }
+
+  void _addSemester() {
+    setState(() {
+      final newIndex = _semesters.length + 1;
+      _semesters.add(_SemesterCalcItem(
+        label: 'Sem $newIndex',
+        sgpa: '8.50',
+        credits: '20',
+      ));
+    });
+    _recalculateCgpa();
+  }
+
+  void _removeSemester(int index) {
+    if (_semesters.length <= 1) return;
+    setState(() {
+      final item = _semesters.removeAt(index);
+      item.dispose();
+    });
+    _recalculateCgpa();
+  }
+
+  void _addSubject() {
+    setState(() {
+      final newIndex = _subjects.length + 1;
+      _subjects.add(_SubjectCalcItem(
+        name: 'Theory / Lab Course $newIndex',
+        grade: 'A+',
+        credits: '3',
+      ));
+    });
+    _recalculateSgpa();
+  }
+
+  void _removeSubject(int index) {
+    if (_subjects.length <= 1) return;
+    setState(() {
+      final item = _subjects.removeAt(index);
+      item.dispose();
+    });
+    _recalculateSgpa();
+  }
+
+  String _getCgpaClassification(double cgpa) {
+    if (cgpa >= 8.5) return 'First Class with Distinction ⭐';
+    if (cgpa >= 6.5) return 'First Class 👍';
+    if (cgpa >= 5.0) return 'Second Class 📘';
+    return 'Needs Improvement ⚠️';
+  }
+
+  String _getSgpaClassification(double sgpa) {
+    if (sgpa >= 9.0) return 'Outstanding Performance 🌟';
+    if (sgpa >= 8.0) return 'Excellent Performance ✨';
+    if (sgpa >= 7.0) return 'Very Good Performance 🎯';
+    if (sgpa >= 6.0) return 'Good Performance 👍';
+    if (sgpa >= 5.0) return 'Average Performance 📘';
+    return 'Re-appear / Arrears ⚠️';
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      padding: const EdgeInsets.all(24),
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.90),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.calculate_rounded, color: AppColors.primary, size: 24),
-                  SizedBox(width: 10),
-                  Text('CGPA & SGPA Calculator Tool', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                ],
-              ),
-              IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text('Interactive calculator for projecting cumulative grade point average based on semester SGPA & credits.', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-          const SizedBox(height: 16),
-
-          // Output Result Card
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)]),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Calculated Cumulative CGPA', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    const SizedBox(height: 2),
-                    Text(_calculatedCgpa.toStringAsFixed(2), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 28)),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
-                  child: Text(
-                    'Percentage: ${(_calculatedCgpa * 10).toStringAsFixed(1)}%',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          Expanded(
-            child: SingleChildScrollView(
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            // Top Drag Handle & Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
               child: Column(
                 children: [
-                  _buildCalcRow('Sem 1', _sem1SgpaCtrl, _sem1CredCtrl),
-                  _buildCalcRow('Sem 2', _sem2SgpaCtrl, _sem2CredCtrl),
-                  _buildCalcRow('Sem 3', _sem3SgpaCtrl, _sem3CredCtrl),
-                  _buildCalcRow('Sem 4', _sem4SgpaCtrl, _sem4CredCtrl),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 46,
-                    child: ElevatedButton.icon(
-                      onPressed: _calculateCgpa,
-                      icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: const Text('Recalculate CGPA', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(3),
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.calculate_rounded, color: AppColors.primary, size: 22),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Academic Calculator',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 🌟 INTERACTIVE MODE SWITCHER (CGPA vs SGPA)
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() => _activeMode = 0);
+                              _recalculateCgpa();
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: _activeMode == 0 ? Colors.white : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: _activeMode == 0
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.08),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.auto_graph_rounded,
+                                    size: 16,
+                                    color: _activeMode == 0 ? AppColors.primary : const Color(0xFF64748B),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'CGPA Calculator',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: _activeMode == 0 ? AppColors.primary : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() => _activeMode = 1);
+                              _recalculateSgpa();
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: _activeMode == 1 ? Colors.white : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: _activeMode == 1
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.08),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.menu_book_rounded,
+                                    size: 16,
+                                    color: _activeMode == 1 ? AppColors.primary : const Color(0xFF64748B),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'SGPA Calculator',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: _activeMode == 1 ? AppColors.primary : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+
+            // Body Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: _activeMode == 0 ? _buildCgpaModeView() : _buildSgpaModeView(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCalcRow(String name, TextEditingController sgpaCtrl, TextEditingController credCtrl) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          SizedBox(width: 60, child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-          Expanded(
-            child: TextField(
-              controller: sgpaCtrl,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'SGPA (0-10)',
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+  // ───────────────────────────────────────────────────────────────────────────
+  // 1. CGPA MODE VIEW (SEMESTER-WISE CUMULATIVE CALCULATION)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildCgpaModeView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Description
+        const Text(
+          'Project your Cumulative Grade Point Average (CGPA) across multiple semesters based on semester SGPA & earned credits.',
+          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+        ),
+        const SizedBox(height: 14),
+
+        // Result Card
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
-              onChanged: (_) => _calculateCgpa(),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Calculated Cumulative CGPA',
+                        style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _calculatedCgpa.toStringAsFixed(2),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 32,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'Percentage: ${(_calculatedCgpa * 10).toStringAsFixed(1)}%',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Total Credits: $_totalCgpaCredits',
+                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _getCgpaClassification(_calculatedCgpa),
+                  style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Semester Rows Header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Semester Breakdown',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+            ),
+            TextButton.icon(
+              onPressed: _addSemester,
+              icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
+              label: const Text('+ Add Semester', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Semester List
+        ...List.generate(_semesters.length, (index) {
+          final item = _semesters[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 58,
+                  child: Text(
+                    item.label,
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF1E293B)),
+                  ),
+                ),
+                Expanded(
+                  flex: 5,
+                  child: TextField(
+                    controller: item.sgpaCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'SGPA (0-10)',
+                      labelStyle: const TextStyle(fontSize: 12),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      isDense: true,
+                    ),
+                    onChanged: (_) => _recalculateCgpa(),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 4,
+                  child: TextField(
+                    controller: item.credCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Credits',
+                      labelStyle: const TextStyle(fontSize: 12),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      isDense: true,
+                    ),
+                    onChanged: (_) => _recalculateCgpa(),
+                  ),
+                ),
+                if (_semesters.length > 1)
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444), size: 20),
+                    padding: const EdgeInsets.only(left: 4),
+                    constraints: const BoxConstraints(),
+                    onPressed: () => _removeSemester(index),
+                  ),
+              ],
+            ),
+          );
+        }),
+
+        const SizedBox(height: 16),
+
+        // Recalculate Button
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton.icon(
+            onPressed: _recalculateCgpa,
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Recalculate CGPA', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 1,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: credCtrl,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Credits',
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 2. SGPA MODE VIEW (SUBJECT & GRADE-WISE SEMESTER CALCULATION)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildSgpaModeView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Description
+        const Text(
+          'Calculate Semester Grade Point Average (SGPA) for a semester by selecting grades (O, A+, A, B+, B, C, RA) and subject credits.',
+          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+        ),
+        const SizedBox(height: 14),
+
+        // Result Card
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF4338CA), Color(0xFF6366F1)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
-              onChanged: (_) => _calculateCgpa(),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Calculated Semester SGPA',
+                        style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _calculatedSgpa.toStringAsFixed(2),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 32,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'Percentage: ${(_calculatedSgpa * 10).toStringAsFixed(1)}%',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Semester Credits: $_totalSgpaCredits',
+                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _getSgpaClassification(_calculatedSgpa),
+                  style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Subjects Header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Enrolled Subjects & Courses',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+            ),
+            TextButton.icon(
+              onPressed: _addSubject,
+              icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
+              label: const Text('+ Add Subject', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF4338CA),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Subjects List
+        ...List.generate(_subjects.length, (index) {
+          final sub = _subjects[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12.0),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: sub.nameCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Subject / Course Title',
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    if (_subjects.length > 1)
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444), size: 20),
+                        padding: const EdgeInsets.only(left: 6),
+                        constraints: const BoxConstraints(),
+                        onPressed: () => _removeSubject(index),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    // Grade Dropdown Selector
+                    Expanded(
+                      flex: 6,
+                      child: Container(
+                        height: 42,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFCBD5E1)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: sub.grade,
+                            isExpanded: true,
+                            icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                            items: _gradeOptions.map((g) {
+                              return DropdownMenuItem<String>(
+                                value: g['grade'] as String,
+                                child: Text(
+                                  g['label'] as String,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() => sub.grade = val);
+                                _recalculateSgpa();
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Credits Field
+                    Expanded(
+                      flex: 4,
+                      child: TextField(
+                        controller: sub.credCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Credits',
+                          labelStyle: const TextStyle(fontSize: 11.5),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          filled: true,
+                          fillColor: Colors.white,
+                          isDense: true,
+                        ),
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                        onChanged: (_) => _recalculateSgpa(),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
+
+        const SizedBox(height: 16),
+
+        // Recalculate Button
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton.icon(
+            onPressed: _recalculateSgpa,
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Recalculate SGPA', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4338CA),
+              foregroundColor: Colors.white,
+              elevation: 1,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

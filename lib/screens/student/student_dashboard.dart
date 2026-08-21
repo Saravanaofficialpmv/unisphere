@@ -714,6 +714,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
+                      useRootNavigator: true,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
                       builder: (_) => const StudentProfileCompletionSheet(),
@@ -788,6 +789,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
+                    useRootNavigator: true,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (_) => const StudentProfileCompletionSheet(),

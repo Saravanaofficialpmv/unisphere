@@ -38,6 +38,7 @@ class _StudentResumeModalSheetState extends ConsumerState<StudentResumeModalShee
   void _showEditProfileModal() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const StudentProfileEditRequestModal(),
@@ -49,6 +50,7 @@ class _StudentResumeModalSheetState extends ConsumerState<StudentResumeModalShee
       Navigator.pop(context);
       showModalBottomSheet(
         context: context,
+        useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (_) => const StudentProfileCompletionSheet(),

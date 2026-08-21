@@ -8,6 +8,7 @@ import 'package:unisphere/widgets/common/custom_loader.dart';
 void showSignOutConfirmationSheet(BuildContext context, WidgetRef ref) {
   showModalBottomSheet(
     context: context,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     barrierColor: Colors.black.withValues(alpha: 0.5),
