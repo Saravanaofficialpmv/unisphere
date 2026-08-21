@@ -41,66 +41,67 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
   int _currentIndex = 0;
   Key _staffDetailsKey = UniqueKey();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey<NavigatorState> _innerNavigatorKey =
-      GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
+  final List<int> _navigationHistory = [0];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      CompleteProfileDialog.showIfRequired(context, ref);
+      FocusManager.instance.primaryFocus?.unfocus();
     });
   }
 
-  final List<SidebarItem> _sidebarItems = [
-    SidebarItem(label: 'Staff Details & Profile', icon: Icons.person_outline),
-    SidebarItem(label: 'Give Assignment', icon: Icons.add_task_outlined),
+  late final List<SidebarItem> _sidebarItems = [
+    SidebarItem(label: 'Staff Home', icon: Icons.dashboard_outlined),
+    SidebarItem(label: 'Syllabus Management', icon: Icons.auto_stories_outlined),
+    SidebarItem(label: 'Give Assignment', icon: Icons.assignment_outlined),
     SidebarItem(
       label: 'Review Submissions',
-      icon: Icons.checklist_outlined,
+      icon: Icons.rate_review_outlined,
       badge: '12',
     ),
     SidebarItem(
-      label: 'Student Directory & Portfolios',
-      icon: Icons.people_alt_outlined,
+      label: 'Student Directory',
+      icon: Icons.people_outline,
+      badge: 'NEW',
     ),
     SidebarItem(
-      label: 'Student Resume Bank',
+      label: 'Resume Bank',
       icon: Icons.description_outlined,
-      badge: 'Resumes',
+      badge: '45',
     ),
     SidebarItem(
       label: 'Profile Edit Requests',
       icon: Icons.edit_note_rounded,
-      badge: 'Requests',
+      badge: '5',
     ),
     SidebarItem(
-      label: 'Student Verifications',
-      icon: Icons.verified_user_rounded,
+      label: 'Student Approvals',
+      icon: Icons.verified_user_outlined,
+      badge: '3',
     ),
     SidebarItem(
-      label: 'NPTEL Certificate Verif.',
+      label: 'NPTEL Verification',
       icon: Icons.workspace_premium_outlined,
-      badge: 'NPTEL',
+      badge: '8',
     ),
     SidebarItem(
-      label: 'Hackathon Verif. (Advisor)',
-      icon: Icons.verified_outlined,
-      badge: 'Advisor',
+      label: 'Hackathon Approvals',
+      icon: Icons.emoji_events_outlined,
+      badge: '2',
     ),
-    SidebarItem(label: 'Upload Marks', icon: Icons.upload_file_outlined),
-    SidebarItem(label: 'Staff Profile Details', icon: Icons.person_outline),
+    SidebarItem(label: 'Upload Marks', icon: Icons.grade_outlined),
+    SidebarItem(label: 'My Profile', icon: Icons.person_outline),
     SidebarItem(
-      label: 'Important Days & Schedule',
-      icon: Icons.event_note_rounded,
-      badge: 'Official',
+      label: 'Academic Schedule',
+      icon: Icons.calendar_month_outlined,
     ),
-    SidebarItem.divider('FACULTY TOOLS'),
+    SidebarItem(label: 'DIVIDER', icon: Icons.minimize),
     SidebarItem(label: 'Take Attendance', icon: Icons.how_to_reg_outlined),
     SidebarItem(
-      label: 'Upload PYQ & Question Banks',
-      icon: Icons.quiz_outlined,
-      badge: 'PYQ',
+      label: 'Question Paper Upload',
+      icon: Icons.upload_file_outlined,
     ),
     SidebarItem(
       label: 'Campus Photo Gallery',
@@ -113,36 +114,55 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
 
   late final List<Widget> _screens = [
     StaffDetailsScreen(key: _staffDetailsKey, onBack: () => _handleNavigation(0)),
-    const SizedBox.shrink(), // Syllabus Management (Removed)
-    StaffAssignmentCreation(onCreated: () => setState(() => _currentIndex = 3)),
+    const HodSyllabusManagementScreen(),
+    StaffAssignmentCreation(onCreated: () => _handleNavigation(3)),
     const StaffSubmissionReview(),
     const StaffStudentDirectory(),
-    AdviserResumeBankScreen(onBack: () => _handleNavigation(0)),
+    AdviserResumeBankScreen(onBack: _handleBackNavigation),
     const ClassAdvisorEditRequestsScreen(),
     const HodStudentVerificationsScreen(),
     const StaffNptelVerificationScreen(),
     const AdvisorHackathonVerificationScreen(),
     const StaffMarksUploadModule(),
-    StaffDetailsScreen(onBack: () => _handleNavigation(0)),
-    AcademicScheduleDetailScreen(onBack: () => _handleNavigation(0)),
+    ProfileScreen(onBack: _handleBackNavigation),
+    AcademicScheduleDetailScreen(onBack: _handleBackNavigation),
     const SizedBox.shrink(), // Divider
     const StaffAttendanceMarkingModule(),
-    StaffQuestionPaperUploadScreen(onBack: () => _handleNavigation(0)),
-    FullPhotoGalleryScreen(onBack: () => _handleNavigation(0)),
-    StudentAnnouncementsScreen(onBack: () => _handleNavigation(0)),
-    StudentLibraryScreen(onBack: () => _handleNavigation(0)),
+    StaffQuestionPaperUploadScreen(onBack: _handleBackNavigation),
+    FullPhotoGalleryScreen(onBack: _handleBackNavigation),
+    StudentAnnouncementsScreen(onBack: _handleBackNavigation),
+    StudentLibraryScreen(onBack: _handleBackNavigation),
   ];
 
-  void _handleNavigation(int index) {
+  void _handleNavigation(int index, {bool isBack = false}) {
     if (_innerNavigatorKey.currentState?.canPop() ?? false) {
       _innerNavigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
+    if (index == _currentIndex) return;
+
+    if (!isBack) {
+      _navigationHistory.add(_currentIndex);
+    }
+
     setState(() {
       _currentIndex = index;
       _staffDetailsKey = UniqueKey();
     });
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleBackNavigation() {
+    if (_innerNavigatorKey.currentState?.canPop() ?? false) {
+      _innerNavigatorKey.currentState?.pop();
+      return;
+    }
+    if (_navigationHistory.isNotEmpty) {
+      final prev = _navigationHistory.removeLast();
+      _handleNavigation(prev, isBack: true);
+    } else if (_currentIndex != 0) {
+      _handleNavigation(0, isBack: true);
     }
   }
 
@@ -154,26 +174,7 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_innerNavigatorKey.currentState?.canPop() ?? false) {
-          _innerNavigatorKey.currentState?.pop();
-          return;
-        }
-        if (_currentIndex != 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-                _staffDetailsKey = UniqueKey();
-              });
-            }
-          });
-        } else {
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          } else if (context.canPop()) {
-            context.pop();
-          }
-        }
+        _handleBackNavigation();
       },
       child: Scaffold(
         key: _scaffoldKey,
@@ -186,25 +187,20 @@ class _StaffDashboardState extends ConsumerState<StaffDashboard> {
           centerTitle: false,
           leading: Builder(
             builder: (context) => IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Color(0xFF1E293B),
+              icon: Icon(
+                _currentIndex == 0 && !(_innerNavigatorKey.currentState?.canPop() ?? false)
+                    ? Icons.menu_rounded
+                    : Icons.arrow_back_ios_new_rounded,
+                color: const Color(0xFF1E293B),
                 size: 20,
               ),
               onPressed: () {
                 if (_innerNavigatorKey.currentState?.canPop() ?? false) {
                   _innerNavigatorKey.currentState?.pop();
                 } else if (_currentIndex != 0) {
-                  _handleNavigation(0);
+                  _handleBackNavigation();
                 } else {
-                  setState(() {
-                    _staffDetailsKey = UniqueKey();
-                  });
-                  if (Navigator.of(context).canPop()) {
-                    Navigator.of(context).pop();
-                  } else if (context.canPop()) {
-                    context.pop();
-                  }
+                  _scaffoldKey.currentState?.openDrawer();
                 }
               },
             ),

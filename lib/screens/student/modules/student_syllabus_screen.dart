@@ -8,6 +8,7 @@ import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/syllabus_service.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/widgets/common/custom_loader.dart';
+import 'package:unisphere/widgets/common/app_liquid_pull_to_refresh.dart';
 
 class StudentSyllabusScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -237,7 +238,7 @@ class _StudentSyllabusScreenState extends ConsumerState<StudentSyllabusScreen> {
               onBack: widget.onBack,
             ),
             Expanded(
-              child: RefreshIndicator(
+              child: AppLiquidPullToRefresh(
                 onRefresh: _loadSyllabiData,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),

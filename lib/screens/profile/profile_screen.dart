@@ -1,20 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/auth_service.dart';
-import 'package:unisphere/services/firebase_firestore_service.dart';
+import 'package:unisphere/services/storage_service.dart';
 import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';
+import 'package:unisphere/widgets/common/app_liquid_pull_to_refresh.dart';
 import 'package:unisphere/models/user_model.dart';
 import 'package:unisphere/providers/academic_overview_provider.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
-import 'package:unisphere/core/constants/app_departments.dart';
 import 'package:unisphere/widgets/student/student_profile_edit_request_modal.dart';
-import 'package:unisphere/widgets/student/student_membership_modal.dart';
-
-import 'package:unisphere/widgets/resume/student_resume_modal_sheet.dart';
+import 'package:unisphere/screens/student/modules/student_resume_screen.dart';
+import 'package:unisphere/core/constants/app_colors.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
@@ -25,153 +25,395 @@ class ProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // Notification states
   bool _announcementNotifs = true;
   bool _gradeNotifs = true;
   bool _attendanceNotifs = true;
   bool _feeNotifs = true;
+  bool _placementNotifs = true;
   bool _biometricEnabled = true;
+  String? _customPhotoPath;
+  bool _isUploadingPhoto = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+  // Custom added certifications
+  final List<Map<String, dynamic>> _certifications = [
+    {
+      'title': 'NPTEL Elite + Gold: Data Structures & Algorithms',
+      'issuer': 'IIT Madras & NPTEL',
+      'badge': 'Elite + Gold 🏅',
+      'color': const Color(0xFFD97706),
+      'score': '92% (Top 1% National)',
+      'id': 'NPTEL22CS45890123',
+      'date': 'Oct 2023',
+    },
+    {
+      'title': 'AWS Certified Solutions Architect – Associate',
+      'issuer': 'Amazon Web Services (AWS)',
+      'badge': 'Verified ☁️',
+      'color': const Color(0xFF2563EB),
+      'score': 'Score 840 / 1000',
+      'id': 'AWS-ARCH-2024-8891',
+      'date': 'Jan 2024',
+    },
+    {
+      'title': 'Google Cloud Associate Cloud Engineer',
+      'issuer': 'Google Cloud Training',
+      'badge': 'Verified 🌐',
+      'color': const Color(0xFF059669),
+      'score': 'Professional Grade',
+      'id': 'GCP-ACE-9901452',
+      'date': 'Mar 2024',
+    },
+    {
+      'title': 'Programming in Java (NPTEL)',
+      'issuer': 'IIT Kharagpur & NPTEL',
+      'badge': 'Elite ✓',
+      'color': const Color(0xFF7C3AED),
+      'score': 'Score 82%',
+      'id': 'NPTEL23CS1249821',
+      'date': 'May 2023',
+    },
+  ];
+
+  Future<void> _refreshProfileData() async {
+    ref.invalidate(currentUserProvider);
+    ref.invalidate(academicOverviewProvider);
+    await Future.delayed(const Duration(milliseconds: 1000));
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  void _openResumePage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => StudentResumeScreen(
+          onBack: () => Navigator.maybePop(context),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _safeLaunchUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Opening: $url')));
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Opening: $url')));
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
-    final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'User Profile';
-    final email = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty) ? currentUser.email : 'user@unisphere.edu';
-    final isDemo = currentUser?.email.toLowerCase().trim() == 'saravanapmvofficial@gmail.com';
+    final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'Alex Johnson';
+    final email = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty) ? currentUser.email : 'saravanapmvofficial@gmail.com';
+    final isDemo = email.toLowerCase().trim() == 'saravanapmvofficial@gmail.com';
     final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true 
         ? currentUser!.metadata!['registerNumber'].toString() 
-        : (isDemo ? 'RA2111003010001' : (currentUser?.uid.startsWith('DEMO-') == true ? 'DEMO-REG-001' : 'Pending ID'));
+        : (isDemo ? 'RA2111003010001' : (currentUser?.uid.startsWith('DEMO-') == true ? 'DEMO-REG-001' : 'RA2111003010001'));
     final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true 
         ? currentUser!.metadata!['department'].toString() 
-        : (isDemo ? 'Computer Science' : 'Not Specified');
+        : (isDemo ? 'Computer Science and Engineering' : 'Computer Science and Engineering');
     final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true 
         ? currentUser!.metadata!['year'].toString() 
-        : (isDemo ? '3rd Year' : '1st Year');
-    final roleName = currentUser?.roleName ?? 'Student';
-    final photoUrl = (currentUser?.profileImageUrl ?? currentUser?.metadata?['passportPhotoUrl'] ?? currentUser?.metadata?['photoUrl'] ?? '').toString().trim();
+        : (isDemo ? '3rd Year (Semester VI)' : '3rd Year (Semester VI)');
+    final photoUrl = _customPhotoPath ?? (currentUser?.profileImageUrl ?? currentUser?.metadata?['passportPhotoUrl'] ?? currentUser?.metadata?['photoUrl'] ?? '').toString().trim();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: Column(
         children: [
-          // Fixed Stable Profile Header (Does NOT move or collapse on scroll)
+          // ================= STABLE TOP CURVED ROYAL INDIGO BANNER =================
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primaryDark, AppColors.primary, Color(0xFF1E3A8A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF3730A3),
+                  Color(0xFF4338CA),
+                  Color(0xFF4F46E5),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(36),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x334338CA),
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
+                ),
+              ],
             ),
             child: SafeArea(
               bottom: false,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Row(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                child: Column(
+                  children: [
+                    // Top Bar with Circular Back Button & More Menu
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        if (widget.onBack != null)
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                            onPressed: widget.onBack,
-                          ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.description_rounded, color: Colors.white, size: 22),
-                          tooltip: 'Professional Resume',
-                          onPressed: () => showStudentResumeModalSheet(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => _showUploadPassportPhotoModal(context, currentUser),
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
-                          ),
-                          child: _buildProfileHeaderAvatar(photoUrl),
-                        ),
-                        Positioned(
-                          bottom: 2,
-                          right: 2,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF2563EB),
-                              shape: BoxShape.circle,
+                        if (widget.onBack != null || Navigator.canPop(context))
+                          GestureDetector(
+                            onTap: widget.onBack ?? () => Navigator.maybePop(context),
+                            child: Container(
+                              width: 38,
+                              height: 38,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x1A000000),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.chevron_left_rounded,
+                                color: Color(0xFF1E1B4B),
+                                size: 24,
+                              ),
                             ),
-                            child: const Icon(Icons.camera_alt_rounded, size: 12, color: Colors.white),
-                          ),
-                        ),
+                          )
+                        else
+                          const SizedBox(width: 38),
+
+                        // Empty placeholder on the right for balanced spacing
+                        const SizedBox(width: 38),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    name,
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '$year • $dept',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12.5, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '$regNo • $email • $roleName',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 11.5),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _buildHeaderBadge(Icons.circle, 'Active Student', Colors.greenAccent),
-                      InkWell(
-                        onTap: () => showStudentResumeModalSheet(context),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2563EB),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+
+                    const SizedBox(height: 10),
+
+                    // Center Avatar with White Ring & Camera Shortcut
+                    GestureDetector(
+                      onTap: () => _showUploadPassportPhotoModal(context),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3.5),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0x33000000),
+                                  blurRadius: 14,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: _buildProfileHeaderAvatar(photoUrl),
                           ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
+                          Positioned(
+                            bottom: 2,
+                            right: 2,
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2563EB),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Icon(Icons.camera_alt_rounded, size: 12, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Student Name
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // Email & ID Subtitle
+                    Text(
+                      '$email  •  $regNo',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ================= SCROLLABLE CONTENT WITH REFRESH UNDER BANNER =================
+          Expanded(
+            child: AppLiquidPullToRefresh(
+              onRefresh: _refreshProfileData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 14),
+
+                    // ================= HERO MEMBERSHIP / PRO CARD =================
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x080F172A),
+                            blurRadius: 16,
+                            offset: Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Icon(Icons.description_rounded, size: 13, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text('View Resume', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                              const Text('👑', style: TextStyle(fontSize: 18)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '$name, Verified Student',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Access your complete institutional bio data, academic marksheets, digital credentials, and placement resume.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => _showCompleteStudentBioDataModal(context, currentUser, name, email, regNo, dept, year),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF4338CA),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  child: const Text('VIEW FULL BIO DATA', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => _openResumePage(context),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFF1F5F9),
+                                    foregroundColor: const Color(0xFF0F172A),
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  child: const Text('VIEW RESUME', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
+                    ),
 
-                      InkWell(
+                    const SizedBox(height: 8),
+
+                    // ================= SECTION 1: STUDENT BIO DATA & ACADEMICS =================
+                    _buildSectionPillHeader('Student Bio Data & Academics'),
+
+                    _buildGroupedCard([
+                      _buildGroupedTile(
+                        icon: Icons.person_pin_rounded,
+                        title: 'Complete Student Bio-Data (A to Z)',
+                        onTap: () => _showCompleteStudentBioDataModal(context, currentUser, name, email, regNo, dept, year),
+                      ),
+                      _buildGroupedTile(
+                        icon: Icons.school_outlined,
+                        title: 'Academics, CGPA & Mentor Record',
+                        onTap: () => _showAcademicsModal(context),
+                      ),
+                      _buildGroupedTile(
+                        icon: Icons.grid_view_rounded,
+                        title: 'Connected Coding & Social Apps',
+                        onTap: () => _showConnectedProfilesModal(context),
+                      ),
+                      _buildGroupedTile(
+                        icon: Icons.workspace_premium_outlined,
+                        title: 'Certifications & NPTEL Portfolio',
+                        onTap: () => _showCertificationsModal(context),
+                      ),
+                      _buildGroupedTile(
+                        icon: Icons.folder_shared_outlined,
+                        title: 'Official Document Vault',
+                        showDivider: false,
+                        onTap: () => _showDocumentVaultModal(context),
+                      ),
+                    ]),
+
+                    const SizedBox(height: 8),
+
+                    // ================= SECTION 2: PREFERENCES & SECURITY =================
+                    _buildSectionPillHeader('Preferences & Security'),
+
+                    _buildGroupedCard([
+                      _buildGroupedTile(
+                        icon: Icons.notifications_none_rounded,
+                        title: 'Notification Settings',
+                        onTap: () => _showNotificationSettingsModal(context),
+                      ),
+                      _buildGroupedTile(
+                        icon: Icons.lock_outline_rounded,
+                        title: 'Security & Authentication',
+                        onTap: () => _showSecuritySettingsModal(context),
+                      ),
+                      _buildGroupedTile(
+                        icon: Icons.verified_user_outlined,
+                        title: 'Profile Verification Status',
+                        onTap: () => _showVerificationStatusModal(context, currentUser),
+                      ),
+                      _buildGroupedTile(
+                        icon: Icons.edit_note_rounded,
+                        title: 'Request Profile Data Correction',
                         onTap: () {
                           showModalBottomSheet(
                             context: context,
@@ -181,1598 +423,1346 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                             builder: (_) => const StudentProfileEditRequestModal(),
                           );
                         },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF59E0B),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.edit_note_rounded, size: 13, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text('Request Edit', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                ],
+                      _buildGroupedTile(
+                        icon: Icons.help_outline_rounded,
+                        title: 'Campus IT HelpDesk & Support',
+                        onTap: () => _showCampusSupportModal(context),
+                      ),
+                      _buildGroupedTile(
+                        icon: Icons.logout_rounded,
+                        title: 'Sign Out of Account',
+                        iconColor: const Color(0xFFDC2626),
+                        textColor: const Color(0xFFDC2626),
+                        showDivider: false,
+                        onTap: () => showSignOutConfirmationSheet(context, ref),
+                      ),
+                    ]),
+
+                    // Bottom clearance so floating nav bar does not hide content
+                    const SizedBox(height: 110),
+                  ],
+                ),
               ),
-            ),
-          ),
-
-          // Stable TabBar
-          Container(
-            color: Colors.white,
-            width: double.infinity,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorColor: AppColors.primary,
-              indicatorWeight: 3,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
-              tabs: const [
-                Tab(text: 'Personal & Contact', icon: Icon(Icons.person_outline, size: 18)),
-                Tab(text: 'Connected Profiles', icon: Icon(Icons.link_rounded, size: 18)),
-                Tab(text: 'Academics & Parents', icon: Icon(Icons.school_outlined, size: 18)),
-                Tab(text: 'Certifications Portfolio', icon: Icon(Icons.workspace_premium_rounded, size: 18)),
-                Tab(text: 'Document Vault', icon: Icon(Icons.folder_shared_outlined, size: 18)),
-                Tab(text: 'Settings & Security', icon: Icon(Icons.settings_outlined, size: 18)),
-              ],
-            ),
-          ),
-
-          // Tab Content View
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildPersonalAndContactTab(),
-                _buildConnectedProfilesTab(),
-                _buildAcademicsAndParentsTab(),
-                _buildCertificationsPortfolioTab(),
-                _buildDocumentVaultTab(),
-                _buildSettingsAndSecurityTab(),
-              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // ================= HELPER UI BUILDERS =================
+  Widget _buildSectionPillHeader(String title) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        title.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF64748B),
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGroupedCard(List<Widget> items) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x060F172A),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: items,
+      ),
+    );
+  }
+
+  Widget _buildGroupedTile({
+    required IconData icon,
+    required String title,
+    bool showDivider = true,
+    Color? iconColor,
+    Color? textColor,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+            child: Row(
+              children: [
+                Icon(icon, color: iconColor ?? const Color(0xFF475569), size: 22),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: textColor ?? const Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: iconColor != null ? iconColor.withValues(alpha: 0.6) : const Color(0xFF94A3B8),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (showDivider)
+          const Divider(
+            height: 1,
+            thickness: 1,
+            indent: 52,
+            endIndent: 16,
+            color: Color(0xFFF1F5F9),
+          ),
+      ],
     );
   }
 
   Widget _buildProfileHeaderAvatar(String photoUrl) {
+    ImageProvider? imageProvider;
     if (photoUrl.isNotEmpty) {
       if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-        return CircleAvatar(
-          radius: 36,
-          backgroundImage: NetworkImage(photoUrl),
-          backgroundColor: Colors.white24,
-        );
-      }
-      final file = File(photoUrl);
-      if (file.existsSync()) {
-        return CircleAvatar(
-          radius: 36,
-          backgroundImage: FileImage(file),
-          backgroundColor: Colors.white24,
-        );
+        imageProvider = NetworkImage(photoUrl);
+      } else {
+        final file = File(photoUrl);
+        if (file.existsSync()) {
+          imageProvider = FileImage(file);
+        }
       }
     }
-    return const CircleAvatar(
-      radius: 36,
-      backgroundColor: Colors.white24,
-      child: Icon(Icons.person, size: 44, color: Colors.white),
-    );
-  }
 
-  void _showUploadPassportPhotoModal(BuildContext context, UserModel? currentUser) {
-    final photoController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.add_a_photo_rounded, color: Color(0xFF2563EB)),
-            SizedBox(width: 10),
-            Text('Passport Photo Upload', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ],
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        CircleAvatar(
+          radius: 36,
+          backgroundColor: const Color(0xFFEEF2FF),
+          backgroundImage: imageProvider,
+          child: imageProvider == null
+              ? const Icon(Icons.person, size: 42, color: Color(0xFF4338CA))
+              : null,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Enter photo URL or local file path for your official student passport-size photo. It will appear on your Student ID Card & Profile.',
-              style: TextStyle(fontSize: 12.5, color: Color(0xFF475569)),
+        if (_isUploadingPhoto)
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.45),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: photoController,
-              decoration: InputDecoration(
-                labelText: 'Passport Photo URL / File Path',
-                hintText: 'https://... or /path/to/passport_photo.jpg',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.link_rounded),
+            child: const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
               ),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              final newUrl = photoController.text.trim();
-              if (newUrl.isNotEmpty && currentUser != null) {
-                final updatedMeta = Map<String, dynamic>.from(currentUser.metadata ?? {});
-                updatedMeta['passportPhotoUrl'] = newUrl;
-                updatedMeta['photoUrl'] = newUrl;
-                final updatedUser = currentUser.copyWith(
-                  profileImageUrl: newUrl,
-                  metadata: updatedMeta,
-                );
-                await ref.read(authServiceProvider).updateUserProfile(updatedUser);
-              }
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ Passport-size photo updated! Reflected on Digital Student ID Card.'),
-                    backgroundColor: Color(0xFF10B981),
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Save Photo'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeaderBadge(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 8, color: color),
-          const SizedBox(width: 6),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-
-  // ================= TAB 1: PERSONAL & CONTACT =================
-  Widget _buildPersonalAndContactTab() {
-    final currentUser = ref.watch(currentUserProvider).value ?? ref.watch(authServiceProvider).currentUser;
-    final name = (currentUser?.name != null && currentUser!.name.trim().isNotEmpty) ? currentUser.name : 'User Profile';
-    final email = (currentUser?.email != null && currentUser!.email.trim().isNotEmpty) ? currentUser.email : 'user@unisphere.edu';
-    final isDemo = currentUser?.email.toLowerCase().trim() == 'saravanapmvofficial@gmail.com';
-    final regNo = currentUser?.metadata?['registerNumber']?.toString().isNotEmpty == true 
-        ? currentUser!.metadata!['registerNumber'].toString() 
-        : (isDemo ? 'RA2111003010001' : (currentUser?.uid.startsWith('DEMO-') == true ? 'DEMO-REG-001' : 'Pending ID'));
-    final dept = currentUser?.metadata?['department']?.toString().isNotEmpty == true 
-        ? currentUser!.metadata!['department'].toString() 
-        : (isDemo ? 'Computer Science' : 'Not Specified');
-    final year = currentUser?.metadata?['year']?.toString().isNotEmpty == true 
-        ? currentUser!.metadata!['year'].toString() 
-        : (isDemo ? '3rd Year' : '1st Year');
-    final phone = currentUser?.phoneNumber ?? currentUser?.metadata?['phoneNumber'] ?? (isDemo ? '+91 98765 43210' : 'Not Provided');
-    final roleName = currentUser?.roleName ?? 'Student';
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _buildProfileVerificationCard(),
-
-        _buildSectionHeader('👤 Personal Information'),
-        _buildCard([
-          _buildInfoRow('Full Name', name),
-          _buildInfoRow('Account Role', roleName),
-          _buildInfoRow('Department / Major', dept),
-          _buildInfoRow('Academic Year', year),
-          _buildInfoRow('Blood Group', currentUser?.metadata?['bloodGroup'] ?? 'O+', isBadge: true, badgeColor: Colors.red.shade100, badgeTextColor: Colors.red.shade800),
-          _buildInfoRow('Nationality', 'Indian'),
-          _buildInfoRow('Register / ID No.', regNo),
-        ]),
-
-        if (currentUser?.role == UserRole.student) _buildMembershipSectionCard(currentUser),
-
-        const SizedBox(height: 20),
-        _buildSectionHeader('📞 Contact Details'),
-        _buildCard([
-          _buildInfoRow('Institutional Email', email, icon: Icons.email_outlined),
-          _buildInfoRow('Primary Phone Number', phone, icon: Icons.phone_android_outlined),
-          _buildInfoRow('Permanent Address', 'No. 42, Anna Nagar West, Chennai, Tamil Nadu - 600040', icon: Icons.home_outlined),
-          _buildInfoRow('Hostel / Residence', 'Hostel Block B, Room 304 (Hosteller)', icon: Icons.location_city_outlined),
-        ]),
-
-        const SizedBox(height: 20),
-        _buildSectionHeader('🌐 Professional Profiles & Social Links'),
-        Consumer(
-          builder: (context, ref, child) {
-            final overviewData = ref.watch(academicOverviewProvider);
-            final hasLinkedin = overviewData.linkedinUrl.isNotEmpty;
-            final hasGithub = overviewData.githubUsername.isNotEmpty;
-            final hasLeetcode = overviewData.leetcodeUsername.isNotEmpty;
-
-            return Column(
-              children: [
-                // LinkedIn Card
-                _buildProfessionalLinkCard(
-                  title: 'LinkedIn Professional Profile',
-                  handle: hasLinkedin ? overviewData.linkedinUrl : 'Submit LinkedIn Profile',
-                  subtitle: hasLinkedin ? 'Official Professional Network Profile' : 'Click here to submit your LinkedIn URL to connect',
-                  icon: Icons.work_rounded,
-                  brandColor: const Color(0xFF0A66C2),
-                  onOpenUrl: () async {
-                    if (!hasLinkedin) {
-                      _showSubmitLinkedInDialog(context, ref);
-                      return;
-                    }
-                    final uri = Uri.parse(overviewData.linkedinUrl);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
-                  },
-                ),
-                const SizedBox(height: 10),
-                // GitHub Card
-                _buildProfessionalLinkCard(
-                  title: 'GitHub Developer Profile',
-                  handle: hasGithub ? '@${overviewData.githubUsername}' : 'Submit GitHub ID',
-                  subtitle: hasGithub
-                      ? '${overviewData.githubRepos} Public Repos • ${overviewData.githubCommits} Commits'
-                      : 'Click here to submit your GitHub Username to view repositories',
-                  icon: Icons.terminal_rounded,
-                  brandColor: const Color(0xFF0F172A),
-                  onOpenUrl: () async {
-                    if (!hasGithub) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const GitHubDetailScreen()),
-                      );
-                      return;
-                    }
-                    final uri = Uri.parse('https://github.com/${overviewData.githubUsername}');
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
-                  },
-                ),
-                const SizedBox(height: 10),
-                // LeetCode Card
-                _buildProfessionalLinkCard(
-                  title: 'LeetCode DSA Profile',
-                  handle: hasLeetcode ? '@${overviewData.leetcodeUsername}' : 'Submit LeetCode ID',
-                  subtitle: hasLeetcode ? '${overviewData.leetcodeSolved} Problems Solved' : 'Click here to submit your LeetCode ID to view solved analytics',
-                  icon: Icons.code_rounded,
-                  brandColor: const Color(0xFFEA580C),
-                  onOpenUrl: () async {
-                    if (!hasLeetcode) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const LeetCodeDetailScreen()),
-                      );
-                      return;
-                    }
-                    final uri = Uri.parse('https://leetcode.com/u/${overviewData.leetcodeUsername}');
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
-                  },
-                ),
-              ],
-            );
-          },
-        ),
-
-        const SizedBox(height: 20),
-        _buildSectionHeader('🚨 Medical & Emergency Contacts'),
-        _buildCard([
-          _buildInfoRow(
-            'Primary Contact',
-            currentUser?.metadata?['emergencyContactPrimary'] ?? (isDemo ? 'R. Selvam (Father) • +91 98401 23456' : 'Not configured'),
-            icon: Icons.emergency_outlined,
-          ),
-          _buildInfoRow(
-            'Secondary Contact',
-            currentUser?.metadata?['emergencyContactSecondary'] ?? (isDemo ? 'S. Lakshmi (Mother) • +91 98401 65432' : 'Not configured'),
-            icon: Icons.contact_phone_outlined,
-          ),
-          _buildInfoRow(
-            'Medical Conditions',
-            currentUser?.metadata?['medicalConditions'] ?? (isDemo ? 'No known allergies / Fit for campus sports' : 'None reported'),
-            icon: Icons.health_and_safety_outlined,
-          ),
-          _buildInfoRow(
-            'Campus Health Insurance ID',
-            currentUser?.metadata?['healthInsuranceId'] ?? (isDemo ? 'UNI-HLTH-2026-8849' : 'Not issued'),
-            icon: Icons.verified_user_outlined,
-          ),
-        ]),
-        const SizedBox(height: 40),
       ],
     );
   }
 
-  Widget _buildMembershipSectionCard(UserModel? currentUser) {
+  // ================= 🌟 MASTER A TO Z STUDENT BIO-DATA MODAL =================
+  void _showCompleteStudentBioDataModal(
+    BuildContext context,
+    UserModel? currentUser,
+    String name,
+    String email,
+    String regNo,
+    String dept,
+    String year,
+  ) {
     final meta = currentUser?.metadata ?? {};
-    final hasMembership = meta['hasMembership'];
-    final org = meta['membershipOrg']?.toString() ?? 'None';
-    final memId = meta['membershipId']?.toString() ?? 'N/A';
+    final personal = meta['personal'] as Map<String, dynamic>? ?? {};
+    final contact = meta['contact'] as Map<String, dynamic>? ?? {};
+    final permAddr = (contact['permanentAddress'] as Map<String, dynamic>?) ?? {};
+    final currAddr = (contact['currentAddress'] as Map<String, dynamic>?) ?? {};
+    final parents = meta['parents'] as Map<String, dynamic>? ?? {};
+    final father = (parents['father'] as Map<String, dynamic>?) ?? {};
+    final mother = (parents['mother'] as Map<String, dynamic>?) ?? {};
+    final guardian = (parents['guardian'] as Map<String, dynamic>?) ?? {};
+    final education = meta['education'] as Map<String, dynamic>? ?? {};
+    final tenth = (education['tenth'] as Map<String, dynamic>?) ?? {};
+    final twelfth = (education['twelfthOrDiploma'] as Map<String, dynamic>?) ?? {};
+    final diploma = (education['diploma'] as Map<String, dynamic>?) ?? {};
+    final living = meta['living'] as Map<String, dynamic>? ?? {};
+    final livingDetails = (living['details'] as Map<String, dynamic>?) ?? {};
+    final transport = meta['transport'] as Map<String, dynamic>? ?? {};
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 20),
-        _buildSectionHeader('🏅 Technical & Professional Society Membership'),
-        _buildCard([
-          _buildInfoRow(
-            'Has Membership?',
-            hasMembership == true ? 'Yes' : (hasMembership == false ? 'No' : 'Unrecorded'),
-            isBadge: true,
-            badgeColor: hasMembership == true ? Colors.green.shade100 : Colors.amber.shade100,
-            badgeTextColor: hasMembership == true ? Colors.green.shade900 : Colors.amber.shade900,
-          ),
-          _buildInfoRow('Society / Body', org),
-          _buildInfoRow('Membership ID', memId),
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => StudentMembershipModal.show(context),
-                icon: const Icon(Icons.verified_user_outlined, size: 16),
-                label: Text(hasMembership != null ? 'Update Membership Details' : 'Record Society Membership'),
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  side: const BorderSide(color: AppColors.primary),
-                ),
-              ),
-            ),
-          ),
-        ]),
-      ],
-    );
-  }
-
-  void _showSubmitLinkedInDialog(BuildContext context, WidgetRef ref) {
-    final controller = TextEditingController();
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
-            children: [
-              Icon(Icons.work_rounded, color: Color(0xFF0A66C2)),
-              SizedBox(width: 10),
-              Text('Submit LinkedIn Profile', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Enter your official LinkedIn profile URL to link your professional network.',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: controller,
-                decoration: InputDecoration(
-                  hintText: 'https://www.linkedin.com/in/yourname',
-                  prefixIcon: const Icon(Icons.link_rounded, color: Color(0xFF0A66C2)),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+        return DefaultTabController(
+          length: 6,
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.90,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0A66C2),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () async {
-                final url = controller.text.trim();
-                if (url.isNotEmpty) {
-                  ref.read(academicOverviewProvider.notifier).fetchLinkedInStats(url);
-                  final currentUser = ref.read(authServiceProvider).currentUser;
-                  if (currentUser != null) {
-                    final meta = Map<String, dynamic>.from(currentUser.metadata ?? {});
-                    meta['linkedinUrl'] = url;
-                    final updated = currentUser.copyWith(metadata: meta);
-                    await ref.read(authServiceProvider).updateUserProfile(updated);
-                  }
-                }
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: const Text('Submit & Link'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildProfessionalLinkCard({
-    required String title,
-    required String handle,
-    required String subtitle,
-    required IconData icon,
-    required Color brandColor,
-    required VoidCallback onOpenUrl,
-  }) {
-    return InkWell(
-      onTap: onOpenUrl,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: brandColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: brandColor, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  ),
-                  Text(
-                    handle,
-                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: brandColor),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton.icon(
-              onPressed: onOpenUrl,
-              icon: const Icon(Icons.open_in_new_rounded, size: 13),
-              label: const Text('Visit Profile', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: brandColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                elevation: 0,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ================= TAB 2: CONNECTED PROFILES & ACCOUNTS =================
-  Widget _buildConnectedProfilesTab() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final overviewData = ref.watch(academicOverviewProvider);
-
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Status Header Banner
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.hub_rounded, color: Color(0xFF38BDF8), size: 26),
-                  ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Linked Professional & Dev Accounts',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'UNISPHERE automatically syncs your GitHub activity, LeetCode DSA progress, and LinkedIn network.',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8), height: 1.35),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-            _buildSectionHeader('🔗 Verified Developer & Professional Networks'),
-
-            // 1. LinkedIn
-            _buildConnectedAccountCard(
-              platformName: 'LinkedIn Professional Profile',
-              handle: overviewData.linkedinUrl,
-              subtitle: 'Official Professional Network Profile',
-              statusBadge: 'Verified ✅',
-              statusColor: const Color(0xFF0A66C2),
-              icon: Icons.work_rounded,
-              onVisit: () async {
-                final uri = Uri.parse(overviewData.linkedinUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-            const SizedBox(height: 12),
-
-            // 2. GitHub
-            _buildConnectedAccountCard(
-              platformName: 'GitHub Developer Account',
-              handle: '@${overviewData.githubUsername}',
-              subtitle: '${overviewData.githubRepos} Public Repositories • ${overviewData.githubCommits} Commits in 2026',
-              statusBadge: 'Auto-Syncing ⚡',
-              statusColor: const Color(0xFF059669),
-              icon: Icons.terminal_rounded,
-              onVisit: () async {
-                final uri = Uri.parse('https://github.com/${overviewData.githubUsername}');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-            const SizedBox(height: 12),
-
-            // 3. LeetCode
-            _buildConnectedAccountCard(
-              platformName: 'LeetCode DSA Platform',
-              handle: '@${overviewData.leetcodeUsername}',
-              subtitle: '${overviewData.leetcodeSolved} Solved Problems (104 Easy, 24 Medium, 2 Hard)',
-              statusBadge: 'Daily 12 AM ⏰',
-              statusColor: const Color(0xFFEA580C),
-              icon: Icons.code_rounded,
-              onVisit: () async {
-                final uri = Uri.parse('https://leetcode.com/u/${overviewData.leetcodeUsername}');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-            const SizedBox(height: 12),
-
-            // 4. Personal Portfolio
-            _buildConnectedAccountCard(
-              platformName: 'Personal Portfolio Web',
-              handle: 'https://saroo.online',
-              subtitle: 'Live Showcase & Independent Web Domain',
-              statusBadge: 'Live Site 🌐',
-              statusColor: const Color(0xFF2563EB),
-              icon: Icons.language_rounded,
-              onVisit: () async {
-                final uri = Uri.parse('https://saroo.online');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-            const SizedBox(height: 40),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildConnectedAccountCard({
-    required String platformName,
-    required String handle,
-    required String subtitle,
-    required String statusBadge,
-    required Color statusColor,
-    required IconData icon,
-    required VoidCallback onVisit,
-    bool isStatic = false,
-  }) {
-    return InkWell(
-      onTap: onVisit,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+            child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                // Top drag bar & title
+                const SizedBox(height: 12),
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: Icon(icon, color: statusColor, size: 22),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 14),
+
+                // Header Info Banner
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              platformName,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                      Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFF4338CA), width: 2),
+                        ),
+                        child: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: const Color(0xFFEEF2FF),
+                          child: const Icon(Icons.person, color: Color(0xFF4338CA), size: 28),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    personal['fullName']?.toString() ?? name,
+                                    style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFECFDF5),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFF6EE7B7)),
+                                  ),
+                                  child: const Text('100% COMPLETE', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF065F46))),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '$regNo • $dept',
+                              style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: statusColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              statusBadge,
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        handle,
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusColor),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 10),
+
+                // Tab Header
+                Container(
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                  child: const TabBar(
+                    isScrollable: true,
+                    labelColor: Color(0xFF4338CA),
+                    unselectedLabelColor: Color(0xFF64748B),
+                    indicatorColor: Color(0xFF4338CA),
+                    indicatorWeight: 3,
+                    labelStyle: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                    tabs: [
+                      Tab(text: '👤 Personal & Bio'),
+                      Tab(text: '📞 Contact & Address'),
+                      Tab(text: '👨‍👩‍👧 Parents & Family'),
+                      Tab(text: '🎓 10th & 12th Education'),
+                      Tab(text: '🏠 Living & Hostel'),
+                      Tab(text: '🚌 Commute & Transport'),
+                    ],
+                  ),
+                ),
+
+                // Tab Views
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      // TAB 1: PERSONAL & BIO
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          children: [
+                            _buildModalInfoCard([
+                              _buildModalRow('Full Legal Name', personal['fullName']?.toString() ?? name),
+                              _buildModalRow('Register / Roll No', personal['registerNumber']?.toString() ?? regNo),
+                              _buildModalRow('Department & Degree', personal['department']?.toString() ?? dept),
+                              _buildModalRow('Year & Batch', '$year (Batch 2022–2026)'),
+                              _buildModalRow('College Email', personal['collegeEmail']?.toString() ?? email),
+                              _buildModalRow('Date of Birth (DOB)', personal['dob']?.toString() ?? personal['dateOfBirth']?.toString() ?? '15 May 2005'),
+                              _buildModalRow('Gender', personal['gender']?.toString() ?? 'Male'),
+                              _buildModalRow('Blood Group', personal['bloodGroup']?.toString() ?? 'O+', isBadge: true, badgeColor: const Color(0xFFFEE2E2), badgeTextColor: const Color(0xFFDC2626)),
+                              _buildModalRow('Nationality', personal['nationality']?.toString() ?? 'Indian'),
+                              _buildModalRow('Mother Tongue', personal['motherTongue']?.toString() ?? 'Tamil'),
+                              _buildModalRow('Religion', personal['religion']?.toString() ?? 'Hindu'),
+                              _buildModalRow('Community Category', personal['community']?.toString() ?? 'BC (Backward Class)', isBadge: true),
+                              _buildModalRow('Caste / Sub-Caste', personal['caste']?.toString() ?? 'Kongu Vellalar'),
+                              _buildModalRow('First Graduate in Family', personal['isFirstGraduate'] == true ? 'Yes (Verified)' : 'No'),
+                              _buildModalRow('Differently Abled (PwD)', personal['isDifferentlyAbled'] == true ? 'Yes' : 'No (None)'),
+                            ]),
+                          ],
+                        ),
+                      ),
+
+                      // TAB 2: CONTACT & ADDRESS
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          children: [
+                            _buildModalInfoCard([
+                              _buildModalRow('Primary Mobile Number', contact['primaryMobile']?.toString() ?? currentUser?.phoneNumber ?? '+91 98765 43210'),
+                              _buildModalRow('Alternate Mobile', contact['alternateMobile']?.toString() ?? '+91 94433 22110'),
+                              _buildModalRow('Personal Email', contact['personalEmail']?.toString() ?? 'student.personal@gmail.com'),
+                              _buildModalRow('Emergency Contact Person', contact['emergencyContactName']?.toString() ?? 'Ramesh Johnson (Father)'),
+                              _buildModalRow('Emergency Relationship', contact['emergencyContactRelationship']?.toString() ?? 'Father'),
+                              _buildModalRow('Emergency Contact No', contact['emergencyContactNumber']?.toString() ?? '+91 94444 12345'),
+                            ]),
+                            const SizedBox(height: 14),
+                            _buildSectionPillHeader('Permanent Residential Address'),
+                            _buildModalInfoCard([
+                              _buildModalRow('Address Line 1', permAddr['addressLine1']?.toString() ?? 'No. 42, Anna Nagar West'),
+                              _buildModalRow('Area / Street', permAddr['area']?.toString() ?? '2nd Main Road'),
+                              _buildModalRow('City / Town', permAddr['city']?.toString() ?? 'Chennai'),
+                              _buildModalRow('District', permAddr['district']?.toString() ?? 'Chennai District'),
+                              _buildModalRow('State & Country', '${permAddr['state']?.toString() ?? "Tamil Nadu"}, ${permAddr['country']?.toString() ?? "India"}'),
+                              _buildModalRow('Pincode / Postal Code', permAddr['pincode']?.toString() ?? '600040', isBadge: true),
+                            ]),
+                            const SizedBox(height: 14),
+                            _buildSectionPillHeader('Current Communication Address'),
+                            _buildModalInfoCard([
+                              _buildModalRow('Current Address Line', currAddr['addressLine1']?.toString() ?? 'Room 304, Men\'s Hostel Block B'),
+                              _buildModalRow('City & State', '${currAddr['city']?.toString() ?? "VSB Campus, Karur"}, ${currAddr['state']?.toString() ?? "Tamil Nadu"}'),
+                              _buildModalRow('Postal Code', currAddr['pincode']?.toString() ?? '639111'),
+                            ]),
+                          ],
+                        ),
+                      ),
+
+                      // TAB 3: PARENTS & GUARDIAN
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          children: [
+                            _buildSectionPillHeader('Father\'s Profile'),
+                            _buildModalInfoCard([
+                              _buildModalRow('Father Full Name', father['name']?.toString() ?? 'Ramesh Johnson'),
+                              _buildModalRow('Father Mobile Number', father['mobileNumber']?.toString() ?? '+91 94444 12345'),
+                              _buildModalRow('Father Email', father['email']?.toString() ?? 'ramesh.j@gmail.com'),
+                              _buildModalRow('Highest Qualification', father['qualification']?.toString() ?? 'B.E. Mechanical Engineering'),
+                              _buildModalRow('Occupation / Sector', father['occupation']?.toString() ?? 'Senior Engineer (L&T)'),
+                              _buildModalRow('Annual Income', father['annualIncome']?.toString() ?? '₹6,50,000 / annum'),
+                            ]),
+                            const SizedBox(height: 14),
+                            _buildSectionPillHeader('Mother\'s Profile'),
+                            _buildModalInfoCard([
+                              _buildModalRow('Mother Full Name', mother['name']?.toString() ?? 'Meenakshi Ramesh'),
+                              _buildModalRow('Mother Mobile Number', mother['mobileNumber']?.toString() ?? '+91 94444 54321'),
+                              _buildModalRow('Mother Email', mother['email']?.toString() ?? 'meenakshi.r@gmail.com'),
+                              _buildModalRow('Highest Qualification', mother['qualification']?.toString() ?? 'M.Sc. Mathematics, B.Ed.'),
+                              _buildModalRow('Occupation / Sector', mother['occupation']?.toString() ?? 'High School Teacher'),
+                              _buildModalRow('Annual Income', mother['annualIncome']?.toString() ?? '₹4,20,000 / annum'),
+                            ]),
+                            _buildSectionPillHeader('Total Parent & Family Annual Income'),
+                            _buildModalInfoCard([
+                              _buildModalRow(
+                                'Combined Annual Income',
+                                parents['parentAnnualIncome']?.toString() ??
+                                    parents['annualIncome']?.toString() ??
+                                    '₹10,70,000 / annum',
+                                isBadge: true,
+                                badgeColor: const Color(0xFFEFF6FF),
+                                badgeTextColor: const Color(0xFF2563EB),
+                              ),
+                            ]),
+                            if (guardian['name'] != null && guardian['name'].toString().isNotEmpty) ...[
+                              const SizedBox(height: 14),
+                              _buildSectionPillHeader('Local Guardian (if applicable)'),
+                              _buildModalInfoCard([
+                                _buildModalRow('Guardian Name', guardian['name']?.toString() ?? ''),
+                                _buildModalRow('Relationship', guardian['relationship']?.toString() ?? ''),
+                                _buildModalRow('Guardian Mobile', guardian['mobileNumber']?.toString() ?? ''),
+                              ]),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      // TAB 4: PREVIOUS EDUCATION (10th, 12th, DIPLOMA)
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          children: [
+                            _buildSectionPillHeader('10th Standard (SSLC / Secondary School)'),
+                            _buildModalInfoCard([
+                              _buildModalRow('School / Institution Name', tenth['institutionName']?.toString() ?? 'Government Higher Secondary School'),
+                              _buildModalRow('Board of Examination', tenth['boardOrUniversity']?.toString() ?? 'Tamil Nadu State Board'),
+                              _buildModalRow('Medium of Study', tenth['medium']?.toString() ?? 'English Medium'),
+                              _buildModalRow('10th Register Number', tenth['registerNumber']?.toString() ?? 'SSLC-2020-89104'),
+                              _buildModalRow('Year of Passing', tenth['passingYear']?.toString() ?? '2021'),
+                              _buildModalRow('Marks Obtained', '${tenth['marksObtained'] ?? 465} / ${tenth['totalMarks'] ?? 500}'),
+                              _buildModalRow('Aggregate Percentage', '${tenth['percentage'] ?? 93.0}%', isBadge: true, badgeColor: const Color(0xFFD1FAE5), badgeTextColor: const Color(0xFF065F46)),
+                            ]),
+                            const SizedBox(height: 14),
+                            _buildSectionPillHeader('12th Standard (HSC / Higher Secondary)'),
+                            _buildModalInfoCard([
+                              _buildModalRow('School / Institution Name', twelfth['institutionName']?.toString() ?? 'VSB Higher Secondary School'),
+                              _buildModalRow('Board of Examination', twelfth['boardOrUniversity']?.toString() ?? 'Tamil Nadu State Board'),
+                              _buildModalRow('Medium of Study', twelfth['medium']?.toString() ?? 'English Medium'),
+                              _buildModalRow('12th Register Number', twelfth['registerNumber']?.toString() ?? 'HSC-2022-45210'),
+                              _buildModalRow('Year of Passing', twelfth['passingYear']?.toString() ?? '2023'),
+                              _buildModalRow('Marks Obtained', '${twelfth['marksObtained'] ?? 552} / ${twelfth['totalMarks'] ?? 600}'),
+                              _buildModalRow('Aggregate Percentage', '${twelfth['percentage'] ?? 92.0}%', isBadge: true, badgeColor: const Color(0xFFD1FAE5), badgeTextColor: const Color(0xFF065F46)),
+                            ]),
+                            if (education['hasDiploma'] == true || diploma['institutionName'] != null) ...[
+                              const SizedBox(height: 14),
+                              _buildSectionPillHeader('Diploma / Lateral Entry Record'),
+                              _buildModalInfoCard([
+                                _buildModalRow('Polytechnic Institution', diploma['institutionName']?.toString() ?? 'VSB Polytechnic College'),
+                                _buildModalRow('Discipline', diploma['registerNumber']?.toString() ?? 'Diploma in Computer Eng.'),
+                                _buildModalRow('Diploma Percentage', '${diploma['percentage'] ?? 88.5}%', isBadge: true),
+                              ]),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      // TAB 5: LIVING & ACCOMMODATION
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          children: [
+                            _buildModalInfoCard([
+                              _buildModalRow('Accommodation Category', living['livingType']?.toString() == 'collegeHostel' ? 'College Hostel' : 'Day Scholar / PG Hostel', isBadge: true),
+                              _buildModalRow('Residence Name', livingDetails['pgName']?.toString() ?? 'Hostel Block B (Men\'s Campus Hostel)'),
+                              _buildModalRow('Room / Unit Number', 'Room 304 (3rd Floor)'),
+                              _buildModalRow('Mess Type Preference', 'South Indian Vegetarian & Non-Veg'),
+                              _buildModalRow('Hostel Warden Name', 'Dr. S. Karthikeyan (+91 98421 90812)'),
+                              _buildModalRow('Roommates On Record', livingDetails['roommates']?.toString() ?? 'Karthik S. & Ramesh M. (CSE Batch A)'),
+                              _buildModalRow('Local Guardian Address', livingDetails['pgAddress']?.toString() ?? 'Covai Road, Near VSB Main Campus, Karur'),
+                            ]),
+                          ],
+                        ),
+                      ),
+
+                      // TAB 6: COMMUTE & TRANSPORT
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          children: [
+                            _buildModalInfoCard([
+                              _buildModalRow('Primary Commuting Mode', transport['mode']?.toString() ?? 'College Bus Route #14', isBadge: true),
+                              _buildModalRow('Boarding Bus Stop', 'Karur Bus Stand / Anna Statue Junction'),
+                              _buildModalRow('Bus Incharge / Driver', 'Murugan (+91 94861 22345)'),
+                              _buildModalRow('One-way Distance', transport['oneWayDistanceKm']?.toString() ?? '18 km'),
+                              _buildModalRow('Average Commute Duration', transport['oneWayTravelTimeMinutes']?.toString() ?? '35 mins'),
+                              _buildModalRow('Usual Campus In-Time', transport['usualArrivalTime']?.toString() ?? '08:30 AM'),
+                              _buildModalRow('Usual Departure Out-Time', transport['usualDepartureTime']?.toString() ?? '05:00 PM'),
+                            ]),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Bottom Request Correction Action
+                Container(
+                  padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 14),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useRootNavigator: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => const StudentProfileEditRequestModal(),
+                        );
+                      },
+                      icon: const Icon(Icons.edit_note_rounded, size: 20),
+                      label: const Text(
+                        'Request Profile Correction',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4338CA),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              subtitle,
-              style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B), height: 1.3),
-            ),
-            if (!isStatic) ...[
-              const SizedBox(height: 12),
+          ),
+        );
+      },
+    );
+  }
+
+  // ================= MODAL SHEETS FOR DETAIL VIEWS =================
+
+  // 1. CONNECTED APPS & ACCOUNTS MODAL
+  void _showConnectedProfilesModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final overviewData = ref.watch(academicOverviewProvider);
+
+            return _buildBottomSheetContainer(
+              context: context,
+              title: 'Connected Apps & Accounts',
+              subtitle: 'Sync your GitHub, LeetCode, and LinkedIn activity with UNISPHERE',
+              child: Column(
+                children: [
+                  _buildModalLinkTile(
+                    title: 'LinkedIn Profile',
+                    handle: overviewData.linkedinUrl.isNotEmpty ? overviewData.linkedinUrl : 'Not Linked (Tap to Connect)',
+                    icon: Icons.work_rounded,
+                    brandColor: const Color(0xFF0A66C2),
+                    badge: overviewData.linkedinUrl.isNotEmpty ? 'Connected ✓' : 'Connect +',
+                    onTap: () async {
+                      if (overviewData.linkedinUrl.isEmpty) {
+                        Navigator.pop(context);
+                        _showSubmitLinkedInDialog(context, ref);
+                        return;
+                      }
+                      await _safeLaunchUrl(overviewData.linkedinUrl);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildModalLinkTile(
+                    title: 'GitHub Developer Account',
+                    handle: overviewData.githubUsername.isNotEmpty ? '@${overviewData.githubUsername}' : 'Not Linked (Tap to Connect)',
+                    icon: Icons.terminal_rounded,
+                    brandColor: const Color(0xFF0F172A),
+                    badge: overviewData.githubUsername.isNotEmpty ? '${overviewData.githubRepos} Repos ⚡' : 'Connect +',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GitHubDetailScreen()));
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildModalLinkTile(
+                    title: 'LeetCode DSA Platform',
+                    handle: overviewData.leetcodeUsername.isNotEmpty ? '@${overviewData.leetcodeUsername}' : 'Not Linked (Tap to Connect)',
+                    icon: Icons.code_rounded,
+                    brandColor: const Color(0xFFEA580C),
+                    badge: overviewData.leetcodeUsername.isNotEmpty ? '${overviewData.leetcodeSolved} Solved 🏆' : 'Connect +',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LeetCodeDetailScreen()));
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildModalLinkTile(
+                    title: 'Personal Portfolio Website',
+                    handle: 'https://saroo.online',
+                    icon: Icons.language_rounded,
+                    brandColor: const Color(0xFF2563EB),
+                    badge: 'Live Site 🌐',
+                    onTap: () => _safeLaunchUrl('https://saroo.online'),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showSubmitLinkedInDialog(context, ref);
+                      },
+                      icon: const Icon(Icons.add_link_rounded, size: 18),
+                      label: const Text('Add / Update Social Link'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF4338CA),
+                        side: const BorderSide(color: Color(0xFFC7D2FE)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 2. ACADEMICS & MENTOR MODAL
+  void _showAcademicsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _buildBottomSheetContainer(
+          context: context,
+          title: 'Academics, CGPA & Mentor',
+          subtitle: 'Official University curriculum, GPA, and Faculty Advisor',
+          child: Column(
+            children: [
+              _buildModalInfoCard([
+                _buildModalRow('Program & Degree', 'B.E. Computer Science and Engineering'),
+                _buildModalRow('Section & Batch', 'Section A • Batch 1 (2022–2026)'),
+                _buildModalRow('Current Semester', 'Semester VI (3rd Year)'),
+                _buildModalRow('Cumulative GPA (CGPA)', '8.84 / 10.0', isBadge: true, badgeColor: const Color(0xFFD1FAE5), badgeTextColor: const Color(0xFF065F46)),
+                _buildModalRow('Earned Credits', '112 / 160 Credits'),
+                _buildModalRow('Date of Joining', '18 August 2022'),
+              ]),
+              const SizedBox(height: 14),
+
+              // Semester-wise SGPA Breakdown
+              _buildSectionPillHeader('Semester-Wise SGPA Performance'),
+              _buildModalInfoCard([
+                _buildModalRow('Semester I', '8.70 SGPA (Passed)'),
+                _buildModalRow('Semester II', '8.80 SGPA (Passed)'),
+                _buildModalRow('Semester III', '8.95 SGPA (Passed)'),
+                _buildModalRow('Semester IV', '8.82 SGPA (Passed)'),
+                _buildModalRow('Semester V', '8.90 SGPA (Passed)'),
+                _buildModalRow('Semester VI (Current)', '8.84 Expected', isBadge: true, badgeColor: const Color(0xFFEEF2FF), badgeTextColor: const Color(0xFF4338CA)),
+              ]),
+
+              const SizedBox(height: 14),
+
+              // Faculty Advisor Card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFC7D2FE)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4338CA),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.person_search_rounded, color: Colors.white, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Faculty Advisor / Mentor', style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                              Text('Dr. R. Ananth (Professor - CSE)', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                              Text('ananth.r@unisphere.edu', style: TextStyle(fontSize: 11.5, color: Color(0xFF4338CA), fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _safeLaunchUrl('mailto:ananth.r@unisphere.edu?subject=Student%20Consultation'),
+                            icon: const Icon(Icons.email_outlined, size: 16),
+                            label: const Text('Email Advisor'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF4338CA),
+                              side: const BorderSide(color: Color(0xFFC7D2FE)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _showBookAppointmentDialog(context);
+                            },
+                            icon: const Icon(Icons.calendar_month_rounded, size: 16),
+                            label: const Text('Book Meeting'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4338CA),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 3. CERTIFICATIONS MODAL
+  void _showCertificationsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return _buildBottomSheetContainer(
+              context: context,
+              title: 'Certifications & Credentials',
+              subtitle: 'Verified records of NPTEL IIT & Industry Credentials (${_certifications.length} Credentials)',
+              child: Column(
+                children: [
+                  ..._certifications.map((c) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: InkWell(
+                        onTap: () => _showCertificateDetailModal(context, c),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: (c['color'] as Color).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(Icons.workspace_premium_rounded, color: c['color'] as Color, size: 22),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(c['title'] as String, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                                  const SizedBox(height: 2),
+                                  Text('${c['issuer']} • ${c['score']}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: (c['color'] as Color).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(c['badge'] as String, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: c['color'] as Color)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        _showAddCertificateDialog(context, (newCert) {
+                          setModalState(() {
+                            _certifications.add(newCert);
+                          });
+                          setState(() {});
+                        });
+                      },
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('Add New Certificate', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4338CA),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 4. DOCUMENT VAULT MODAL
+  void _showDocumentVaultModal(BuildContext context) {
+    final docs = [
+      {'title': 'Student Formal Passport Photo', 'sub': 'JPEG • 0.8 MB • Verified ✓', 'icon': Icons.account_box_outlined},
+      {'title': '10th Standard Marksheet', 'sub': 'PDF • 1.4 MB • Verified ✓', 'icon': Icons.picture_as_pdf_outlined},
+      {'title': '12th Higher Secondary Marksheet', 'sub': 'PDF • 1.6 MB • Verified ✓', 'icon': Icons.picture_as_pdf_outlined},
+      {'title': 'Transfer Certificate (TC)', 'sub': 'PDF • 0.9 MB • Verified ✓', 'icon': Icons.picture_as_pdf_outlined},
+      {'title': 'Government Aadhar Copy', 'sub': 'PDF • 410 KB • Verified ✓', 'icon': Icons.badge_outlined},
+      {'title': 'Community Certificate', 'sub': 'PDF • 650 KB • Verified ✓', 'icon': Icons.verified_outlined},
+      {'title': 'Medical Fitness Certificate', 'sub': 'PDF • 530 KB • Verified ✓', 'icon': Icons.health_and_safety_outlined},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _buildBottomSheetContainer(
+          context: context,
+          title: 'Official Document Vault',
+          subtitle: 'Download registrar-sealed digital records and verified marksheets',
+          child: Column(
+            children: docs.map((d) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4338CA).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(d['icon'] as IconData, color: const Color(0xFF4338CA), size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(d['title'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                          Text(d['sub'] as String, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.download_rounded, color: Color(0xFF4338CA), size: 20),
+                      onPressed: () => _simulateDocumentDownload(context, d['title'] as String),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  // 5. NOTIFICATION SETTINGS MODAL
+  void _showNotificationSettingsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return _buildBottomSheetContainer(
+              context: context,
+              title: 'Notification Preferences',
+              subtitle: 'Control alerts for announcements, grades, and exams',
+              child: Column(
+                children: [
+                  _buildModalSwitch(
+                    title: 'Academic Announcements',
+                    sub: 'Instant alerts for official department circulars',
+                    value: _announcementNotifs,
+                    onChanged: (val) {
+                      setModalState(() => _announcementNotifs = val);
+                      setState(() => _announcementNotifs = val);
+                      _showPreferenceUpdatedSnackbar('Academic Announcements preference saved');
+                    },
+                  ),
+                  _buildModalSwitch(
+                    title: 'Grade & Mark Release Alerts',
+                    sub: 'Notification when internal or semester grades are out',
+                    value: _gradeNotifs,
+                    onChanged: (val) {
+                      setModalState(() => _gradeNotifs = val);
+                      setState(() => _gradeNotifs = val);
+                      _showPreferenceUpdatedSnackbar('Grade alerts preference saved');
+                    },
+                  ),
+                  _buildModalSwitch(
+                    title: 'Daily Attendance Warning',
+                    sub: 'Alert when attendance falls below 75%',
+                    value: _attendanceNotifs,
+                    onChanged: (val) {
+                      setModalState(() => _attendanceNotifs = val);
+                      setState(() => _attendanceNotifs = val);
+                      _showPreferenceUpdatedSnackbar('Attendance warnings preference saved');
+                    },
+                  ),
+                  _buildModalSwitch(
+                    title: 'Fee Due Reminders',
+                    sub: 'Reminders for upcoming tuition and exam fees',
+                    value: _feeNotifs,
+                    onChanged: (val) {
+                      setModalState(() => _feeNotifs = val);
+                      setState(() => _feeNotifs = val);
+                      _showPreferenceUpdatedSnackbar('Fee reminders preference saved');
+                    },
+                  ),
+                  _buildModalSwitch(
+                    title: 'Placement & Job Drive Alerts',
+                    sub: 'Instant notices for on-campus interview schedules',
+                    value: _placementNotifs,
+                    onChanged: (val) {
+                      setModalState(() => _placementNotifs = val);
+                      setState(() => _placementNotifs = val);
+                      _showPreferenceUpdatedSnackbar('Placement alerts preference saved');
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 6. SECURITY SETTINGS MODAL
+  void _showSecuritySettingsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return _buildBottomSheetContainer(
+              context: context,
+              title: 'Security & Authentication',
+              subtitle: 'Password protection & Biometric login credentials',
+              child: Column(
+                children: [
+                  _buildModalActionTile(
+                    icon: Icons.lock_outline_rounded,
+                    title: 'Change Account Password',
+                    sub: 'Update your portal sign-in password',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showChangePasswordDialog();
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildModalSwitch(
+                    title: 'Biometric 2FA Login',
+                    sub: 'Use FaceID or Fingerprint to unlock portal',
+                    value: _biometricEnabled,
+                    onChanged: (val) {
+                      setModalState(() => _biometricEnabled = val);
+                      setState(() => _biometricEnabled = val);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(val ? '🔒 Biometric 2FA enabled' : '🔓 Biometric 2FA disabled')),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _buildModalActionTile(
+                    icon: Icons.devices_rounded,
+                    title: 'Active Logged-in Devices',
+                    sub: 'iPhone 15 Pro • Active Now',
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('All other sessions signed out successfully.')),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 7. VERIFICATION STATUS MODAL
+  void _showVerificationStatusModal(BuildContext context, UserModel? currentUser) {
+    final meta = currentUser?.metadata ?? {};
+    final status = meta['verificationStatus'] ?? 'verified';
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _buildBottomSheetContainer(
+          context: context,
+          title: 'Campus Verification Status',
+          subtitle: 'Institutional identity status verified by Registrar Office',
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF6EE7B7)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF059669),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.verified_user_rounded, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            status == 'verified' ? '🟢 Verified Academic Profile' : '🟡 Verification Pending',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF065F46)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Approved by ${meta['verifiedBy'] ?? "Dr. R. Kumar (HOD, CSE)"} on 12 Sep 2022\nOfficial Seal ID: REG-UNI-2022-8812',
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFF047857), height: 1.3),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: onVisit,
-                  icon: const Icon(Icons.open_in_new_rounded, size: 15),
-                  label: const Text('Visit Profile', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Downloading Official Institutional Verification Certificate PDF...')),
+                    );
+                  },
+                  icon: const Icon(Icons.download_done_rounded, size: 18),
+                  label: const Text('Download Verification Certificate'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: statusColor,
+                    backgroundColor: const Color(0xFF059669),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 8. CAMPUS IT HELPDESK & SUPPORT MODAL
+  void _showCampusSupportModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _buildBottomSheetContainer(
+          context: context,
+          title: 'Campus IT HelpDesk & Support',
+          subtitle: 'Get technical assistance for Wi-Fi, LMS, ID badges, and portal accounts',
+          child: Column(
+            children: [
+              _buildModalActionTile(
+                icon: Icons.confirmation_number_outlined,
+                title: 'Submit IT Support Ticket',
+                sub: 'Report an issue with attendance, login, or ID card',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showSubmitTicketDialog(context);
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildModalActionTile(
+                icon: Icons.phone_in_talk_rounded,
+                title: 'IT HelpDesk Emergency Hotline',
+                sub: '+91 44 2250 1234 (Ext: 404)',
+                onTap: () => _safeLaunchUrl('tel:+914422501234'),
+              ),
+              const SizedBox(height: 10),
+              _buildModalActionTile(
+                icon: Icons.mail_outline_rounded,
+                title: 'Email Technical Support',
+                sub: 'support@unisphere.edu',
+                onTap: () => _safeLaunchUrl('mailto:support@unisphere.edu?subject=Unisphere%20Support%20Request'),
+              ),
+              const SizedBox(height: 10),
+              _buildModalActionTile(
+                icon: Icons.menu_book_outlined,
+                title: 'Campus Student Handbook & FAQs',
+                sub: 'Read portal guides and Wi-Fi configuration steps',
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Opening Student Knowledgebase & FAQs...')),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ================= MODAL HELPER WIDGETS =================
+  Widget _buildBottomSheetContainer({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required Widget child,
+  }) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, bottomInset + bottomPadding + 32),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+            const SizedBox(height: 2),
+            Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+            const SizedBox(height: 16),
+            Flexible(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: child,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-
-
-  // ================= TAB 3: ACADEMICS & PARENTS =================
-  Widget _buildAcademicsAndParentsTab() {
-    return ListView(
+  Widget _buildModalInfoCard(List<Widget> rows) {
+    return Container(
       padding: const EdgeInsets.all(16),
-      children: [
-        _buildSectionHeader('🎓 Academic Details'),
-        _buildCard([
-          _buildInfoRow('Program & Branch', 'B.E. Computer Science and Engineering'),
-          _buildInfoRow('Section & Batch', 'Section A • Batch 1 (2022–2026)'),
-          _buildInfoRow('Current Semester', 'Semester VI (3rd Year)'),
-          _buildInfoRow('Cumulative GPA (CGPA)', '8.84 / 10.0', isBadge: true, badgeColor: Colors.green.shade100, badgeTextColor: Colors.green.shade800),
-          _buildInfoRow('Earned Credits', '112 / 160 Credits'),
-          _buildInfoRow('Admission Type', 'Single Window Counseling (Anna Univ)'),
-          _buildInfoRow('Date of Joining', '18 August 2022'),
-        ]),
-
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-          ),
-          child: Row(
-            children: [
-              const CircleAvatar(
-                backgroundColor: AppColors.primary,
-                child: Icon(Icons.person_search_rounded, color: Colors.white),
-              ),
-              const SizedBox(width: 14),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Faculty Advisor / Mentor', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                    Text('Dr. R. Ananth (Professor - CSE)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    Text('ananth.r@unisphere.edu', style: TextStyle(fontSize: 12, color: AppColors.primary)),
-                  ],
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Opening message composer with Dr. R. Ananth...')),
-                  );
-                },
-                icon: const Icon(Icons.mail_outline, size: 14),
-                label: const Text('Contact', style: TextStyle(fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-        _buildSectionHeader('👨‍👩‍👧 Parent & Guardian Details'),
-        _buildCard([
-          _buildInfoRow('Father\'s Name', 'R. Selvam'),
-          _buildInfoRow('Father\'s Occupation', 'Senior Software Manager'),
-          _buildInfoRow('Father\'s Mobile', '+91 98401 23456'),
-          _buildInfoRow('Mother\'s Name', 'S. Lakshmi'),
-          _buildInfoRow('Mother\'s Occupation', 'High School Teacher'),
-          _buildInfoRow('Mother\'s Mobile', '+91 98401 65432'),
-          _buildInfoRow('Local Guardian', 'K. Ramanathan (Uncle) • Chennai'),
-          _buildInfoRow(
-            'Parent Portal Sync Status',
-            'Synced ✅ (Active Parent Account)',
-            isBadge: true,
-            badgeColor: Colors.blue.shade100,
-            badgeTextColor: Colors.blue.shade900,
-          ),
-        ]),
-        const SizedBox(height: 40),
-      ],
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: rows,
+      ),
     );
   }
 
-  // ================= TAB 4: CERTIFICATIONS PORTFOLIO =================
-  Widget _buildCertificationsPortfolioTab() {
-    final List<Map<String, dynamic>> nptelCerts = [
-      {
-        'title': 'Programming in Java',
-        'issuer': 'IIT Kharagpur & NPTEL',
-        'score': '82%',
-        'grade': 'Elite',
-        'credentialId': 'NPTEL26CS820',
-        'issueDate': 'Aug 2026',
-        'status': 'Certified ✓',
-        'badgeColor': const Color(0xFFD97706),
-        'url': 'https://nptel.ac.in/noc/E-certificate',
-      },
-      {
-        'title': 'NPTEL Elite + Gold: Data Structures & Algorithms',
-        'issuer': 'IIT Madras & NPTEL',
-        'score': '92% (Top 1% National)',
-        'grade': 'Elite + Gold',
-        'credentialId': 'NPTEL25CS091',
-        'issueDate': 'Oct 2025',
-        'status': 'Verified',
-        'badgeColor': const Color(0xFFD97706),
-        'url': 'https://nptel.ac.in/noc/E-certificate',
-      },
-      {
-        'title': 'NPTEL Elite + Silver: Database Management Systems',
-        'issuer': 'IIT Kharagpur & NPTEL',
-        'score': '86% (Top 5% National)',
-        'grade': 'Elite + Silver',
-        'credentialId': 'NPTEL24CS042',
-        'issueDate': 'Apr 2025',
-        'status': 'Verified',
-        'badgeColor': const Color(0xFF475569),
-        'url': 'https://nptel.ac.in/noc/E-certificate',
-      },
-    ];
-
-    final List<Map<String, dynamic>> industryCerts = [
-      {
-        'title': 'AWS Certified Solutions Architect – Associate',
-        'issuer': 'Amazon Web Services (AWS)',
-        'level': 'Associate Grade',
-        'credentialId': 'AWS-ASA-9920148',
-        'issueDate': 'Nov 2025',
-        'expiryDate': 'Nov 2028',
-        'status': 'Verified',
-        'badgeColor': const Color(0xFF2563EB),
-        'url': 'https://aws.amazon.com/verification',
-      },
-      {
-        'title': 'Google Cloud Associate Cloud Engineer',
-        'issuer': 'Google Cloud Training',
-        'level': 'Professional Grade',
-        'credentialId': 'GCP-ACE-778102',
-        'issueDate': 'Jan 2026',
-        'expiryDate': 'Jan 2028',
-        'status': 'Verified',
-        'badgeColor': const Color(0xFF059669),
-        'url': 'https://google.accredible.com/verify',
-      },
-      {
-        'title': 'Meta Front-End Developer Professional Certificate',
-        'issuer': 'Coursera & Meta',
-        'level': 'Specialization',
-        'credentialId': 'META-FED-88419',
-        'issueDate': 'Feb 2026',
-        'expiryDate': 'Lifetime',
-        'status': 'Pending',
-        'badgeColor': const Color(0xFF7C3AED),
-        'url': 'https://coursera.org/verify/meta-fed',
-      },
-    ];
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Portfolio Summary Header Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+  Widget _buildModalRow(String label, String value, {bool isBadge = false, Color? badgeColor, Color? badgeTextColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
             ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B), size: 24),
-                  SizedBox(width: 10),
-                  Text(
-                    'Student Certifications Portfolio',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Verified records of NPTEL IIT Certifications & Industry Credentials.',
-                style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
+          const SizedBox(width: 10),
+          Expanded(
+            flex: 6,
+            child: isBadge
+                ? Align(
+                    alignment: Alignment.centerRight,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Column(
-                        children: [
-                          Text('TOTAL CERTS', style: TextStyle(fontSize: 9.5, color: Colors.white70, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 2),
-                          Text('5', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w900)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD97706).withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
-                      ),
-                      child: const Column(
-                        children: [
-                          Text('NPTEL (IIT)', style: TextStyle(fontSize: 9.5, color: Color(0xFFFCD34D), fontWeight: FontWeight.bold)),
-                          SizedBox(height: 2),
-                          Text('2', style: TextStyle(fontSize: 18, color: Color(0xFFFBBF24), fontWeight: FontWeight.w900)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2563EB).withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.4)),
-                      ),
-                      child: const Column(
-                        children: [
-                          Text('INDUSTRY', style: TextStyle(fontSize: 9.5, color: Color(0xFF93C5FD), fontWeight: FontWeight.bold)),
-                          SizedBox(height: 2),
-                          Text('3', style: TextStyle(fontSize: 18, color: Color(0xFF60A5FA), fontWeight: FontWeight.w900)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // ── 1. NPTEL CERTIFICATIONS SECTION ─────────────────────────────
-        _buildSectionHeader('🎓 NPTEL Certifications'),
-        const SizedBox(height: 8),
-        ...nptelCerts.map((cert) {
-          final Color color = (cert['badgeColor'] as Color?) ?? const Color(0xFF10B981);
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(Icons.workspace_premium_rounded, color: color, size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            cert['title'] as String,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            cert['issuer'] as String,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
+                        color: badgeColor ?? const Color(0xFFEEF2FF),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFA7F3D0)),
-                      ),
-                      child: const Text(
-                        'Verified',
-                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('SCORE & RANK', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text(cert['score'] as String, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: color)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('CREDENTIAL ID', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text(cert['credentialId'] as String, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text('ISSUE DATE', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text(cert['issueDate'] as String, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () async {
-                      final uri = Uri.parse(cert['url'] as String);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
-                    },
-                    icon: const Icon(Icons.open_in_new_rounded, size: 14),
-                    label: const Text('Verify NPTEL Certificate', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFFD97706),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-
-        const SizedBox(height: 24),
-
-        // ── 2. INDUSTRY CERTIFICATIONS SECTION ───────────────────────────
-        _buildSectionHeader('🏢 Industry Certifications'),
-        const SizedBox(height: 8),
-        ...industryCerts.map((cert) {
-          final Color color = (cert['badgeColor'] as Color?) ?? const Color(0xFF10B981);
-          final bool isVerified = cert['status'] == 'Verified';
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(Icons.verified_user_rounded, color: color, size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            cert['title'] as String,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            cert['issuer'] as String,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isVerified ? const Color(0xFFECFDF5) : const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: isVerified ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A)),
                       ),
                       child: Text(
-                        cert['status'] as String,
+                        value,
+                        textAlign: TextAlign.right,
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: isVerified ? const Color(0xFF059669) : const Color(0xFFD97706),
+                          color: badgeTextColor ?? const Color(0xFF4338CA),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
+                  )
+                : Text(
+                    value,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('CERT LEVEL', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text(cert['level'] as String, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: color)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('CREDENTIAL ID', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text(cert['credentialId'] as String, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text('VALIDITY', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text('${cert['issueDate']} - ${cert['expiryDate']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () async {
-                      final uri = Uri.parse(cert['url'] as String);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
-                    },
-                    icon: const Icon(Icons.open_in_new_rounded, size: 14),
-                    label: const Text('Verify Vendor Credential', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                    style: TextButton.styleFrom(
-                      foregroundColor: color,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-        const SizedBox(height: 40),
-      ],
-    );
-  }
-
-  // ================= TAB 5: DOCUMENT VAULT =================
-  Widget _buildDocumentVaultTab() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.green.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.green.shade200),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.verified_user_rounded, color: Colors.green.shade700, size: 24),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Identity & Records Verified', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade900, fontSize: 14)),
-                    Text('All mandatory academic records verified on 12 Sep 2022 by Registrar Office.', style: TextStyle(color: Colors.green.shade800, fontSize: 12)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-        _buildSectionHeader('📄 Official Document Vault'),
-
-        _buildDocumentTile('10th Standard Marksheet', 'PDF • 1.2 MB • Verified', Icons.picture_as_pdf_outlined),
-        _buildDocumentTile('12th Standard Higher Secondary Marksheet', 'PDF • 1.4 MB • Verified', Icons.picture_as_pdf_outlined),
-        _buildDocumentTile('Transfer Certificate (TC) & Conduct Certificate', 'PDF • 850 KB • Verified', Icons.picture_as_pdf_outlined),
-        _buildDocumentTile('First Graduate / Scholarship Eligibility Doc', 'PDF • 620 KB • Approved', Icons.verified_outlined),
-        _buildDocumentTile('Government Aadhar ID Copy', 'PDF • 410 KB • Verified', Icons.badge_outlined),
-        _buildDocumentTile('Campus Medical Fitness Certificate', 'PDF • 530 KB • Verified', Icons.health_and_safety_outlined),
-
-        const SizedBox(height: 20),
-        OutlinedButton.icon(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Document upload request portal opened.')),
-            );
-          },
-          icon: const Icon(Icons.cloud_upload_outlined, size: 18),
-          label: const Text('Upload / Request Updated Document'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            side: const BorderSide(color: AppColors.primary),
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        ),
-        const SizedBox(height: 40),
-      ],
-    );
-  }
-
-  Widget _buildDocumentTile(String title, String subtitle, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.remove_red_eye_outlined, color: AppColors.primary, size: 20),
-            tooltip: 'View Document',
-            onPressed: () => _showDocumentPreviewModal(context, title, subtitle),
-          ),
-          IconButton(
-            icon: const Icon(Icons.download_outlined, color: AppColors.textSecondary, size: 20),
-            tooltip: 'Download',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Downloading $title...'), backgroundColor: AppColors.primary),
-              );
-            },
           ),
         ],
       ),
     );
   }
 
-  void _showDocumentPreviewModal(BuildContext context, String title, String subtitle) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          width: 380,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  ),
-                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
-                ],
-              ),
-              const Divider(),
-              const SizedBox(height: 12),
-              Container(
-                height: 160,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.picture_as_pdf_rounded, size: 44, color: Colors.blue.shade700),
-                    const SizedBox(height: 8),
-                    Text('OFFICIAL VERIFIED DOCUMENT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.blue.shade900)),
-                    const SizedBox(height: 4),
-                    Text(subtitle, style: TextStyle(fontSize: 11, color: Colors.blue.shade700)),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.green.shade700, borderRadius: BorderRadius.circular(12)),
-                      child: const Text('SEALED BY REGISTRAR OFFICE ✓', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Downloading official $title PDF...'), backgroundColor: AppColors.primary),
-                  );
-                },
-                icon: const Icon(Icons.download_rounded, size: 18),
-                label: const Text('Download Official PDF Document'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 44),
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ================= TAB 4: SETTINGS & SECURITY =================
-  Widget _buildSettingsAndSecurityTab() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _buildSectionHeader('⚙️ Account Management'),
-        _buildSettingsTile(
-          icon: Icons.edit_note_outlined,
-          title: 'Request Profile Information Update',
-          subtitle: 'Update phone number, address, or photo with admin approval',
-          onTap: () => _showEditProfileRequestDialog(),
-        ),
-
-        const SizedBox(height: 16),
-        _buildSectionHeader('🔒 Security & Authentication'),
-        _buildSettingsTile(
-          icon: Icons.lock_outline,
-          title: 'Change Password',
-          subtitle: 'Update your account login password',
-          onTap: () => _showChangePasswordDialog(),
-        ),
-        _buildSwitchTile(
-          icon: Icons.fingerprint_rounded,
-          title: 'Biometric Login / 2FA',
-          subtitle: 'Use FaceID or Fingerprint to unlock portal',
-          value: _biometricEnabled,
-          onChanged: (val) => setState(() => _biometricEnabled = val),
-        ),
-
-        const SizedBox(height: 16),
-        _buildSectionHeader('🔔 Notification Preferences'),
-        _buildSwitchTile(
-          icon: Icons.campaign_outlined,
-          title: 'Academic Announcements',
-          subtitle: 'Receive instant push alerts for department notices',
-          value: _announcementNotifs,
-          onChanged: (val) => setState(() => _announcementNotifs = val),
-        ),
-        _buildSwitchTile(
-          icon: Icons.grade_outlined,
-          title: 'Grade & Mark Release Alerts',
-          subtitle: 'Notify when internal or semester grades are published',
-          value: _gradeNotifs,
-          onChanged: (val) => setState(() => _gradeNotifs = val),
-        ),
-        _buildSwitchTile(
-          icon: Icons.event_available_outlined,
-          title: 'Daily Attendance Warning',
-          subtitle: 'Alerts when subject attendance falls below 75%',
-          value: _attendanceNotifs,
-          onChanged: (val) => setState(() => _attendanceNotifs = val),
-        ),
-        _buildSwitchTile(
-          icon: Icons.receipt_long_outlined,
-          title: 'Fee Payment Reminders',
-          subtitle: 'Reminders for due tuition or exam fees',
-          value: _feeNotifs,
-          onChanged: (val) => setState(() => _feeNotifs = val),
-        ),
-
-        const SizedBox(height: 16),
-        _buildSectionHeader('ℹ️ Legal & Support'),
-        _buildSettingsTile(
-          icon: Icons.help_outline,
-          title: 'Campus IT HelpDesk & Support',
-          subtitle: 'Submit a ticket for technical issues or queries',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening Support Portal...')));
-          },
-        ),
-        _buildSettingsTile(
-          icon: Icons.privacy_tip_outlined,
-          title: 'Privacy Policy & Student Data Terms',
-          subtitle: 'Read Unisphere privacy policy',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening Privacy Policy...')));
-          },
-        ),
-
-        const SizedBox(height: 24),
-        ElevatedButton.icon(
-          onPressed: () => showSignOutConfirmationSheet(context, ref),
-          icon: const Icon(Icons.logout_rounded, size: 18),
-          label: const Text('Log Out of Account', style: TextStyle(fontWeight: FontWeight.bold)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red.shade50,
-            foregroundColor: AppColors.error,
-            elevation: 0,
-            side: const BorderSide(color: AppColors.error, width: 1),
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        ),
-        const SizedBox(height: 40),
-      ],
-    );
-  }
-
-  Widget _buildSettingsTile({
-    required IconData icon,
+  Widget _buildModalLinkTile({
     required String title,
-    required String subtitle,
+    required String handle,
+    required IconData icon,
+    required Color brandColor,
+    required String badge,
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: ListTile(
-        leading: Icon(icon, color: AppColors.primary),
-        title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
         onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: brandColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: brandColor, size: 20),
+        ),
+        title: Text(title, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+        subtitle: Text(handle, style: TextStyle(fontSize: 11.5, color: brandColor, fontWeight: FontWeight.w600)),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: brandColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(badge, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: brandColor)),
+        ),
       ),
     );
   }
 
-  Widget _buildSwitchTile({
-    required IconData icon,
+  Widget _buildModalSwitch({
     required String title,
-    required String subtitle,
+    required String sub,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
@@ -1780,61 +1770,92 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: SwitchListTile(
-        secondary: Icon(icon, color: AppColors.primary),
-        title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        title: Text(title, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+        subtitle: Text(sub, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
         value: value,
-        activeThumbColor: AppColors.primary,
+        activeThumbColor: const Color(0xFF4338CA),
         onChanged: onChanged,
       ),
     );
   }
 
+  Widget _buildModalActionTile({
+    required IconData icon,
+    required String title,
+    required String sub,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4338CA).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: const Color(0xFF4338CA), size: 20),
+        ),
+        title: Text(title, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+        subtitle: Text(sub, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+        trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8), size: 20),
+      ),
+    );
+  }
 
+  void _showPreferenceUpdatedSnackbar(String message) {
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(message),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
-  // ================= EDIT PROFILE REQUEST DIALOG =================
-  void _showEditProfileRequestDialog() {
-    final phoneController = TextEditingController(text: '+91 98765 43210');
-    final addressController = TextEditingController(text: 'Hostel Block B, Room 304');
-
+  // ================= DIALOGS & INTERACTIVE WORKFLOWS =================
+  void _showSubmitLinkedInDialog(BuildContext context, WidgetRef ref) {
+    final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.edit_note_outlined, color: AppColors.primary),
+            Icon(Icons.work_rounded, color: Color(0xFF0A66C2)),
             SizedBox(width: 8),
-            Text('Request Profile Update', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Connect LinkedIn Profile', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Changes to official details require admin approval from the Registrar Office.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Updated Mobile Number',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
+              'Enter your full public LinkedIn Profile URL to connect and display on your student dashboard.',
+              style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: addressController,
-              maxLines: 2,
+              controller: controller,
               decoration: const InputDecoration(
-                labelText: 'Updated Communication Address',
+                hintText: 'https://linkedin.com/in/username',
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -1842,29 +1863,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Update request submitted to Registrar office successfully!')),
-              );
+              final text = controller.text.trim();
+              if (text.isNotEmpty) {
+                ref.read(academicOverviewProvider.notifier).updateData(linkedinUrl: text);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('LinkedIn Profile linked successfully!')),
+                );
+              }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('Submit Request'),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0A66C2), foregroundColor: Colors.white),
+            child: const Text('Connect URL'),
           ),
         ],
       ),
     );
   }
 
-  // ================= CHANGE PASSWORD DIALOG =================
   void _showChangePasswordDialog() {
-    final currentPassController = TextEditingController();
-    final newPassController = TextEditingController();
+    final currentPass = TextEditingController();
+    final newPass = TextEditingController();
+    final confirmPass = TextEditingController();
 
     showDialog(
       context: context,
@@ -1881,36 +1903,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: currentPassController,
+              controller: currentPass,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Current Password',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
+              decoration: const InputDecoration(labelText: 'Current Password', border: OutlineInputBorder(), isDense: true),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             TextField(
-              controller: newPassController,
+              controller: newPass,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'New Password',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
+              decoration: const InputDecoration(labelText: 'New Password (min 6 chars)', border: OutlineInputBorder(), isDense: true),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: confirmPass,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Confirm New Password', border: OutlineInputBorder(), isDense: true),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              if (newPass.text.trim().length < 6) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('New password must be at least 6 characters.')));
+                return;
+              }
+              if (newPass.text.trim() != confirmPass.text.trim()) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('New passwords do not match.')));
+                return;
+              }
+              Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Password changed successfully!')),
+                const SnackBar(content: Text('Password updated successfully!')),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
@@ -1921,602 +1946,332 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     );
   }
 
-  // ================= HELPER WIDGETS =================
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-      ),
-    );
-  }
-
-  Widget _buildCard(List<Widget> children) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: children,
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(
-    String label,
-    String value, {
-    IconData? icon,
-    bool isBadge = false,
-    Color? badgeColor,
-    Color? badgeTextColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 18, color: AppColors.primary),
-            const SizedBox(width: 10),
-          ],
-          Expanded(
-            flex: 4,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 5,
-            child: isBadge
-                ? Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: badgeColor ?? AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        value,
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: badgeTextColor ?? AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  )
-                : Text(
-                    value,
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileVerificationCard() {
-    final user = ref.watch(authServiceProvider).currentUser;
-    if (user == null) return const SizedBox.shrink();
-
-    final meta = user.metadata ?? {};
-    final status = meta['verificationStatus'] ?? 'incomplete';
-
-    if (status == 'verified') {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFD1FAE5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF10B981)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.verified_rounded, color: Color(0xFF047857), size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('🟢 Verified Academic Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF047857))),
-                  Text('Approved by ${meta['verifiedBy'] ?? "Dr. R. Kumar (HOD, CSE)"}', style: const TextStyle(fontSize: 12, color: Color(0xFF065F46))),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (status == 'pending') {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFEF3C7),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFF59E0B)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.hourglass_top_rounded, color: Color(0xFFB45309), size: 26),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    '🟡 Verification Pending by HOD',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF92400E)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your profile details (ID: ${meta['registerNumber'] ?? "RA2111003010001"}, Dept: ${meta['department'] ?? "CSE"}, Sec: ${meta['section'] ?? "A"}) were submitted to Dr. R. Kumar (HOD) for review.',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF78350F), height: 1.4),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () async {
-                final updatedMeta = Map<String, dynamic>.from(meta);
-                updatedMeta['verificationStatus'] = 'incomplete';
-                final updated = user.copyWith(metadata: updatedMeta);
-                await ref.read(authServiceProvider).updateUserProfile(updated);
-              },
-              icon: const Icon(Icons.edit_note_rounded, size: 16),
-              label: const Text('Edit Submitted Details'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD97706),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                minimumSize: const Size(0, 36),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Status: Incomplete - Render Form
-    return _ProfileFormWidget(user: user);
-  }
-}
-
-class _ProfileFormWidget extends ConsumerStatefulWidget {
-  final UserModel user;
-
-  const _ProfileFormWidget({required this.user});
-
-  @override
-  ConsumerState<_ProfileFormWidget> createState() => _ProfileFormWidgetState();
-}
-
-class _ProfileFormWidgetState extends ConsumerState<_ProfileFormWidget> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _regNoController;
-  late final TextEditingController _phoneController;
-  late final TextEditingController _sectionController;
-  late final TextEditingController _leetcodeController;
-  late final TextEditingController _githubController;
-  late final TextEditingController _emergencyPrimaryController;
-  late final TextEditingController _emergencySecondaryController;
-  late final TextEditingController _cgpaController;
-  late final TextEditingController _attendanceController;
-  late String _selectedDept;
-  String _selectedSemester = 'Semester 6 (3rd Year)';
-  bool _isSubmitting = false;
-
-  final List<String> _semesters = [
-    'Semester 1 (1st Year)',
-    'Semester 2 (1st Year)',
-    'Semester 3 (2nd Year)',
-    'Semester 4 (2nd Year)',
-    'Semester 5 (3rd Year)',
-    'Semester 6 (3rd Year)',
-    'Semester 7 (4th Year)',
-    'Semester 8 (4th Year)',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    final meta = widget.user.metadata ?? {};
-    final isDemo = widget.user.email.toLowerCase().trim() == 'saravanapmvofficial@gmail.com';
-    _regNoController = TextEditingController(text: meta['registerNumber'] ?? (isDemo ? 'RA2111003010001' : ''));
-    _phoneController = TextEditingController(text: widget.user.phoneNumber ?? (isDemo ? '+91 98765 43210' : ''));
-    _sectionController = TextEditingController(text: meta['section'] ?? (isDemo ? 'Sec A' : ''));
-    _leetcodeController = TextEditingController(text: meta['leetcodeUsername'] ?? '');
-    _githubController = TextEditingController(text: meta['githubUsername'] ?? '');
-    _emergencyPrimaryController = TextEditingController(text: meta['emergencyContactPrimary'] ?? '');
-    _emergencySecondaryController = TextEditingController(text: meta['emergencyContactSecondary'] ?? '');
-    _cgpaController = TextEditingController(text: meta['cgpa']?.toString() ?? (isDemo ? '8.72' : ''));
-    _attendanceController = TextEditingController(text: meta['attendance']?.toString() ?? (isDemo ? '85.0' : ''));
-
-    final deptVal = meta['department']?.toString() ?? '';
-    _selectedDept = AppDepartments.list.firstWhere(
-      (d) => d.toLowerCase() == deptVal.toLowerCase() || d.toLowerCase().contains(deptVal.toLowerCase()),
-      orElse: () => AppDepartments.list.firstWhere(
-        (d) => d.contains('Computer Science'),
-        orElse: () => AppDepartments.list.first,
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _regNoController.dispose();
-    _phoneController.dispose();
-    _sectionController.dispose();
-    _leetcodeController.dispose();
-    _githubController.dispose();
-    _emergencyPrimaryController.dispose();
-    _emergencySecondaryController.dispose();
-    _cgpaController.dispose();
-    _attendanceController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submitToHod() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isSubmitting = true);
-
+  Future<void> _pickAndUploadPhoto(ImageSource source) async {
     try {
-      final regNo = _regNoController.text.trim();
-      final isTaken = await ref.read(firebaseFirestoreServiceProvider).isRegisterNumberTaken(regNo, widget.user.uid);
-      if (isTaken) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('⚠️ Register ID "$regNo" is already taken by another student! Please check your unique student ID.'),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      setState(() {
+        _isUploadingPhoto = true;
+        _customPhotoPath = picked.path;
+      });
+
+      final currentUser = ref.read(authServiceProvider).currentUser;
+      String finalPhotoUrl = picked.path;
+
+      if (currentUser != null) {
+        final storageService = ref.read(storageServiceProvider);
+        final uploadedUrl = await storageService.uploadFile(
+          storagePath: storageService.studentPhotoPath(currentUser.uid),
+          file: File(picked.path),
+        );
+        if (uploadedUrl != null && uploadedUrl.isNotEmpty) {
+          finalPhotoUrl = uploadedUrl;
         }
-        setState(() => _isSubmitting = false);
-        return;
-      }
 
-      final updatedMeta = Map<String, dynamic>.from(widget.user.metadata ?? {});
-      updatedMeta['registerNumber'] = regNo;
-      updatedMeta['department'] = _selectedDept;
-      updatedMeta['section'] = _sectionController.text.trim();
-      updatedMeta['semester'] = _selectedSemester;
-      if (_leetcodeController.text.trim().isNotEmpty) {
-        updatedMeta['leetcodeUsername'] = _leetcodeController.text.trim();
-      }
-      if (_githubController.text.trim().isNotEmpty) {
-        updatedMeta['githubUsername'] = _githubController.text.trim();
-      }
-      if (_emergencyPrimaryController.text.trim().isNotEmpty) {
-        updatedMeta['emergencyContactPrimary'] = _emergencyPrimaryController.text.trim();
-      }
-      if (_emergencySecondaryController.text.trim().isNotEmpty) {
-        updatedMeta['emergencyContactSecondary'] = _emergencySecondaryController.text.trim();
-      }
-      if (_cgpaController.text.trim().isNotEmpty) {
-        final double? c = double.tryParse(_cgpaController.text.trim());
-        if (c != null) updatedMeta['cgpa'] = c;
-      }
-      if (_attendanceController.text.trim().isNotEmpty) {
-        final double? a = double.tryParse(_attendanceController.text.trim());
-        if (a != null) updatedMeta['attendance'] = a;
-      }
-      updatedMeta['verificationStatus'] = 'pending';
-      updatedMeta['submittedAt'] = DateTime.now().toIso8601String();
+        final updatedMeta = Map<String, dynamic>.from(currentUser.metadata ?? {});
+        updatedMeta['passportPhotoUrl'] = finalPhotoUrl;
+        updatedMeta['photoUrl'] = finalPhotoUrl;
+        final updatedUser = currentUser.copyWith(
+          profileImageUrl: finalPhotoUrl,
+          metadata: updatedMeta,
+        );
 
-      final updatedUser = widget.user.copyWith(
-        phoneNumber: _phoneController.text.trim(),
-        metadata: updatedMeta,
-      );
-
-      await ref.read(authServiceProvider).updateUserProfile(updatedUser);
-
-      // Trigger academic overview update
-      ref.read(academicOverviewProvider.notifier).updateData(
-        cgpa: double.tryParse(_cgpaController.text.trim()),
-        attendancePercentage: double.tryParse(_attendanceController.text.trim()),
-      );
-      if (_leetcodeController.text.trim().isNotEmpty) {
-        ref.read(academicOverviewProvider.notifier).fetchLeetCodeStats(_leetcodeController.text.trim());
-      }
-      if (_githubController.text.trim().isNotEmpty) {
-        ref.read(academicOverviewProvider.notifier).fetchGitHubStats(_githubController.text.trim());
+        await ref.read(authServiceProvider).updateUserProfile(updatedUser);
       }
 
       if (mounted) {
+        setState(() {
+          _customPhotoPath = finalPhotoUrl;
+          _isUploadingPhoto = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🎉 Profile submitted to database & HOD for verification!'),
-            backgroundColor: Color(0xFFD97706),
-            behavior: SnackBarBehavior.floating,
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Student profile photo updated successfully!'),
+              ],
+            ),
+            backgroundColor: Color(0xFF16A34A),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isUploadingPhoto = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Submission notice: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
+          SnackBar(content: Text('Error updating photo: $e')),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.06),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+  void _showUploadPassportPhotoModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Update Profile Picture', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              const Text('Upload a clear formal passport size picture for campus ID and resume.', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const CircleAvatar(backgroundColor: Color(0xFFEEF2FF), child: Icon(Icons.camera_alt_rounded, color: Color(0xFF2563EB))),
+                title: const Text('Take a Photo (Camera)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadPhoto(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(backgroundColor: Color(0xFFEEF2FF), child: Icon(Icons.photo_library_rounded, color: Color(0xFF2563EB))),
+                title: const Text('Choose from Gallery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadPhoto(ImageSource.gallery);
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-      child: Form(
-        key: _formKey,
+    );
+  }
+
+  void _showCertificateDetailModal(BuildContext context, Map<String, dynamic> cert) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.assignment_ind_rounded, color: AppColors.primary, size: 24),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Complete Profile & Submit to HOD', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary)),
-                      Text('Fill in your academic information to submit for official HOD verification.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                    ],
-                  ),
+                Icon(Icons.workspace_premium_rounded, color: cert['color'] as Color, size: 28),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(cert['title'] as String, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
-            const Divider(height: 24),
-
-            const Text('Register / Student ID Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-            const SizedBox(height: 6),
-            TextFormField(
-              controller: _regNoController,
-              decoration: InputDecoration(
-                hintText: 'e.g. RA2111003010001',
-                prefixIcon: const Icon(Icons.badge_outlined, color: AppColors.primary, size: 18),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              validator: (val) => val == null || val.trim().isEmpty ? 'Register ID is required' : null,
-            ),
             const SizedBox(height: 14),
-
-            const Text('Academic Department', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-            const SizedBox(height: 6),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedDept,
-              isExpanded: true,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.account_balance_outlined, color: AppColors.primary, size: 18),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              items: AppDepartments.list.map((dept) {
-                return DropdownMenuItem<String>(
-                  value: dept,
-                  child: Text(dept, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
-                );
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _selectedDept = val);
-              },
-            ),
+            _buildModalInfoCard([
+              _buildModalRow('Issuing Authority', cert['issuer'] as String),
+              _buildModalRow('Credential ID', cert['id'] as String? ?? 'NPTEL-2024-9912'),
+              _buildModalRow('Issue Date', cert['date'] as String? ?? '2023–2024'),
+              _buildModalRow('Score / Grade', cert['score'] as String, isBadge: true),
+              _buildModalRow('Verification Status', 'Verified on Blockchain ✓', isBadge: true, badgeColor: const Color(0xFFD1FAE5), badgeTextColor: const Color(0xFF065F46)),
+            ]),
             const SizedBox(height: 14),
-
             Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Section / Group', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _sectionController,
-                        decoration: InputDecoration(
-                          hintText: 'Sec A',
-                          prefixIcon: const Icon(Icons.groups_outlined, color: AppColors.primary, size: 18),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ],
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credential badge link copied to clipboard!')));
+                    },
+                    icon: const Icon(Icons.share_rounded, size: 16),
+                    label: const Text('Share Badge'),
+                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Current Semester', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-                      const SizedBox(height: 6),
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedSemester,
-                        isExpanded: true,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-                        ),
-                        items: _semesters.map((sem) {
-                          return DropdownMenuItem<String>(
-                            value: sem,
-                            child: Text(sem, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11)),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedSemester = val);
-                        },
-                      ),
-                    ],
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Downloading Certificate for ${cert['title']}...')));
+                    },
+                    icon: const Icon(Icons.download_rounded, size: 16),
+                    label: const Text('Download PDF'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4338CA),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+          ],
+        ),
+      ),
+    );
+  }
 
-            const Text('Contact Phone Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-            const SizedBox(height: 6),
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
+  void _showAddCertificateDialog(BuildContext context, Function(Map<String, dynamic>) onAdd) {
+    final titleCtrl = TextEditingController();
+    final issuerCtrl = TextEditingController();
+    final scoreCtrl = TextEditingController();
+    final idCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Add New Credential', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Certification Title', isDense: true, border: OutlineInputBorder())),
+            const SizedBox(height: 10),
+            TextField(controller: issuerCtrl, decoration: const InputDecoration(labelText: 'Issuing Body (e.g. NPTEL, AWS)', isDense: true, border: OutlineInputBorder())),
+            const SizedBox(height: 10),
+            TextField(controller: scoreCtrl, decoration: const InputDecoration(labelText: 'Score / Grade (e.g. 94% / Elite)', isDense: true, border: OutlineInputBorder())),
+            const SizedBox(height: 10),
+            TextField(controller: idCtrl, decoration: const InputDecoration(labelText: 'Credential ID / URL', isDense: true, border: OutlineInputBorder())),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (titleCtrl.text.trim().isNotEmpty) {
+                onAdd({
+                  'title': titleCtrl.text.trim(),
+                  'issuer': issuerCtrl.text.trim().isNotEmpty ? issuerCtrl.text.trim() : 'Professional Cert',
+                  'badge': 'Verified ✓',
+                  'color': const Color(0xFF2563EB),
+                  'score': scoreCtrl.text.trim().isNotEmpty ? scoreCtrl.text.trim() : 'Passed',
+                  'id': idCtrl.text.trim().isNotEmpty ? idCtrl.text.trim() : 'CERT-2024-NEW',
+                  'date': 'Aug 2024',
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('New certification added to your profile!')));
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4338CA), foregroundColor: Colors.white),
+            child: const Text('Save Certificate'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _simulateDocumentDownload(BuildContext context, String docTitle) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: Color(0xFF4338CA)),
+            const SizedBox(height: 16),
+            Text('Downloading $docTitle...', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            const SizedBox(height: 4),
+            const Text('Verifying registrar cryptographic signature', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+          ],
+        ),
+      ),
+    );
+
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✓ Downloaded $docTitle to Device Storage.'),
+            backgroundColor: const Color(0xFF059669),
+          ),
+        );
+      }
+    });
+  }
+
+  void _showBookAppointmentDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Book Mentor Consultation', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Faculty Advisor: Dr. R. Ananth', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4338CA))),
+            SizedBox(height: 6),
+            Text('Available Slots: Monday – Friday (03:30 PM – 04:30 PM)\nVenue: CSE Faculty Cabin #204', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+            SizedBox(height: 12),
+            TextField(
               decoration: InputDecoration(
-                hintText: '+91 98765 43210',
-                prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 18),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Current CGPA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _cgpaController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(
-                          hintText: 'e.g. 8.75',
-                          prefixIcon: const Icon(Icons.grade_outlined, color: AppColors.primary, size: 18),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Attendance (%)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _attendanceController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(
-                          hintText: 'e.g. 88.5',
-                          prefixIcon: const Icon(Icons.percent_rounded, color: Color(0xFF059669), size: 18),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('LeetCode Handle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _leetcodeController,
-                        decoration: InputDecoration(
-                          hintText: 'e.g. johndoe',
-                          prefixIcon: const Icon(Icons.code_rounded, color: Color(0xFFEA580C), size: 18),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('GitHub Username', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _githubController,
-                        decoration: InputDecoration(
-                          hintText: 'e.g. johndoe-dev',
-                          prefixIcon: const Icon(Icons.terminal_rounded, color: Color(0xFF0F172A), size: 18),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            const Text('Emergency Contact (Name & Phone)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary)),
-            const SizedBox(height: 6),
-            TextFormField(
-              controller: _emergencyPrimaryController,
-              decoration: InputDecoration(
-                hintText: 'e.g. Parent Name • +91 98765 43210',
-                prefixIcon: const Icon(Icons.emergency_outlined, color: Colors.redAccent, size: 18),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _isSubmitting ? null : _submitToHod,
-                icon: _isSubmitting
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.send_rounded, size: 18),
-                label: Text(_isSubmitting ? 'Submitting to HOD...' : 'Submit to HOD for Verification'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                labelText: 'Purpose of Consultation',
+                hintText: 'e.g. Project Review / Attendance / Career Advice',
+                border: OutlineInputBorder(),
+                isDense: true,
               ),
             ),
           ],
         ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Appointment request sent to Dr. R. Ananth for confirmation.')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4338CA), foregroundColor: Colors.white),
+            child: const Text('Confirm Booking'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSubmitTicketDialog(BuildContext context) {
+    final subCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Submit IT Support Ticket', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: subCtrl, decoration: const InputDecoration(labelText: 'Issue Subject', hintText: 'e.g. Wi-Fi MAC Address Whitelisting', isDense: true, border: OutlineInputBorder())),
+            const SizedBox(height: 10),
+            TextField(controller: descCtrl, maxLines: 3, decoration: const InputDecoration(labelText: 'Description', hintText: 'Provide details about the issue...', isDense: true, border: OutlineInputBorder())),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (subCtrl.text.trim().isNotEmpty) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Support Ticket #IT-2024-8902 submitted to Campus IT HelpDesk.')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4338CA), foregroundColor: Colors.white),
+            child: const Text('Submit Ticket'),
+          ),
+        ],
       ),
     );
   }

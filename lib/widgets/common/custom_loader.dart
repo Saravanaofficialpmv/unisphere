@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 
-/// App-wide Loader widget that displays the official animated GIF asset (`assets/bloub-default-cycle-4.gif`).
+/// App-wide Loader widget that displays the official animated GIF asset (`assets/tibsy-dp.gif`).
 /// Supports customizable dimensions, status labels, card styling, debounce, and full-screen modes.
 class Loader extends StatelessWidget {
   /// Width and height of the loader animation.
@@ -184,24 +184,27 @@ class Loader extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final Widget loaderImage = Image.asset(
-      'assets/bloub-default-cycle-4.gif',
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      gaplessPlayback: true,
-      errorBuilder: (context, error, stackTrace) {
-        return SizedBox(
-          width: size,
-          height: size,
-          child: const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: AppColors.primary,
+    final Widget loaderImage = ClipRRect(
+      borderRadius: BorderRadius.circular(size > 40 ? 20 : 12),
+      child: Image.asset(
+        'assets/tibsy-dp.gif',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) {
+          return SizedBox(
+            width: size,
+            height: size,
+            child: const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: AppColors.primary,
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
 
     Widget content = Column(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unisphere/core/theme/app_animations_kit.dart';
 import 'package:unisphere/widgets/common/app_progress_indicators.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 import 'package:unisphere/providers/attendance_system_provider.dart';
@@ -1044,20 +1045,29 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
       ),
       child: Row(
         children: [
-          AppCircularGauge(
-            radius: 42.0,
-            lineWidth: 7.0,
-            percent: overallPercentage.clamp(0.0, 1.0),
-            center: Text(
-              '${(overallPercentage * 100).toStringAsFixed(1)}%',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 14,
-              ),
-            ),
-            progressColor: const Color(0xFF34D399),
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: overallPercentage.clamp(0.0, 1.0)),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (context, animPercent, _) {
+              return AppCircularGauge(
+                radius: 42.0,
+                lineWidth: 7.0,
+                percent: animPercent,
+                center: AppCountUpText(
+                  end: (overallPercentage * 100),
+                  precision: 1,
+                  suffix: '%',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                ),
+                progressColor: const Color(0xFF34D399),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+              );
+            },
           ),
           const SizedBox(width: 14),
           Expanded(

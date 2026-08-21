@@ -229,7 +229,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           }
                         },
                   child: isResetting
-                      ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.asset(
+                                'assets/tibsy-dp.gif',
+                                width: 18,
+                                height: 18,
+                                fit: BoxFit.contain,
+                                gaplessPlayback: true,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Sending...'),
+                          ],
+                        )
                       : const Text('Send Reset Link'),
                 ),
               ],
@@ -563,47 +579,84 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           validator: (val) => _isSignUp && (val == null || !val.contains('@')) ? 'Valid college email required' : null,
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Password', style: _labelStyle),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _passwordController,
-                    hint: '••••••••',
-                    icon: Icons.lock_outline,
-                    isPassword: true,
-                    obscureText: _obscurePassword,
-                    onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
-                    validator: (val) => _isSignUp && (val == null || val.length < 6) ? 'Min 6 characters' : null,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Confirm Password', style: _labelStyle),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _confirmPasswordController,
-                    hint: '••••••••',
-                    icon: Icons.lock_clock_outlined,
-                    isPassword: true,
-                    obscureText: _obscureConfirmPassword,
-                    onToggleVisibility: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                    validator: (val) => _isSignUp && (val == null || val.isEmpty) ? 'Confirm password' : null,
-                  ),
-                ],
-              ),
-            ),
-          ],
+        const Text('Password', style: _labelStyle),
+        const SizedBox(height: 8),
+        _buildTextField(
+          controller: _passwordController,
+          hint: '••••••••',
+          icon: Icons.lock_outline,
+          isPassword: true,
+          obscureText: _obscurePassword,
+          onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
+          onChanged: (_) => setState(() {}),
+          validator: (val) {
+            if (!_isSignUp) return null;
+            if (val == null || val.isEmpty) return 'Password required';
+            if (val.length < 6) return 'Min 6 characters';
+            return null;
+          },
         ),
+        const SizedBox(height: 16),
+        const Text('Confirm Password', style: _labelStyle),
+        const SizedBox(height: 8),
+        _buildTextField(
+          controller: _confirmPasswordController,
+          hint: '••••••••',
+          icon: Icons.lock_clock_outlined,
+          isPassword: true,
+          obscureText: _obscureConfirmPassword,
+          onToggleVisibility: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+          onChanged: (_) => setState(() {}),
+          validator: (val) {
+            if (!_isSignUp) return null;
+            if (val == null || val.isEmpty) return 'Confirm password';
+            if (val != _passwordController.text) return 'Passwords do not match';
+            return null;
+          },
+        ),
+        if (_isSignUp &&
+            (_passwordController.text.isNotEmpty || _confirmPasswordController.text.isNotEmpty)) ...[
+          const SizedBox(height: 8),
+          Builder(
+            builder: (context) {
+              final pass = _passwordController.text;
+              final confirm = _confirmPasswordController.text;
+              if (pass.isEmpty || confirm.isEmpty) {
+                return Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 6),
+                    Text(
+                      pass.length < 6
+                          ? 'Password must be at least 6 characters'
+                          : 'Enter confirm password to match',
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                );
+              }
+              final isMatch = pass == confirm;
+              return Row(
+                children: [
+                  Icon(
+                    isMatch ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                    size: 14,
+                    color: isMatch ? AppColors.success : AppColors.error,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    isMatch ? 'Both passwords match' : 'Passwords do not match',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isMatch ? AppColors.success : AppColors.error,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
         const SizedBox(height: 24),
         _buildSubmitButton('Create Account & Continue →'),
         const SizedBox(height: 20),
@@ -628,15 +681,38 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleSubmit,
+        onPressed: _isLoading ? () {} : _handleSubmit,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          disabledBackgroundColor: AppColors.primary,
+          disabledForegroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          elevation: _isLoading ? 0 : 2,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         child: _isLoading 
-          ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/tibsy-dp.gif',
+                    width: 28,
+                    height: 28,
+                    fit: BoxFit.contain,
+                    gaplessPlayback: true,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  _isSignUp ? 'Creating Account...' : 'Signing In...',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ],
+            )
           : Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
@@ -835,20 +911,53 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     bool obscureText = false,
     VoidCallback? onToggleVisibility,
     String? Function(String?)? validator,
+    void Function(String)? onChanged,
   }) {
     return TextFormField(
       controller: controller,
+      cursorColor: AppColors.primary,
       obscureText: obscureText,
       validator: validator,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      onChanged: onChanged,
+      style: const TextStyle(fontSize: 14.5, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         hintText: hint,
+        hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 14),
         prefixIcon: icon != null ? Icon(icon, color: AppColors.primary, size: 20) : null,
-        suffixIcon: isPassword ? IconButton(icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility, size: 20), onPressed: onToggleVisibility) : null,
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
+                onPressed: onToggleVisibility,
+              )
+            : null,
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.border)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.border)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.primary, width: 1.5)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.error, width: 2.0),
+        ),
+        errorMaxLines: 2,
         contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
       ),
     );

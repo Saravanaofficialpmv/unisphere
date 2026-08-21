@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
-import 'package:unisphere/widgets/student_full_detail_modal.dart';
+import 'package:unisphere/widgets/student/student_full_detail_modal.dart';
 
 class StaffStudentDirectory extends ConsumerStatefulWidget {
   const StaffStudentDirectory({super.key});

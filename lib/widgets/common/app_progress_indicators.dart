@@ -37,6 +37,7 @@ class AppCircularGauge extends StatelessWidget {
             child: CircularProgressIndicator(
               value: clampedPercent,
               strokeWidth: lineWidth,
+              strokeAlign: CircularProgressIndicator.strokeAlignInside,
               color: progressColor,
               backgroundColor: backgroundColor,
               strokeCap: StrokeCap.round,

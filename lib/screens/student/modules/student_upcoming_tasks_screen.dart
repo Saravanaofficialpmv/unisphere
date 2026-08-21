@@ -7,6 +7,7 @@ import 'package:unisphere/models/submission_model.dart';
 import 'package:unisphere/services/assignment_service.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
+import 'package:unisphere/core/theme/app_animations_kit.dart';
 import 'package:unisphere/widgets/common/custom_loader.dart';
 import 'package:unisphere/widgets/common/unisphere_header_card.dart';
 
@@ -628,6 +629,7 @@ class _StudentUpcomingTasksScreenState extends ConsumerState<StudentUpcomingTask
 
                                 if (mounted) {
                                   Navigator.pop(ctx);
+                                  AppConfetti.show(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Row(

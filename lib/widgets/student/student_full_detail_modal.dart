@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:unisphere/screens/features/leetcode_detail_screen.dart';
 import 'package:unisphere/screens/features/github_detail_screen.dart';
@@ -117,8 +118,11 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundImage: NetworkImage(photo),
+                    backgroundImage: photo.startsWith('http')
+                        ? NetworkImage(photo)
+                        : (File(photo).existsSync() ? FileImage(File(photo)) : null) as ImageProvider?,
                     backgroundColor: const Color(0xFFE2E8F0),
+                    child: photo.isEmpty ? const Icon(Icons.person, color: Color(0xFF2563EB)) : null,
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -1448,8 +1452,9 @@ class _StudentFullDetailSheetState extends State<StudentFullDetailSheet> {
                     ? '${s['membership']?['membershipOrg'] ?? 'Society'} (${s['membership']?['membershipId']})'
                     : 'ISTE Society (ISTE-2024-9842)',
           ),
-          _buildDetailRow('Father / Guardian', 'Ramesh Swamy (+91 94444 12345)'),
-          _buildDetailRow('Residential Address', 'No. 45, Anna Nagar 2nd Street, Chennai - 600040'),
+          _buildDetailRow('Father / Guardian', s['fatherName'] ?? s['parents']?['father']?['name'] ?? 'Ramesh Swamy (+91 94444 12345)'),
+          _buildDetailRow('Parent Annual Income', s['parentAnnualIncome'] ?? s['parents']?['parentAnnualIncome'] ?? s['parents']?['annualIncome'] ?? '₹4,50,000 / annum'),
+          _buildDetailRow('Residential Address', s['address'] ?? s['contact']?['permanentAddress']?['addressLine1'] ?? 'No. 45, Anna Nagar 2nd Street, Chennai - 600040'),
         ],
       ),
     );

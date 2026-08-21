@@ -266,17 +266,21 @@ class StudentParentDetails {
   final ParentRecord father;
   final ParentRecord mother;
   final GuardianRecord? guardian;
+  final String parentAnnualIncome;
 
   StudentParentDetails({
     required this.father,
     required this.mother,
     this.guardian,
+    this.parentAnnualIncome = '₹3,00,000 - ₹5,00,000',
   });
 
   Map<String, dynamic> toMap() => {
         'father': father.toMap(),
         'mother': mother.toMap(),
         'guardian': guardian?.toMap(),
+        'parentAnnualIncome': parentAnnualIncome,
+        'annualIncome': parentAnnualIncome,
       };
 
   factory StudentParentDetails.fromMap(Map<String, dynamic> map) =>
@@ -288,6 +292,9 @@ class StudentParentDetails {
         guardian: map['guardian'] != null
             ? GuardianRecord.fromMap(map['guardian'] as Map<String, dynamic>)
             : null,
+        parentAnnualIncome: map['parentAnnualIncome'] ??
+            map['annualIncome'] ??
+            '₹3,00,000 - ₹5,00,000',
       );
 }
 
