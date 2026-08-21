@@ -8,6 +8,7 @@ import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/parent_service.dart';
 import 'package:unisphere/models/parent_portal_types.dart';
 import 'package:unisphere/widgets/common/notification_sheet.dart';
+import 'package:unisphere/widgets/common/department_vision_sheet.dart';
 import 'package:unisphere/widgets/common/main_sidebar.dart';
 import 'package:unisphere/widgets/parent/parent_floating_nav_bar.dart';
 import 'package:unisphere/widgets/parent/parent_navigation_sheet.dart';
@@ -65,7 +66,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<NavigatorState> _innerNavigatorKey = GlobalKey<NavigatorState>();
 
-  final List<SidebarItem> _sidebarItems = [
+  static final List<SidebarItem> parentSidebarItems = [
     SidebarItem(label: 'Dashboard Home', icon: Icons.dashboard_outlined),
     SidebarItem(label: 'Attendance History', icon: Icons.calendar_month_outlined),
     SidebarItem(label: 'Performance Marks', icon: Icons.bar_chart_outlined),
@@ -77,6 +78,8 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
     SidebarItem(label: 'Events & Fests', icon: Icons.event_outlined),
     SidebarItem(label: 'Transport Details', icon: Icons.bus_alert_outlined),
   ];
+
+  List<SidebarItem> get _sidebarItems => parentSidebarItems;
 
   final List<int> _navigationHistory = [0];
 
@@ -265,140 +268,7 @@ class ParentHomeScreen extends ConsumerStatefulWidget {
 class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
   late List<ParentStudentWard> _wards;
   late ParentStudentWard _selectedWard;
-
-  // Upcoming Exams
-  final List<ParentExamModel> _upcomingExams = [
-    ParentExamModel(
-      id: 'ex_1',
-      examName: 'Internal Assessment — II',
-      subject: 'Operating Systems',
-      examDate: DateTime(2026, 8, 28),
-      timeSlot: '10:00 AM - 11:30 AM',
-      venue: 'Room LH-204',
-      examType: 'Internal',
-    ),
-    ParentExamModel(
-      id: 'ex_2',
-      examName: 'Model Examination',
-      subject: 'Database Management Systems',
-      examDate: DateTime(2026, 9, 2),
-      timeSlot: '09:30 AM - 12:30 PM',
-      venue: 'Lab 3',
-      examType: 'Model',
-    ),
-    ParentExamModel(
-      id: 'ex_3',
-      examName: 'End Semester Practical',
-      subject: 'Web Technology Workshop',
-      examDate: DateTime(2026, 9, 8),
-      timeSlot: '02:00 PM - 05:00 PM',
-      venue: 'Computer Lab 1',
-      examType: 'Practical',
-    ),
-  ];
-
-  // Upcoming Events
-  final List<ParentEventModel> _upcomingEvents = [
-    ParentEventModel(
-      id: 'ev_1',
-      title: 'Parent–Teacher Meeting',
-      eventDate: DateTime(2026, 9, 2),
-      timeSlot: '10:00 AM',
-      venue: 'Main Auditorium',
-      category: 'Meeting',
-      description: 'Semester 6 performance review and placement roadmap feedback with class mentors.',
-    ),
-    ParentEventModel(
-      id: 'ev_2',
-      title: 'Technical Symposium — TechFest 2026',
-      eventDate: DateTime(2026, 9, 8),
-      timeSlot: '09:30 AM',
-      venue: 'Seminar Hall',
-      category: 'Academic',
-      description: 'Annual inter-departmental technical paper presentations and hackathons.',
-    ),
-    ParentEventModel(
-      id: 'ev_3',
-      title: 'Annual Sports Meet',
-      eventDate: DateTime(2026, 9, 15),
-      timeSlot: '08:30 AM',
-      venue: 'College Grounds',
-      category: 'Sports',
-      description: 'Inter-house athletic competitions and award ceremony.',
-    ),
-  ];
-
-  // Important Announcements
-  final List<ParentAnnouncementModel> _announcements = [
-    ParentAnnouncementModel(
-      id: 'an_1',
-      title: 'Semester Examination Schedule Released',
-      description: 'The official timetable for upcoming semester end-term theory examinations is available.',
-      datePublished: DateTime(2026, 8, 20),
-      category: 'Examination',
-      isImportant: true,
-    ),
-    ParentAnnouncementModel(
-      id: 'an_2',
-      title: 'Tuition & Transport Fee Payment Reminder',
-      description: 'Installment 2 fee payment deadline is September 15, 2026. Online e-receipt generation active.',
-      datePublished: DateTime(2026, 8, 18),
-      category: 'Fees',
-      isImportant: true,
-    ),
-    ParentAnnouncementModel(
-      id: 'an_3',
-      title: 'Hostel Outing Pass Consent Policy',
-      description: 'Parent digital approval is now mandatory for weekend outings via Parent Portal.',
-      datePublished: DateTime(2026, 8, 15),
-      category: 'Policy',
-      isImportant: false,
-    ),
-  ];
-
-  // Recent Notifications
-  final List<ParentNotificationItem> _recentNotifications = [
-    ParentNotificationItem(
-      id: 'not_1',
-      title: 'Attendance Alert',
-      message: 'Operating Systems attendance has fallen below recommended level.',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      icon: Icons.warning_amber_rounded,
-      iconColor: const Color(0xFFEF4444),
-      targetTab: 'attendance',
-      targetTabIndex: 1,
-    ),
-    ParentNotificationItem(
-      id: 'not_2',
-      title: 'New Internal Marks Published',
-      message: 'DBMS Internal Assessment 2 marks have been published.',
-      timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-      icon: Icons.grade_rounded,
-      iconColor: const Color(0xFF2563EB),
-      targetTab: 'academics',
-      targetTabIndex: 2,
-    ),
-    ParentNotificationItem(
-      id: 'not_3',
-      title: 'Fee Due Reminder',
-      message: 'Pending fee of ₹12,500 due on 15 Sep 2026.',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      icon: Icons.payments_rounded,
-      iconColor: const Color(0xFFD97706),
-      targetTab: 'fees',
-      targetTabIndex: 6,
-    ),
-    ParentNotificationItem(
-      id: 'not_4',
-      title: 'Parent–Teacher Meeting Invitation',
-      message: 'Scheduled on 02 Sep at 10:00 AM in Main Auditorium.',
-      timestamp: DateTime.now().subtract(const Duration(days: 2)),
-      icon: Icons.event_rounded,
-      iconColor: const Color(0xFF7C3AED),
-      targetTab: 'events',
-      targetTabIndex: 8,
-    ),
-  ];
+  String _selectedTrendMode = 'CGPA'; // 'CGPA' or 'SGPA'
 
   @override
   void initState() {
@@ -414,63 +284,69 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.all(isDesktop ? 24 : 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 28 : 16,
+        vertical: 12,
+      ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+          constraints: const BoxConstraints(maxWidth: 1000),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. STUDENT IDENTITY HEADER & WARD SWITCHER
-              _buildStudentIdentityHeader(context),
+              // 1. TOP PARENT WELCOME & NOTIFICATION BAR
+              _buildParentTopWelcomeBar(context),
+
+              const SizedBox(height: 16),
+
+              // 2. SEARCH & QUICK ACTION BAR
+              _buildSearchBarAndQuickAction(context),
+
+              const SizedBox(height: 18),
+
+              // 3. STUDENT IDENTITY PROFILE CARD (ALEX JOHNSON)
+              _buildStudentIdentityCard(context),
+
+              const SizedBox(height: 16),
+
+              // 4. 3-COLUMN KEY METRICS STRIP (STUDENT / PRESENCE / INTERNAL SCORE)
+              _buildThreeColumnKeyMetricsStrip(context),
 
               const SizedBox(height: 20),
 
-              // 2, 3, 4. SUMMARY METRIC CARDS (ATTENDANCE, ACADEMICS, FEES)
-              _buildSummaryCardsSection(isDesktop),
+              // 5. 5 CIRCULAR QUICK LAUNCHER ACTION BUTTONS
+              _buildFiveQuickLauncherIcons(context),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
-              // 5 & 6. UPCOMING EXAMS & UPCOMING EVENTS (GRID OR STACK)
+              // 6. UPCOMING (EXAMS & MEETINGS) & RECENT UPDATES
               if (isDesktop)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildUpcomingExamsSection()),
-                    const SizedBox(width: 20),
-                    Expanded(child: _buildUpcomingEventsSection()),
+                    Expanded(child: _buildUpcomingCard(context)),
+                    const SizedBox(width: 18),
+                    Expanded(child: _buildRecentUpdatesCard(context)),
                   ],
                 )
               else ...[
-                _buildUpcomingExamsSection(),
-                const SizedBox(height: 24),
-                _buildUpcomingEventsSection(),
+                _buildUpcomingCard(context),
+                const SizedBox(height: 18),
+                _buildRecentUpdatesCard(context),
               ],
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
-              // 7 & 8. IMPORTANT ANNOUNCEMENTS & RECENT NOTIFICATIONS
-              if (isDesktop)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: _buildImportantAnnouncementsSection()),
-                    const SizedBox(width: 20),
-                    Expanded(child: _buildRecentNotificationsSection()),
-                  ],
-                )
-              else ...[
-                _buildImportantAnnouncementsSection(),
-                const SizedBox(height: 24),
-                _buildRecentNotificationsSection(),
-              ],
+              // 7. ACADEMIC PERFORMANCE TREND & INSIGHT CARD
+              _buildAcademicPerformanceTrendSection(context, isDesktop),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
-              // 9. CAMPUS RECENT GALLERY
+              // 8. CAMPUS RECENT PHOTO GALLERY
               const RecentPhotosSection(),
 
-              const SizedBox(height: 90),
+              // Clearance for floating bottom navigation bar
+              const SizedBox(height: 96),
             ],
           ),
         ),
@@ -478,123 +354,410 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
     );
   }
 
-  // 1. STUDENT IDENTITY HEADER WITH WARD SWITCHER
-  Widget _buildStudentIdentityHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF2563EB), Color(0xFF3B82F6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2563EB).withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+  // ───────────────────────────────────────────────────────────────────────────
+  // 1. TOP PARENT HEADER (WELCOME BAR)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildParentTopWelcomeBar(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Parent Profile Avatar
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEEF2FF),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFDBEAFE), width: 1.5),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+          child: const Center(
+            child: Icon(Icons.person_rounded, color: AppColors.primary, size: 28),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // Welcome Text & Ward Connection
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Photo or Initials Avatar
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 2),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: _selectedWard.photoUrl != null
-                      ? Image.network(
-                          _selectedWard.photoUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
-                        )
-                      : _buildAvatarFallback(),
+              Row(
+                children: [
+                  Text(
+                    'Hello, Welcome Back!',
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text('👋', style: TextStyle(fontSize: 12)),
+                ],
+              ),
+              const SizedBox(height: 1),
+              Text(
+                'Mrs. Rajesh',
+                style: GoogleFonts.manrope(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF0F172A),
+                  letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(width: 14),
-
-              // Student Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 1),
+              InkWell(
+                onTap: () => _showStudentSelectorSheet(context),
+                borderRadius: BorderRadius.circular(4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    Text(
+                      'Parent of ',
+                      style: GoogleFonts.manrope(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
                     Text(
                       _selectedWard.name,
                       style: GoogleFonts.manrope(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Register No: ${_selectedWard.regNo}',
-                      style: GoogleFonts.manrope(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                    ),
-                    Text(
-                      '${_selectedWard.department} • ${_selectedWard.yearSection}',
-                      style: GoogleFonts.manrope(
                         fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(width: 2),
+                    const Icon(Icons.keyboard_arrow_down_rounded, size: 15, color: AppColors.primary),
                   ],
                 ),
               ),
+            ],
+          ),
+        ),
 
-              // WARD SWITCHER BUTTON
-              if (_wards.length > 1)
-                Material(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                  child: InkWell(
-                    onTap: () => _showStudentSelectorSheet(context),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _selectedWard.name.split(' ').first,
+        // Right Action Buttons: Academic Vision & Notifications
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Department Vision / Academics button
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => showDepartmentVisionSheet(context),
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFDBEAFE)),
+                  ),
+                  child: const Icon(Icons.school_rounded, color: AppColors.primary, size: 20),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Notification Bell with Badge
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => showNotificationSheet(context),
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFDBEAFE)),
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.notifications_rounded, color: AppColors.primary, size: 20),
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(3.5),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFEF4444),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '3',
                             style: GoogleFonts.manrope(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
                               color: Colors.white,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 18),
-                        ],
+                        ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 2. SEARCH & QUICK ACTION PILL
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildSearchBarAndQuickAction(BuildContext context) {
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search updates, exams, fees, timetable...',
+                hintStyle: GoogleFonts.manrope(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF94A3B8),
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              style: GoogleFonts.manrope(fontSize: 13, color: const Color(0xFF0F172A)),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Lightning bolt quick action button
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                showParentNavigationSheet(
+                  context: context,
+                  selectedIndex: 0,
+                  onDestinationSelected: (idx) => widget.onNavigateToTab?.call(idx),
+                  items: _ParentDashboardState.parentSidebarItems,
+                  userName: 'Mrs. Rajesh',
+                  userEmail: 'parent.rajesh@gmail.com',
+                );
+              },
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 3. STUDENT IDENTITY PROFILE CARD (ALEX JOHNSON)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildStudentIdentityCard(BuildContext context) {
+    return InkWell(
+      onTap: () => _showStudentSelectorSheet(context),
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Student Photo Avatar with Active Green Dot
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
+                  ),
+                  child: ClipOval(
+                    child: _selectedWard.photoUrl != null
+                        ? Image.network(
+                            _selectedWard.photoUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _buildAvatarFallback(),
+                          )
+                        : _buildAvatarFallback(),
+                  ),
+                ),
+                Positioned(
+                  bottom: 2,
+                  right: 2,
+                  child: Container(
+                    width: 13,
+                    height: 13,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
                   ),
                 ),
-            ],
+              ],
+            ),
+            const SizedBox(width: 14),
+
+            // Name, RegNo, and Tag Chips
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _selectedWard.name,
+                          style: GoogleFonts.manrope(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDCFCE7),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'Active',
+                          style: GoogleFonts.manrope(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF15803D),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Reg No: ${_selectedWard.regNo}',
+                    style: GoogleFonts.manrope(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      _buildSmallTag(Icons.computer_rounded, 'Computer Science', const Color(0xFFEFF6FF), const Color(0xFF2563EB)),
+                      _buildSmallTag(Icons.calendar_today_rounded, '3rd Year', const Color(0xFFF5F3FF), const Color(0xFF7C3AED)),
+                      _buildSmallTag(Icons.shield_outlined, 'Sec B', const Color(0xFFF1F5F9), const Color(0xFF475569)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // College / Institution Branding
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Icon(Icons.account_balance_rounded, color: Color(0xFF6366F1), size: 26),
+                const SizedBox(height: 4),
+                Text(
+                  'SRI ECT College\nof Engineering',
+                  style: GoogleFonts.manrope(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF1E293B),
+                    height: 1.15,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmallTag(IconData icon, String text, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: textColor),
+          const SizedBox(width: 3.5),
+          Text(
+            text,
+            style: GoogleFonts.manrope(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
         ],
       ),
@@ -602,13 +765,16 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
   }
 
   Widget _buildAvatarFallback() {
-    return Center(
-      child: Text(
-        _selectedWard.avatarInitials,
-        style: GoogleFonts.manrope(
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
+    return Container(
+      color: const Color(0xFF2563EB),
+      child: Center(
+        child: Text(
+          _selectedWard.avatarInitials,
+          style: GoogleFonts.manrope(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -619,1094 +785,1025 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
       context: context,
       useRootNavigator: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       backgroundColor: Colors.white,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Select Active Student Ward',
-              style: GoogleFonts.manrope(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Switch profile view to monitor another student ward',
-              style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            ..._wards.map((ward) {
-              final isSelected = ward.id == _selectedWard.id;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary.withValues(alpha: 0.06) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isSelected ? AppColors.primary : AppColors.border,
-                    width: isSelected ? 1.5 : 1.0,
-                  ),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(2)),
                 ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
-                    child: Text(
-                      ward.avatarInitials,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Select Active Student Ward',
+                style: GoogleFonts.manrope(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Switch profile view to monitor another student ward',
+                style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              ..._wards.map((ward) {
+                final isSelected = ward.id == _selectedWard.id;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary.withValues(alpha: 0.06) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                      width: isSelected ? 1.5 : 1.0,
                     ),
                   ),
-                  title: Text(
-                    ward.name,
-                    style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 15),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+                      child: Text(
+                        ward.avatarInitials,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      ward.name,
+                      style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    subtitle: Text(
+                      '${ward.department} • ${ward.yearSection}',
+                      style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                        : null,
+                    onTap: () {
+                      setState(() => _selectedWard = ward);
+                      Navigator.of(ctx).pop();
+                    },
                   ),
-                  subtitle: Text(
-                    '${ward.department} • ${ward.yearSection}',
-                    style: GoogleFonts.manrope(fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                  trailing: isSelected
-                      ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
-                      : null,
-                  onTap: () {
-                    setState(() => _selectedWard = ward);
-                    Navigator.of(ctx).pop();
-                  },
-                ),
-              );
-            }),
-          ],
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // 2, 3. SUMMARY METRIC CARDS SECTION
-  Widget _buildSummaryCardsSection(bool isDesktop) {
-    final attendanceCard = _buildAttendanceSummaryCard();
-    final academicsCard = _buildAcademicsSummaryCard();
-
-    if (isDesktop) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: attendanceCard),
-          const SizedBox(width: 16),
-          Expanded(child: academicsCard),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        attendanceCard,
-        const SizedBox(height: 16),
-        academicsCard,
-      ],
-    );
-  }
-
-  // 2. REDESIGNED ATTENDANCE SUMMARY CARD (MATCHING REFERENCE UI)
-  Widget _buildAttendanceSummaryCard() {
-    final healthBadge = _selectedWard.attendanceHealthStatus;
-    final pctInt = (_selectedWard.attendancePercent * 100).toInt();
+  // ───────────────────────────────────────────────────────────────────────────
+  // 4. 3-COLUMN KEY METRIC STRIP
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildThreeColumnKeyMetricsStrip(BuildContext context) {
+    final presencePercent = (_selectedWard.attendancePercent * 100).toInt();
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          // Header Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(Icons.pie_chart_rounded, color: Color(0xFF15803D), size: 22),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Attendance',
-                            style: GoogleFonts.manrope(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Your child\'s attendance overview',
-                            style: GoogleFonts.manrope(
-                              fontSize: 12,
-                              color: const Color(0xFF64748B),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFDCFCE7)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.verified_user_rounded, size: 14, color: Color(0xFF15803D)),
-                    const SizedBox(width: 4),
-                    Text(
-                      healthBadge,
-                      style: GoogleFonts.manrope(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF15803D),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // Main Percentage & Ring Indicator Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '$pctInt%',
-                      style: GoogleFonts.manrope(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFF0F172A),
-                        height: 1.1,
-                      ),
-                    ),
-                    Text(
-                      'Overall Attendance',
-                      style: GoogleFonts.manrope(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: LinearProgressIndicator(
-                        value: _selectedWard.attendancePercent,
-                        minHeight: 8,
-                        backgroundColor: const Color(0xFFF1F5F9),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Circular Attendance Ring Display
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 72,
-                    height: 72,
-                    child: CircularProgressIndicator(
-                      value: _selectedWard.attendancePercent,
-                      strokeWidth: 7,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '$pctInt%',
-                        style: GoogleFonts.manrope(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                      Text(
-                        'Attendance',
-                        style: GoogleFonts.manrope(
-                          fontSize: 8.5,
-                          color: const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-
-
-          // Insight Banner Box
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFDCFCE7)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.show_chart_rounded, color: Color(0xFF15803D), size: 18),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Great! Keep maintaining good attendance.',
-                        style: GoogleFonts.manrope(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF166534)),
-                      ),
-                      Text(
-                        'You are above the college required minimum.',
-                        style: GoogleFonts.manrope(fontSize: 10.5, color: const Color(0xFF15803D)),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'View Trend',
-                        style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF15803D)),
-                      ),
-                      const SizedBox(width: 3),
-                      const Icon(Icons.trending_up_rounded, size: 13, color: Color(0xFF15803D)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Footer Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF94A3B8)),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Last updated: Today, 09:30 AM',
-                    style: GoogleFonts.manrope(fontSize: 11, color: const Color(0xFF64748B)),
-                  ),
-                ],
-              ),
-              InkWell(
-                onTap: () => widget.onNavigateToTab?.call(1),
-                child: Row(
-                  children: [
-                    Text(
-                      'View Attendance',
-                      style: GoogleFonts.manrope(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.primary),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 3. REDESIGNED ACADEMIC PERFORMANCE SUMMARY CARD (MATCHING REFERENCE UI)
-  Widget _buildAcademicsSummaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3E8FF),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(Icons.school_rounded, color: Color(0xFF7C3AED), size: 22),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Academics',
-                            style: GoogleFonts.manrope(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Your child\'s academic performance',
-                            style: GoogleFonts.manrope(
-                              fontSize: 12,
-                              color: const Color(0xFF64748B),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFECFDF5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _selectedWard.academicTrend,
-                  style: GoogleFonts.manrope(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF059669),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Main CGPA Performance Card Box
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFF1F5F9)),
-            ),
+          // 1. Student
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'CGPA',
+                  'Student',
                   style: GoogleFonts.manrope(
                     fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: const Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Text(
-                      _selectedWard.cgpa,
-                      style: GoogleFonts.manrope(
-                        fontSize: 38,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFF6D28D9),
-                        height: 1.1,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3E8FF),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.workspace_premium_rounded, size: 14, color: Color(0xFF7C3AED)),
-                          const SizedBox(width: 4),
-                          Text(
-                            _selectedWard.academicStatus,
-                            style: GoogleFonts.manrope(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF7C3AED),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.star_rounded, size: 16, color: Color(0xFF6D28D9)),
-                    const SizedBox(width: 6),
-                    Expanded(
+                    const Icon(Icons.school_outlined, size: 16, color: Color(0xFF0F172A)),
+                    const SizedBox(width: 4),
+                    Flexible(
                       child: Text(
-                        'Your child is performing well. Keep it up!',
+                        _selectedWard.currentYear.isNotEmpty ? _selectedWard.currentYear : '2nd Year',
                         style: GoogleFonts.manrope(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF5B21B6),
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF0F172A),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Subject Grades Summary List
-          ..._selectedWard.subjectGrades.take(3).map((sub) => Padding(
-                padding: const EdgeInsets.only(bottom: 6.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        sub.subjectName,
-                        style: GoogleFonts.manrope(fontSize: 12, color: const Color(0xFF64748B)),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: sub.color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        sub.grade,
-                        style: GoogleFonts.manrope(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: sub.color,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
-              )),
-          const SizedBox(height: 12),
-          InkWell(
-            onTap: () => widget.onNavigateToTab?.call(2),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  'View Academics',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.primary),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  // 5. UPCOMING EXAMS SECTION
-  Widget _buildUpcomingExamsSection() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.event_note_rounded, color: AppColors.primary, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Upcoming Exams',
-                    style: GoogleFonts.manrope(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              InkWell(
-                onTap: () => widget.onNavigateToTab?.call(8),
-                child: Text(
-                  'View Exam Schedule →',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (_upcomingExams.isEmpty)
-            _buildEmptyState('No Upcoming Exams', 'There are no scheduled examinations at the moment.')
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _upcomingExams.length,
-              separatorBuilder: (_, __) => const Divider(height: 16, color: AppColors.divider),
-              itemBuilder: (context, index) {
-                final ex = _upcomingExams[index];
-                return Row(
+          Container(height: 34, width: 1, color: const Color(0xFFE2E8F0)),
+
+          // 2. Presence
+          Expanded(
+            child: InkWell(
+              onTap: () => widget.onNavigateToTab?.call(1),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '${ex.examDate.day}',
-                              style: GoogleFonts.manrope(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF2563EB),
-                                height: 1.0,
-                              ),
-                            ),
-                            Text(
-                              _getMonthAbbr(ex.examDate.month),
-                              style: GoogleFonts.manrope(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF2563EB),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${ex.examName} • ${ex.subject}',
-                            style: GoogleFonts.manrope(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${ex.timeSlot} (${ex.venue})',
-                            style: GoogleFonts.manrope(
-                              fontSize: 11,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        ex.examType,
-                        style: GoogleFonts.manrope(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  // 6. UPCOMING EVENTS SECTION
-  Widget _buildUpcomingEventsSection() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.celebration_rounded, color: Color(0xFF7C3AED), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Upcoming Events',
-                    style: GoogleFonts.manrope(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              InkWell(
-                onTap: () => widget.onNavigateToTab?.call(8),
-                child: Text(
-                  'View All Events →',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (_upcomingEvents.isEmpty)
-            _buildEmptyState('No Upcoming Events', 'There are no scheduled events at the moment.')
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _upcomingEvents.length,
-              separatorBuilder: (_, __) => const Divider(height: 16, color: AppColors.divider),
-              itemBuilder: (context, index) {
-                final ev = _upcomingEvents[index];
-                return Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F3FF),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          ev.category == 'Meeting'
-                              ? Icons.groups_rounded
-                              : ev.category == 'Sports'
-                                  ? Icons.sports_soccer_rounded
-                                  : Icons.school_rounded,
-                          color: const Color(0xFF7C3AED),
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ev.title,
-                            style: GoogleFonts.manrope(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${ev.eventDate.day} ${_getMonthAbbr(ev.eventDate.month)} • ${ev.timeSlot} (${ev.venue})',
-                            style: GoogleFonts.manrope(
-                              fontSize: 11,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  // 7. IMPORTANT ANNOUNCEMENTS SECTION
-  Widget _buildImportantAnnouncementsSection() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.campaign_rounded, color: Color(0xFFE11D48), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Important Announcements',
-                    style: GoogleFonts.manrope(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              InkWell(
-                onTap: () => widget.onNavigateToTab?.call(3),
-                child: Text(
-                  'View All →',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (_announcements.isEmpty)
-            _buildEmptyState('No New Announcements', 'You\'re all caught up.')
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _announcements.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final ann = _announcements[index];
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: ann.isImportant ? const Color(0xFFFECDD3) : AppColors.border,
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ann.isImportant ? '🔴' : '🟡',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ann.title,
-                              style: GoogleFonts.manrope(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              ann.description,
-                              style: GoogleFonts.manrope(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${ann.datePublished.day} ${_getMonthAbbr(ann.datePublished.month)} ${ann.datePublished.year} • ${ann.category}',
-                              style: GoogleFonts.manrope(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textTertiary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  // 8. RECENT NOTIFICATIONS SECTION WITH DIRECT NAVIGATION
-  Widget _buildRecentNotificationsSection() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.notifications_active_rounded, color: Color(0xFFD97706), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Recent Notifications',
-                    style: GoogleFonts.manrope(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              InkWell(
-                onTap: () => showNotificationSheet(context),
-                child: Text(
-                  'View All →',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (_recentNotifications.isEmpty)
-            _buildEmptyState('No Recent Notifications', 'You\'re all caught up.')
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _recentNotifications.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final notif = _recentNotifications[index];
-                return InkWell(
-                  onTap: () {
-                    widget.onNavigateToTab?.call(notif.targetTabIndex);
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: notif.iconColor.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
+                        Text(
+                          'Presence',
+                          style: GoogleFonts.manrope(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF64748B),
                           ),
-                          child: Icon(notif.icon, color: notif.iconColor, size: 18),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(width: 2),
+                        const Icon(Icons.info_outline_rounded, size: 12, color: Color(0xFF94A3B8)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.person_outline_rounded, size: 16, color: Color(0xFF0F172A)),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$presencePercent%',
+                          style: GoogleFonts.manrope(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Container(height: 34, width: 1, color: const Color(0xFFE2E8F0)),
+
+          // 3. Internal Score
+          Expanded(
+            child: InkWell(
+              onTap: () => widget.onNavigateToTab?.call(2),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Internal Score',
+                      style: GoogleFonts.manrope(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.menu_book_rounded, size: 15, color: Color(0xFF0F172A)),
+                        const SizedBox(width: 4),
+                        RichText(
+                          text: TextSpan(
                             children: [
-                              Text(
-                                notif.title,
+                              TextSpan(
+                                text: '85',
                                 style: GoogleFonts.manrope(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF0F172A),
                                 ),
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                notif.message,
+                              TextSpan(
+                                text: '/100',
                                 style: GoogleFonts.manrope(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF64748B),
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textTertiary),
                       ],
                     ),
-                  ),
-                );
-              },
+                  ],
+                ),
+              ),
             ),
+          ),
         ],
       ),
     );
   }
 
-  // EMPTY STATE HELPER
-  Widget _buildEmptyState(String title, String subtitle) {
+  // ───────────────────────────────────────────────────────────────────────────
+  // 5. 5 CIRCULAR QUICK LAUNCHER ACTION BUTTONS
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildFiveQuickLauncherIcons(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildLauncherItem(
+            label: 'Classes',
+            icon: Icons.school_outlined,
+            bgColor: const Color(0xFFF3E8FF),
+            iconColor: const Color(0xFF7C3AED),
+            onTap: () => widget.onNavigateToTab?.call(8),
+          ),
+          _buildLauncherItem(
+            label: 'Exam',
+            icon: Icons.description_outlined,
+            bgColor: const Color(0xFFEFF6FF),
+            iconColor: const Color(0xFF2563EB),
+            onTap: () => widget.onNavigateToTab?.call(8),
+          ),
+          _buildLauncherItem(
+            label: 'Assignment',
+            icon: Icons.auto_stories_outlined,
+            bgColor: const Color(0xFFFFF7ED),
+            iconColor: const Color(0xFFEA580C),
+            onTap: () => widget.onNavigateToTab?.call(2),
+          ),
+          _buildLauncherItem(
+            label: 'Presence',
+            icon: Icons.how_to_reg_outlined,
+            bgColor: const Color(0xFFF0FDF4),
+            iconColor: const Color(0xFF16A34A),
+            onTap: () => widget.onNavigateToTab?.call(1),
+          ),
+          _buildLauncherItem(
+            label: 'More',
+            icon: Icons.grid_view_rounded,
+            bgColor: const Color(0xFFF8FAFC),
+            iconColor: const Color(0xFF0F172A),
+            onTap: () {
+              showParentNavigationSheet(
+                context: context,
+                selectedIndex: 0,
+                onDestinationSelected: (idx) => widget.onNavigateToTab?.call(idx),
+                items: _ParentDashboardState.parentSidebarItems,
+                userName: 'Mrs. Rajesh',
+                userEmail: 'parent.rajesh@gmail.com',
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLauncherItem({
+    required String label,
+    required IconData icon,
+    required Color bgColor,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: iconColor.withValues(alpha: 0.15)),
+              ),
+              child: Center(
+                child: Icon(icon, color: iconColor, size: 23),
+              ),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              label,
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 6. UPCOMING CARD (EXAMS & MEETINGS)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildUpcomingCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.inbox_rounded, color: AppColors.textTertiary, size: 28),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Upcoming',
+                style: GoogleFonts.manrope(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+              InkWell(
+                onTap: () => widget.onNavigateToTab?.call(8),
+                child: Text(
+                  'View All',
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: GoogleFonts.manrope(fontSize: 11, color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
+          const SizedBox(height: 14),
+
+          // Item 1: Data Structures Exam
+          _buildUpcomingRow(
+            icon: Icons.calendar_month_rounded,
+            iconBg: const Color(0xFFF3E8FF),
+            iconColor: const Color(0xFF7C3AED),
+            title: 'Data Structures Exam',
+            subtitle: '15 May 2025',
+            badgeText: '12 Days Left',
+            badgeBg: const Color(0xFFF5F3FF),
+            badgeColor: const Color(0xFF7C3AED),
+          ),
+          const SizedBox(height: 12),
+
+          // Item 2: Operating Systems Exam
+          _buildUpcomingRow(
+            icon: Icons.calendar_month_rounded,
+            iconBg: const Color(0xFFDCFCE7),
+            iconColor: const Color(0xFF16A34A),
+            title: 'Operating Systems Exam',
+            subtitle: '20 May 2025',
+            badgeText: '17 Days Left',
+            badgeBg: const Color(0xFFECFDF5),
+            badgeColor: const Color(0xFF059669),
+          ),
+          const SizedBox(height: 12),
+
+          // Item 3: Parent Meeting
+          _buildUpcomingRow(
+            icon: Icons.group_rounded,
+            iconBg: const Color(0xFFEFF6FF),
+            iconColor: const Color(0xFF2563EB),
+            title: 'Parent Meeting',
+            subtitle: '24 May 2025 • 10:00 AM',
+            badgeText: '21 Days Left',
+            badgeBg: const Color(0xFFEFF6FF),
+            badgeColor: const Color(0xFF2563EB),
+          ),
+          const SizedBox(height: 14),
+
+          // View Calendar Link
+          Center(
+            child: InkWell(
+              onTap: () => widget.onNavigateToTab?.call(8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'View Calendar',
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: AppColors.primary),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  String _getMonthAbbr(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[(month - 1).clamp(0, 11)];
+  Widget _buildUpcomingRow({
+    required IconData icon,
+    required Color iconBg,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String badgeText,
+    required Color badgeBg,
+    required Color badgeColor,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: iconBg,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.manrope(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF0F172A),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                subtitle,
+                style: GoogleFonts.manrope(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: badgeBg,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            badgeText,
+            style: GoogleFonts.manrope(
+              fontSize: 10.5,
+              fontWeight: FontWeight.bold,
+              color: badgeColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 6B. RECENT UPDATES CARD
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildRecentUpdatesCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recent Updates',
+                style: GoogleFonts.manrope(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+              InkWell(
+                onTap: () => widget.onNavigateToTab?.call(3),
+                child: Text(
+                  'View All',
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // 1. Internal Marks Published
+          _buildRecentUpdateRow(
+            icon: Icons.campaign_rounded,
+            iconBg: const Color(0xFFFFF7ED),
+            iconColor: const Color(0xFFEA580C),
+            title: 'Internal marks published',
+            time: 'Today, 10:30 AM',
+            onTap: () => widget.onNavigateToTab?.call(2),
+          ),
+          const SizedBox(height: 12),
+
+          // 2. Exam Timetable Updated
+          _buildRecentUpdateRow(
+            icon: Icons.calendar_month_rounded,
+            iconBg: const Color(0xFFF3E8FF),
+            iconColor: const Color(0xFF7C3AED),
+            title: 'Exam timetable updated',
+            time: 'Yesterday, 04:15 PM',
+            onTap: () => widget.onNavigateToTab?.call(8),
+          ),
+          const SizedBox(height: 12),
+
+          // 3. Assignment Uploaded
+          _buildRecentUpdateRow(
+            icon: Icons.description_outlined,
+            iconBg: const Color(0xFFF0FDF4),
+            iconColor: const Color(0xFF16A34A),
+            title: 'Assignment uploaded',
+            time: '2 May 2025',
+            onTap: () => widget.onNavigateToTab?.call(2),
+          ),
+          const SizedBox(height: 12),
+
+          // 4. College Announcement
+          _buildRecentUpdateRow(
+            icon: Icons.info_outline_rounded,
+            iconBg: const Color(0xFFEFF6FF),
+            iconColor: const Color(0xFF2563EB),
+            title: 'College announcement',
+            time: '1 May 2025',
+            onTap: () => widget.onNavigateToTab?.call(3),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentUpdateRow({
+    required IconData icon,
+    required Color iconBg,
+    required Color iconColor,
+    required String title,
+    required String time,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.manrope(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0F172A),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  time,
+                  style: GoogleFonts.manrope(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 7. ACADEMIC PERFORMANCE TREND & INSIGHT CARD
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildAcademicPerformanceTrendSection(BuildContext context, bool isDesktop) {
+    final chartWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Academic Performance Trend',
+              style: GoogleFonts.manrope(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedTrendMode,
+                  isDense: true,
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Color(0xFF64748B)),
+                  items: const [
+                    DropdownMenuItem(value: 'CGPA', child: Text('CGPA', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold))),
+                    DropdownMenuItem(value: 'SGPA', child: Text('SGPA', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold))),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => _selectedTrendMode = val);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Custom Smooth Bezier Trend Chart
+        SizedBox(
+          height: 160,
+          width: double.infinity,
+          child: CustomPaint(
+            painter: _AcademicTrendChartPainter(
+              values: _selectedTrendMode == 'CGPA'
+                  ? const [7.80, 8.12, 8.45, 8.72]
+                  : const [8.20, 8.50, 8.60, 8.90],
+              labels: const ['Sem 2', 'Sem 3', 'Sem 4', 'Sem 5'],
+              lineColor: const Color(0xFF6366F1),
+              fillGradientStart: const Color(0xFF6366F1).withValues(alpha: 0.28),
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final insightCard = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFBFBFE),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, color: Color(0xFF7C3AED), size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'Performance Insight',
+                style: GoogleFonts.manrope(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF7C3AED),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Alex\'s academic performance is consistently improving.',
+            style: GoogleFonts.manrope(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF475569),
+            ),
+          ),
+          const SizedBox(height: 4),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Great job! Keep it up! ',
+                  style: GoogleFonts.manrope(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF6D28D9),
+                  ),
+                ),
+                const TextSpan(text: '💪', style: TextStyle(fontSize: 12)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: () => widget.onNavigateToTab?.call(2),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3E8FF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFDDD6FE)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'View Details',
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF7C3AED),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF7C3AED)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: isDesktop
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(flex: 6, child: chartWidget),
+                const SizedBox(width: 20),
+                Expanded(flex: 4, child: insightCard),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                chartWidget,
+                const SizedBox(height: 16),
+                insightCard,
+              ],
+            ),
+    );
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// CUSTOM PAINTER: SMOOTH BEZIER ACADEMIC TREND LINE CHART
+// ───────────────────────────────────────────────────────────────────────────
+class _AcademicTrendChartPainter extends CustomPainter {
+  final List<double> values;
+  final List<String> labels;
+  final Color lineColor;
+  final Color fillGradientStart;
+
+  _AcademicTrendChartPainter({
+    required this.values,
+    required this.labels,
+    required this.lineColor,
+    required this.fillGradientStart,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.isEmpty) return;
+
+    const double paddingLeft = 32.0;
+    const double paddingRight = 32.0;
+    const double paddingTop = 28.0;
+    const double paddingBottom = 26.0;
+
+    final double chartWidth = size.width - paddingLeft - paddingRight;
+    final double chartHeight = size.height - paddingTop - paddingBottom;
+
+    final double minVal = values.reduce(math.min) - 0.5;
+    final double maxVal = values.reduce(math.max) + 0.5;
+    final double range = (maxVal - minVal) <= 0 ? 1.0 : (maxVal - minVal);
+
+    // Compute coordinate points
+    final List<Offset> points = [];
+    for (int i = 0; i < values.length; i++) {
+      final double x = paddingLeft + (i * chartWidth / (values.length - 1));
+      final double normalizedY = (values[i] - minVal) / range;
+      final double y = paddingTop + chartHeight - (normalizedY * chartHeight);
+      points.add(Offset(x, y));
+    }
+
+    // Build smooth cubic Bezier path
+    final Path path = Path();
+    path.moveTo(points.first.dx, points.first.dy);
+
+    for (int i = 0; i < points.length - 1; i++) {
+      final Offset p0 = i > 0 ? points[i - 1] : points[i];
+      final Offset p1 = points[i];
+      final Offset p2 = points[i + 1];
+      final Offset p3 = i < points.length - 2 ? points[i + 2] : p2;
+
+      final double cp1x = p1.dx + (p2.dx - p0.dx) / 6;
+      final double cp1y = p1.dy + (p2.dy - p0.dy) / 6;
+
+      final double cp2x = p2.dx - (p3.dx - p1.dx) / 6;
+      final double cp2y = p2.dy - (p3.dy - p1.dy) / 6;
+
+      path.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
+    }
+
+    // Paint Area Gradient Fill underneath
+    final Path fillPath = Path.from(path);
+    fillPath.lineTo(points.last.dx, paddingTop + chartHeight);
+    fillPath.lineTo(points.first.dx, paddingTop + chartHeight);
+    fillPath.close();
+
+    final Paint fillPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [fillGradientStart, fillGradientStart.withValues(alpha: 0.0)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, paddingTop, size.width, chartHeight))
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(fillPath, fillPaint);
+
+    // Paint Smooth Line Stroke
+    final Paint linePaint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF4F46E5), Color(0xFF7C3AED), Color(0xFF818CF8)],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..strokeWidth = 3.2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(path, linePaint);
+
+    // Draw Data Point Nodes & Value Callouts
+    for (int i = 0; i < points.length; i++) {
+      final p = points[i];
+
+      // Outer glow circle
+      canvas.drawCircle(
+        p,
+        6.5,
+        Paint()..color = const Color(0xFF6366F1).withValues(alpha: 0.25),
+      );
+
+      // Node ring
+      canvas.drawCircle(
+        p,
+        4.5,
+        Paint()
+          ..color = const Color(0xFF4F46E5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5,
+      );
+
+      // White inner dot
+      canvas.drawCircle(
+        p,
+        3.0,
+        Paint()..color = Colors.white,
+      );
+
+      // Value label text above node
+      final textSpan = TextSpan(
+        text: values[i].toStringAsFixed(2),
+        style: GoogleFonts.manrope(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: const Color(0xFF0F172A),
+        ),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(p.dx - (textPainter.width / 2), p.dy - 20));
+
+      // X-Axis Semester Label below
+      final labelSpan = TextSpan(
+        text: labels[i],
+        style: GoogleFonts.manrope(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          color: const Color(0xFF64748B),
+        ),
+      );
+      final labelPainter = TextPainter(
+        text: labelSpan,
+        textDirection: TextDirection.ltr,
+      );
+      labelPainter.layout();
+      labelPainter.paint(canvas, Offset(p.dx - (labelPainter.width / 2), paddingTop + chartHeight + 8));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AcademicTrendChartPainter oldDelegate) {
+    return oldDelegate.values != values || oldDelegate.lineColor != lineColor;
   }
 }
 
