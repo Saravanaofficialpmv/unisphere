@@ -1674,19 +1674,6 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3F51B5).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.school_rounded,
-                          size: 16,
-                          color: Color(0xFF3F51B5),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
                       const Text(
                         'Academic Overview',
                         style: TextStyle(
@@ -2084,57 +2071,58 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text(
-                                  'LeetCode Solved',
-                                  style: TextStyle(
-                                    color: Color(0xFF757575),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 1),
                                 Wrap(
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   spacing: 4,
                                   runSpacing: 2,
                                   children: [
-                                    AppCountUpText(
-                                      key: ValueKey('leetcode_text_${overviewData.leetcodeSolved}_$_refreshEpoch'),
-                                      end: overviewData.leetcodeSolved.toDouble(),
-                                      suffix: ' Solved',
-                                      style: const TextStyle(
-                                        color: Color(0xFF2D3142),
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: -0.3,
+                                    const Text(
+                                      'LeetCode',
+                                      style: TextStyle(
+                                        color: Color(0xFF757575),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                        vertical: 1.5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFFF7ED),
-                                        borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(
-                                          color: const Color(0xFFFFEDD5),
+                                    if (overviewData.leetcodeUsername.isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFFF7ED),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(
+                                            color: const Color(0xFFFFEDD5),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '@${overviewData.leetcodeUsername}',
+                                          style: const TextStyle(
+                                            color: Color(0xFFEA580C),
+                                            fontSize: 8.5,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      child: Text(
-                                        '@${overviewData.leetcodeUsername}',
-                                        style: const TextStyle(
-                                          color: Color(0xFFEA580C),
-                                          fontSize: 8.5,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
                                   ],
+                                ),
+                                const SizedBox(height: 1),
+                                AppCountUpText(
+                                  key: ValueKey('leetcode_text_${overviewData.leetcodeSolved}_$_refreshEpoch'),
+                                  end: overviewData.leetcodeSolved.toDouble(),
+                                  suffix: ' Solved',
+                                  style: const TextStyle(
+                                    color: Color(0xFF2D3142),
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.3,
+                                  ),
                                 ),
                               ],
                             ),

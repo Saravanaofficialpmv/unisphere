@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unisphere/models/hackathon_registration_model.dart';
 import 'package:unisphere/controllers/hackathon_controller.dart';
 import 'package:unisphere/controllers/hackathon_registration_controller.dart';
-import 'package:unisphere/widgets/create_hackathon_dialog.dart';
+import 'package:unisphere/widgets/hackathons/create_hackathon_dialog.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 
 class HodHackathonManagementScreen extends ConsumerStatefulWidget {

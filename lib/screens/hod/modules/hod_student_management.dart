@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
-import 'package:unisphere/widgets/student_full_detail_modal.dart';
+import 'package:unisphere/widgets/student/student_full_detail_modal.dart';
 
 class HodStudentManagement extends StatefulWidget {
   const HodStudentManagement({super.key});

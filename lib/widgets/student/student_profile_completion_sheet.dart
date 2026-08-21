@@ -1,11 +1,14 @@
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:unisphere/core/constants/app_colors.dart';
 import 'package:unisphere/models/student_profile_model.dart';
 import 'package:unisphere/services/auth_service.dart';
 import 'package:unisphere/services/firebase_firestore_service.dart';
+import 'package:unisphere/services/storage_service.dart';
 
 class StudentProfileCompletionSheet extends ConsumerStatefulWidget {
   const StudentProfileCompletionSheet({super.key});
@@ -52,6 +55,7 @@ class _StudentProfileCompletionSheetState
   bool _isDifferentlyAbled = false;
   final _disabilityController = TextEditingController();
   String? _studentPhotoUrl;
+  bool _isUploadingPhoto = false;
 
   // ── Step 2: Contact & Address ──
   final _primaryMobileController = TextEditingController();
@@ -98,6 +102,9 @@ class _StudentProfileCompletionSheetState
   String? _motherQual;
   final _motherOccupationController = TextEditingController();
   String? _motherIncome;
+
+  // Parent Annual Income (Combined)
+  String? _parentAnnualIncome;
 
   // Guardian (Optional)
   bool _hasGuardian = false;
@@ -231,7 +238,11 @@ class _StudentProfileCompletionSheetState
     _regNoController.text = meta['registerNumber'] ?? '';
     _deptController.text = meta['department'] ?? 'Computer Science';
     _emailController.text = user.email;
-    _studentPhotoUrl = user.profileImageUrl ?? meta['photoUrl'];
+    _studentPhotoUrl = user.profileImageUrl ?? meta['passportPhotoUrl'] ?? meta['photoUrl'];
+    final parentsMeta = meta['parents'] as Map<String, dynamic>? ?? {};
+    if (parentsMeta['parentAnnualIncome'] != null || parentsMeta['annualIncome'] != null) {
+      _parentAnnualIncome = parentsMeta['parentAnnualIncome'] ?? parentsMeta['annualIncome'];
+    }
 
     // Load draft if available
     final draft = await ref.read(firebaseFirestoreServiceProvider).getStudentProfileDraft(user.uid);
@@ -429,6 +440,8 @@ class _StudentProfileCompletionSheetState
       _motherQual = 'School';
       _motherOccupationController.text = 'Homemaker';
       _motherIncome = '₹1,00,000 - ₹3,00,000';
+      _parentAnnualIncome = '₹4,00,000 - ₹8,00,000';
+      _studentPhotoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300';
       _fatherNameError = false;
       _motherNameError = false;
 
@@ -673,6 +686,7 @@ class _StudentProfileCompletionSheetState
                 address: _guardianAddressController.text.trim(),
               )
             : null,
+        parentAnnualIncome: _parentAnnualIncome ?? '₹3,00,000 - ₹5,00,000',
       ),
       education: StudentPreviousEducation(
         tenth: EducationRecord(
@@ -769,7 +783,19 @@ class _StudentProfileCompletionSheetState
       updatedMeta['verificationStatus'] = 'pending_hod';
       updatedMeta['profileCompletionStatus'] = 'submitted';
       updatedMeta['submittedAt'] = DateTime.now().toIso8601String();
+      if (_studentPhotoUrl != null && _studentPhotoUrl!.isNotEmpty) {
+        updatedMeta['passportPhotoUrl'] = _studentPhotoUrl;
+        updatedMeta['photoUrl'] = _studentPhotoUrl;
+      }
+      final parentsMap = Map<String, dynamic>.from(updatedMeta['parents'] as Map? ?? {});
+      parentsMap['parentAnnualIncome'] = _parentAnnualIncome ?? '₹3,00,000 - ₹5,00,000';
+      parentsMap['annualIncome'] = _parentAnnualIncome ?? '₹3,00,000 - ₹5,00,000';
+      updatedMeta['parents'] = parentsMap;
+
       final updatedUser = currentUser.copyWith(
+        profileImageUrl: (_studentPhotoUrl != null && _studentPhotoUrl!.isNotEmpty)
+            ? _studentPhotoUrl
+            : currentUser.profileImageUrl,
         metadata: updatedMeta,
       );
       await ref.read(authServiceProvider).updateUserProfile(updatedUser);
@@ -1064,6 +1090,135 @@ class _StudentProfileCompletionSheetState
     }
   }
 
+  Future<void> _pickStudentPhoto(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      setState(() {
+        _isUploadingPhoto = true;
+        _studentPhotoUrl = picked.path;
+      });
+
+      final user = ref.read(currentUserProvider).value ?? ref.read(authServiceProvider).currentUser;
+      String finalUrl = picked.path;
+
+      if (user != null) {
+        final storageService = ref.read(storageServiceProvider);
+        final uploaded = await storageService.uploadFile(
+          storagePath: storageService.studentPhotoPath(user.uid),
+          file: File(picked.path),
+        );
+        if (uploaded != null && uploaded.isNotEmpty) {
+          finalUrl = uploaded;
+        }
+
+        final updatedMeta = Map<String, dynamic>.from(user.metadata ?? {});
+        updatedMeta['passportPhotoUrl'] = finalUrl;
+        updatedMeta['photoUrl'] = finalUrl;
+        final updatedUser = user.copyWith(
+          profileImageUrl: finalUrl,
+          metadata: updatedMeta,
+        );
+        await ref.read(authServiceProvider).updateUserProfile(updatedUser);
+      }
+
+      if (mounted) {
+        setState(() {
+          _studentPhotoUrl = finalUrl;
+          _isUploadingPhoto = false;
+          final index = _uploadedDocuments.indexWhere((d) => d.id == 'doc_photo');
+          final newDoc = StudentDocument(
+            id: 'doc_photo',
+            name: 'Student Passport Photo',
+            isRequired: true,
+            fileName: picked.name,
+            fileUrl: finalUrl,
+            status: 'uploaded',
+          );
+          if (index != -1) {
+            _uploadedDocuments[index] = newDoc;
+          } else {
+            _uploadedDocuments.add(newDoc);
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Student passport photo attached!'),
+              ],
+            ),
+            backgroundColor: Color(0xFF16A34A),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking photo: $e')),
+        );
+      }
+    }
+  }
+
+  void _showStudentPhotoPickerModal() {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Student Passport Photo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              const Text('Upload a formal passport size photograph for official ID card and resume records.', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFEEF2FF),
+                  child: Icon(Icons.camera_alt_rounded, color: Color(0xFF2563EB)),
+                ),
+                title: const Text('Take a Photo (Camera)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickStudentPhoto(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFEEF2FF),
+                  child: Icon(Icons.photo_library_rounded, color: Color(0xFF2563EB)),
+                ),
+                title: const Text('Choose from Gallery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickStudentPhoto(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── STEP 1: PERSONAL ──
   Widget _buildStep1Personal() {
     return Column(
@@ -1071,6 +1226,144 @@ class _StudentProfileCompletionSheetState
       children: [
         _buildStepHeader('Step 1: Personal Details', 'Verified details are locked. Enter your personal credentials.'),
         const SizedBox(height: 16),
+
+        // Student Passport Photo Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: _showStudentPhotoPickerModal,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF2563EB), width: 2),
+                        color: const Color(0xFFEEF2FF),
+                      ),
+                      child: ClipOval(
+                        child: _isUploadingPhoto
+                            ? const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF2563EB)),
+                                ),
+                              )
+                            : (_studentPhotoUrl != null && _studentPhotoUrl!.isNotEmpty
+                                ? (_studentPhotoUrl!.startsWith('http://') || _studentPhotoUrl!.startsWith('https://')
+                                    ? Image.network(_studentPhotoUrl!, fit: BoxFit.cover, width: 72, height: 72)
+                                    : (File(_studentPhotoUrl!).existsSync()
+                                        ? Image.file(File(_studentPhotoUrl!), fit: BoxFit.cover, width: 72, height: 72)
+                                        : const Icon(Icons.person, size: 40, color: Color(0xFF2563EB))))
+                                : const Icon(Icons.person_add_alt_1_rounded, size: 36, color: Color(0xFF2563EB))),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt_rounded, size: 12, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Student Passport Photo *',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)),
+                        ),
+                        const SizedBox(width: 6),
+                        if (_studentPhotoUrl != null && _studentPhotoUrl!.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDCFCE7),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('Attached ✓', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Upload clear real-time student face photo for college database, smart ID & resume.',
+                      style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), height: 1.25),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        InkWell(
+                          onTap: () => _pickStudentPhoto(ImageSource.camera),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.camera_alt_rounded, size: 14, color: Color(0xFF2563EB)),
+                                SizedBox(width: 4),
+                                Text('Camera', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+                              ],
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => _pickStudentPhoto(ImageSource.gallery),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.photo_library_rounded, size: 14, color: Color(0xFF475569)),
+                                SizedBox(width: 4),
+                                Text('Gallery', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
         _buildReadOnlyField('Student Name', _nameController.text, Icons.verified_user_rounded),
         const SizedBox(height: 12),
         Row(
@@ -1375,6 +1668,52 @@ class _StudentProfileCompletionSheetState
           },
           onQualChanged: (v) => setState(() => _motherQual = v!),
           onIncomeChanged: (v) => setState(() => _motherIncome = v!),
+        ),
+        const SizedBox(height: 16),
+
+        // Parent / Family Annual Income Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF2563EB), size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Total Parent / Family Annual Income *',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Combined gross annual income of parents from all sources for institutional records, scholarship eligibility, and fee concessions.',
+                style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), height: 1.3),
+              ),
+              const SizedBox(height: 12),
+              _buildDropdown(
+                'Annual Income Range',
+                _parentAnnualIncome ?? '₹3,00,000 - ₹5,00,000',
+                [
+                  'Below ₹1,00,000',
+                  '₹1,00,000 - ₹3,00,000',
+                  '₹3,00,000 - ₹5,00,000',
+                  '₹5,00,000 - ₹8,00,000',
+                  '₹8,00,000 - ₹12,00,000',
+                  '₹12,00,000 - ₹20,00,000',
+                  'Above ₹20,00,000',
+                ],
+                (v) => setState(() => _parentAnnualIncome = v!),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
 

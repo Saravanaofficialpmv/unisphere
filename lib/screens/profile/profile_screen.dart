@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:unisphere/services/auth_service.dart';
+import 'package:unisphere/services/storage_service.dart';
 import 'package:unisphere/widgets/common/sign_out_confirmation_sheet.dart';
 import 'package:unisphere/widgets/common/app_liquid_pull_to_refresh.dart';
 import 'package:unisphere/models/user_model.dart';
@@ -32,6 +34,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _placementNotifs = true;
   bool _biometricEnabled = true;
   String? _customPhotoPath;
+  bool _isUploadingPhoto = false;
 
   // Custom added certifications
   final List<Map<String, dynamic>> _certifications = [
@@ -542,27 +545,49 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildProfileHeaderAvatar(String photoUrl) {
+    ImageProvider? imageProvider;
     if (photoUrl.isNotEmpty) {
       if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-        return CircleAvatar(
-          radius: 36,
-          backgroundImage: NetworkImage(photoUrl),
-          backgroundColor: Colors.white24,
-        );
-      }
-      final file = File(photoUrl);
-      if (file.existsSync()) {
-        return CircleAvatar(
-          radius: 36,
-          backgroundImage: FileImage(file),
-          backgroundColor: Colors.white24,
-        );
+        imageProvider = NetworkImage(photoUrl);
+      } else {
+        final file = File(photoUrl);
+        if (file.existsSync()) {
+          imageProvider = FileImage(file);
+        }
       }
     }
-    return const CircleAvatar(
-      radius: 36,
-      backgroundColor: Color(0xFFEEF2FF),
-      child: Icon(Icons.person, size: 42, color: Color(0xFF4338CA)),
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        CircleAvatar(
+          radius: 36,
+          backgroundColor: const Color(0xFFEEF2FF),
+          backgroundImage: imageProvider,
+          child: imageProvider == null
+              ? const Icon(Icons.person, size: 42, color: Color(0xFF4338CA))
+              : null,
+        ),
+        if (_isUploadingPhoto)
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.45),
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -797,6 +822,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               _buildModalRow('Highest Qualification', mother['qualification']?.toString() ?? 'M.Sc. Mathematics, B.Ed.'),
                               _buildModalRow('Occupation / Sector', mother['occupation']?.toString() ?? 'High School Teacher'),
                               _buildModalRow('Annual Income', mother['annualIncome']?.toString() ?? '₹4,20,000 / annum'),
+                            ]),
+                            _buildSectionPillHeader('Total Parent & Family Annual Income'),
+                            _buildModalInfoCard([
+                              _buildModalRow(
+                                'Combined Annual Income',
+                                parents['parentAnnualIncome']?.toString() ??
+                                    parents['annualIncome']?.toString() ??
+                                    '₹10,70,000 / annum',
+                                isBadge: true,
+                                badgeColor: const Color(0xFFEFF6FF),
+                                badgeTextColor: const Color(0xFF2563EB),
+                              ),
                             ]),
                             if (guardian['name'] != null && guardian['name'].toString().isNotEmpty) ...[
                               const SizedBox(height: 14),
@@ -1909,44 +1946,108 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Future<void> _pickAndUploadPhoto(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      setState(() {
+        _isUploadingPhoto = true;
+        _customPhotoPath = picked.path;
+      });
+
+      final currentUser = ref.read(authServiceProvider).currentUser;
+      String finalPhotoUrl = picked.path;
+
+      if (currentUser != null) {
+        final storageService = ref.read(storageServiceProvider);
+        final uploadedUrl = await storageService.uploadFile(
+          storagePath: storageService.studentPhotoPath(currentUser.uid),
+          file: File(picked.path),
+        );
+        if (uploadedUrl != null && uploadedUrl.isNotEmpty) {
+          finalPhotoUrl = uploadedUrl;
+        }
+
+        final updatedMeta = Map<String, dynamic>.from(currentUser.metadata ?? {});
+        updatedMeta['passportPhotoUrl'] = finalPhotoUrl;
+        updatedMeta['photoUrl'] = finalPhotoUrl;
+        final updatedUser = currentUser.copyWith(
+          profileImageUrl: finalPhotoUrl,
+          metadata: updatedMeta,
+        );
+
+        await ref.read(authServiceProvider).updateUserProfile(updatedUser);
+      }
+
+      if (mounted) {
+        setState(() {
+          _customPhotoPath = finalPhotoUrl;
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Student profile photo updated successfully!'),
+              ],
+            ),
+            backgroundColor: Color(0xFF16A34A),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating photo: $e')),
+        );
+      }
+    }
+  }
+
   void _showUploadPassportPhotoModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Update Profile Picture', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            const Text('Upload a clear formal passport size picture for campus ID and resume.', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const CircleAvatar(backgroundColor: Color(0xFFEEF2FF), child: Icon(Icons.camera_alt_outlined, color: Color(0xFF4338CA))),
-              title: const Text('Take a Photo (Camera)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  _customPhotoPath = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300';
-                });
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile picture updated from camera.')));
-              },
-            ),
-            ListTile(
-              leading: const CircleAvatar(backgroundColor: Color(0xFFEEF2FF), child: Icon(Icons.photo_library_outlined, color: Color(0xFF4338CA))),
-              title: const Text('Choose from Gallery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  _customPhotoPath = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300';
-                });
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile picture updated from gallery.')));
-              },
-            ),
-          ],
+      builder: (context) => SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Update Profile Picture', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              const Text('Upload a clear formal passport size picture for campus ID and resume.', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const CircleAvatar(backgroundColor: Color(0xFFEEF2FF), child: Icon(Icons.camera_alt_rounded, color: Color(0xFF2563EB))),
+                title: const Text('Take a Photo (Camera)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadPhoto(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(backgroundColor: Color(0xFFEEF2FF), child: Icon(Icons.photo_library_rounded, color: Color(0xFF2563EB))),
+                title: const Text('Choose from Gallery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadPhoto(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
